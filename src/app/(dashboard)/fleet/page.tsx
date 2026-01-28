@@ -201,7 +201,7 @@ export default function FleetPage() {
 		<div className="h-[calc(100vh-7rem)] animate-fade-in">
 			<Card className="h-full overflow-hidden">
 				<div className="flex h-full">
-					<div className="w-[420px] border-r flex-shrink-0 bg-card">
+					<div className="w-105 border-r shrink-0 bg-card">
 						<VehicleList
 							vehicles={mockVehicles}
 							selectedVehicle={selectedVehicle}

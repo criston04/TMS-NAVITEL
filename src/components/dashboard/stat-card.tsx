@@ -42,7 +42,7 @@ export function StatCard({
           <div className="text-2xl font-bold">{value}</div>
           
           {(trend || data) && (
-            <div className="flex items-center justify-between mt-1 h-[40px]">
+            <div className="flex items-center justify-between mt-1 h-10">
               {/* Trend Info */}
               {trend && (
                 <p className="text-xs text-muted-foreground">
@@ -62,7 +62,7 @@ export function StatCard({
 
               {/* Sparkline Chart */}
               {data && data.length > 0 && (
-                <div className="h-[40px] w-[80px] sm:w-[100px] -mr-2">
+                <div className="h-10 w-20 sm:w-25 -mr-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data}>
                       <defs>

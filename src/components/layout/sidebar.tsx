@@ -130,8 +130,6 @@ export function Sidebar() {
   const {
     isCollapsed,
     isActive,
-    isMenuOpen,
-    toggleMenu,
     toggleSidebar,
   } = useNavigation();
 
@@ -141,7 +139,7 @@ export function Sidebar() {
         className={cn(
           "relative flex h-screen flex-col border-r bg-card",
           "transition-all duration-300 ease-out",
-          isCollapsed ? "w-[70px]" : "w-[260px]"
+          isCollapsed ? "w-17.5" : "w-65"
         )}
       >
         <SidebarHeader isCollapsed={isCollapsed} />
@@ -149,32 +147,15 @@ export function Sidebar() {
 
         {/* Navigation */}
         <ScrollArea className="flex-1 px-3">
-          <nav className="flex flex-col gap-1 py-4">
-            {navigationConfig.map((item) => {
-              const hasChildren = item.children && item.children.length > 0;
-
-              if (hasChildren) {
-                return (
-                  <NavGroup
-                    key={item.title}
-                    item={item}
-                    isCollapsed={isCollapsed}
-                    isOpen={isMenuOpen(item.title)}
-                    isChildActive={isActive}
-                    onToggle={() => toggleMenu(item.title)}
-                  />
-                );
-              }
-
-              return (
-                <NavLink
-                  key={item.href}
-                  {...item}
-                  isCollapsed={isCollapsed}
-                  isActive={isActive(item.href)}
-                />
-              );
-            })}
+          <nav className="flex flex-col py-4">
+            {navigationConfig.map((group) => (
+              <NavGroup
+                key={group.groupTitle}
+                group={group}
+                isCollapsed={isCollapsed}
+                isActive={isActive}
+              />
+            ))}
           </nav>
         </ScrollArea>
 
