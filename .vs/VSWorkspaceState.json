@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\app",
+    "\\src\\components",
+    "\\src\\components\\fleet",
+    "\\src\\components\\layout"
+  ],
+  "SelectedNode": "\\src\\components\\fleet\\vehicle-card.tsx",
+  "PreviewInSolutionExplorer": false
+}
