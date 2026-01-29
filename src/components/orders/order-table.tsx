@@ -11,9 +11,6 @@
 import { memo } from 'react';
 import {
   MoreHorizontal,
-  ArrowRight,
-  TrendingDown,
-  TrendingUp,
   AlertTriangle,
 } from 'lucide-react';
 import type { Order } from '@/types/order';
@@ -76,26 +73,26 @@ function OrderTableComponent({
   allSelected,
   onClick,
   className,
-}: OrderTableProps) {
+}: Readonly<OrderTableProps>) {
   return (
     <div className={cn('rounded-md border bg-card', className)}>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px]">
+            <TableHead className="w-12.5">
               <Checkbox 
-                checked={allSelected ? true : selectedIds.size > 0 ? 'indeterminate' : false}
+                checked={allSelected || (selectedIds.size > 0 ? 'indeterminate' : false)}
                 onCheckedChange={(checked) => onSelectAll?.(!!checked)}
               />
             </TableHead>
-            <TableHead className="w-[120px]">Orden</TableHead>
-            <TableHead className="min-w-[140px]">Cliente</TableHead>
-            <TableHead className="min-w-[200px]">Ruta</TableHead>
-            <TableHead className="w-[120px]">Estado</TableHead>
-            <TableHead className="w-[100px]">Prioridad</TableHead>
-            <TableHead className="w-[140px]">Conductor/Vehículo</TableHead>
-            <TableHead className="w-[140px] text-right">Creación</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="w-30">Orden</TableHead>
+            <TableHead className="min-w-35">Cliente</TableHead>
+            <TableHead className="min-w-50">Ruta</TableHead>
+            <TableHead className="w-30">Estado</TableHead>
+            <TableHead className="w-25">Prioridad</TableHead>
+            <TableHead className="w-35">Conductor/Vehículo</TableHead>
+            <TableHead className="w-35 text-right">Creación</TableHead>
+            <TableHead className="w-12.5"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -103,7 +100,7 @@ function OrderTableComponent({
             const statusConfig = STATUS_CONFIG[order.status];
             const priorityConfig = PRIORITY_CONFIG[order.priority];
             const origin = order.milestones[0];
-            const destination = order.milestones[order.milestones.length - 1];
+            const destination = order.milestones.at(-1);
             const isSelected = selectedIds.has(order.id);
 
             return (
@@ -144,11 +141,11 @@ function OrderTableComponent({
                   <div className="flex flex-col gap-1 text-xs">
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                      <span className="truncate max-w-[150px]">{origin?.geofenceName}</span>
+                      <span className="truncate max-w-37.5">{origin?.geofenceName}</span>
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                      <span className="truncate max-w-[150px]">{destination?.geofenceName}</span>
+                      <span className="truncate max-w-37.5">{destination?.geofenceName}</span>
                     </div>
                   </div>
                 </TableCell>

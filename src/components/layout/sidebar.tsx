@@ -27,20 +27,20 @@ import { NavGroup } from "./nav-group";
 /* ============================================
    SIDEBAR HEADER - Logo y branding
    ============================================ */
-function SidebarHeader({ isCollapsed }: { isCollapsed: boolean }) {
+function SidebarHeader({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
   return (
-    <div className="flex h-16 items-center justify-between px-4">
-      {!isCollapsed ? (
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground transition-transform group-hover:scale-110">
-            <Package className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-bold text-primary">Navitel</span>
-        </Link>
-      ) : (
-        <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Package className="h-5 w-5" />
+    <div className="flex h-12 items-center justify-between px-3">
+      {isCollapsed ? (
+        <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <Package className="h-4 w-4" />
         </div>
+      ) : (
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground transition-transform group-hover:scale-105">
+            <Package className="h-4 w-4" />
+          </div>
+          <span className="text-base font-bold text-primary">Navitel</span>
+        </Link>
       )}
     </div>
   );
@@ -52,17 +52,17 @@ function SidebarHeader({ isCollapsed }: { isCollapsed: boolean }) {
 function SidebarFooter({
   isCollapsed,
   onLogout,
-}: {
+}: Readonly<{
   isCollapsed: boolean;
   onLogout: () => void;
-}) {
+}>) {
   const footerItems = [
     { title: "Configuración", href: "/settings", icon: Settings },
     { title: "Ayuda", href: "/help", icon: HelpCircle },
   ];
 
   return (
-    <div className="border-t p-3 space-y-1">
+    <div className="border-t p-2 space-y-0.5">
       {footerItems.map((item) => (
         <NavLink
           key={item.href}
@@ -77,14 +77,14 @@ function SidebarFooter({
         <button
           onClick={onLogout}
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground",
+            "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-muted-foreground",
             "transition-all duration-200 ease-out",
             "hover:bg-destructive/10 hover:text-destructive"
           )}
         >
-          <LogOut className="h-5 w-5 shrink-0" />
+          <LogOut className="h-4 w-4 shrink-0" />
           {!isCollapsed && (
-            <span className="text-sm font-medium">Cerrar sesión</span>
+            <span className="text-xs font-medium">Cerrar sesión</span>
           )}
         </button>
       </TooltipProvider>
@@ -98,23 +98,23 @@ function SidebarFooter({
 function SidebarToggle({
   isCollapsed,
   onToggle,
-}: {
+}: Readonly<{
   isCollapsed: boolean;
   onToggle: () => void;
-}) {
+}>) {
   return (
     <Button
       variant="secondary"
       size="icon"
       className={cn(
-        "absolute -right-3 top-6 z-50 h-6 w-6 rounded-full border shadow-md",
+        "absolute -right-2.5 top-4 z-50 h-5 w-5 rounded-full border shadow-sm",
         "transition-all duration-200 hover:scale-110"
       )}
       onClick={onToggle}
     >
       <ChevronLeft
         className={cn(
-          "h-4 w-4 transition-transform duration-300",
+          "h-3 w-3 transition-transform duration-300",
           isCollapsed && "rotate-180"
         )}
       />
@@ -139,15 +139,15 @@ export function Sidebar() {
         className={cn(
           "relative flex h-screen flex-col border-r bg-card",
           "transition-all duration-300 ease-out",
-          isCollapsed ? "w-17.5" : "w-65"
+          isCollapsed ? "w-14" : "w-56"
         )}
       >
         <SidebarHeader isCollapsed={isCollapsed} />
         <SidebarToggle isCollapsed={isCollapsed} onToggle={toggleSidebar} />
 
         {/* Navigation */}
-        <ScrollArea className="flex-1 px-3">
-          <nav className="flex flex-col py-4">
+        <ScrollArea className="flex-1 px-2">
+          <nav className="flex flex-col py-2">
             {navigationConfig.map((group) => (
               <NavGroup
                 key={group.groupTitle}

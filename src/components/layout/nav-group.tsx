@@ -6,25 +6,26 @@
 
 "use client";
 
-import { NavGroupProps } from "@/types/navigation";
+import type { FC } from "react";
+import type { NavGroupProps } from "@/types/navigation";
 import { NavLink } from "./nav-link";
 
-export function NavGroup({
+export const NavGroup: FC<Readonly<NavGroupProps>> = ({
   group,
   isCollapsed,
   isActive,
-}: NavGroupProps) {
+}) => {
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       {/* Título del grupo - oculto cuando está colapsado */}
       {!isCollapsed && (
-        <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <h3 className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
           {group.groupTitle}
         </h3>
       )}
 
       {/* Items del grupo */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         {group.items.map((item) => (
           <NavLink
             key={item.href}
@@ -36,4 +37,4 @@ export function NavGroup({
       </div>
     </div>
   );
-}
+};

@@ -124,7 +124,7 @@ function OrderBulkActionsComponent({
   progress = 0,
   results,
   className,
-}: OrderBulkActionsProps) {
+}: Readonly<OrderBulkActionsProps>) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // No mostrar si no hay selección

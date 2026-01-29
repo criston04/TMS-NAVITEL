@@ -1,16 +1,14 @@
-"use client";
+/**
+ * @fileoverview Barra de navegación superior
+ * @module components/layout/Navbar
+ * @description Navbar con búsqueda, acciones rápidas y menú de usuario
+ * @author TMS-NAVITEL
+ * @version 1.0.0
+ */
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+'use client';
+
+import { memo } from 'react';
 import {
   Search,
   LayoutGrid,
@@ -19,58 +17,100 @@ import {
   User,
   LogOut,
   Globe,
-} from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { cn } from '@/lib/utils';
 
-export function Navbar() {
+// ============================================
+// CONSTANTES
+// ============================================
 
+const NAVBAR_HEIGHT = 'h-14'; // 56px - compacto pero funcional
+
+// ============================================
+// COMPONENTE
+// ============================================
+
+export const Navbar = memo(function Navbar() {
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/80 backdrop-blur-md px-6">
+    <header
+      className={cn(
+        // Layout
+        'sticky top-0 z-40',
+        'flex items-center justify-between',
+        // Spacing
+        'px-4 md:px-6',
+        // Sizing
+        NAVBAR_HEIGHT,
+        // Visual
+        'border-b bg-background/80 backdrop-blur-md'
+      )}
+    >
       {/* Search */}
-      <div className="relative w-full max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative w-full max-w-sm">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search ⌘K"
-          className="h-10 w-full rounded-lg bg-muted/50 pl-10 focus-visible:bg-background"
+          placeholder="Buscar... ⌘K"
+          className={cn(
+            // Spacing
+            'pl-8',
+            // Sizing
+            'h-8 w-full',
+            // Visual
+            'rounded-md bg-muted/50',
+            // States
+            'focus-visible:bg-background'
+          )}
         />
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {/* Language */}
-        <Button variant="ghost" size="icon" className="h-9 w-9">
-          <Globe className="h-5 w-5 text-muted-foreground" />
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Globe className="h-4 w-4 text-muted-foreground" />
         </Button>
 
         {/* Theme Toggle */}
         <ThemeToggle />
 
         {/* Grid Menu */}
-        <Button variant="ghost" size="icon" className="h-9 w-9">
-          <LayoutGrid className="h-5 w-5 text-muted-foreground" />
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <LayoutGrid className="h-4 w-4 text-muted-foreground" />
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative h-9 w-9">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
+        <Button variant="ghost" size="icon" className="relative h-8 w-8">
+          <Bell className="h-4 w-4 text-muted-foreground" />
+          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-destructive" />
         </Button>
 
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-              <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-primary text-primary-foreground">
+            <Button variant="ghost" className="relative ml-1 h-8 w-8 rounded-full">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                   JD
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuContent className="w-52" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
+              <div className="flex flex-col gap-0.5">
                 <p className="text-sm font-medium">John Doe</p>
                 <p className="text-xs text-muted-foreground">
                   admin@navitel.com
@@ -79,21 +119,21 @@ export function Navbar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Profile
+              <User className="mr-2 h-3.5 w-3.5" />
+              <span className="text-sm">Perfil</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
+              <Settings className="mr-2 h-3.5 w-3.5" />
+              <span className="text-sm">Configuración</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              <LogOut className="mr-2 h-3.5 w-3.5" />
+              <span className="text-sm">Cerrar sesión</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </header>
   );
-}
+});

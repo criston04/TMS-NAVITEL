@@ -72,8 +72,8 @@ interface OrderListProps {
 function OrderListSkeleton() {
   return (
     <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Card key={i}>
+      {new Array(5).fill(null).map((_, i) => (
+        <Card key={`skeleton-${i}`}>
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <Skeleton className="h-4 w-4 mt-1" />
@@ -126,7 +126,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-function Pagination({ page, totalPages, total, onPageChange }: PaginationProps) {
+function Pagination({ page, totalPages, total, onPageChange }: Readonly<PaginationProps>) {
   const startRecord = (page - 1) * 10 + 1;
   const endRecord = Math.min(page * 10, total);
 
@@ -250,7 +250,7 @@ function OrderListComponent({
   viewMode = 'list',
   onViewModeChange,
   className,
-}: OrderListProps) {
+}: Readonly<OrderListProps>) {
   const allSelected = orders.length > 0 && orders.every(o => selectedIds.has(o.id));
   const someSelected = selectedIds.size > 0 && !allSelected;
 
@@ -289,7 +289,7 @@ function OrderListComponent({
           {/* Checkbox seleccionar todos */}
           <div className="flex items-center gap-2">
             <Checkbox
-              checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+              checked={allSelected || (someSelected ? 'indeterminate' : false)}
               onCheckedChange={handleSelectAllChange}
             />
             <span className="text-sm text-muted-foreground">

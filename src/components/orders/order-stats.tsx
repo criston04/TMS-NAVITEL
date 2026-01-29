@@ -149,7 +149,7 @@ function StatCard({
   isActive,
   onClick,
   trend,
-}: StatCardProps) {
+}: Readonly<StatCardProps>) {
   return (
     <Card
       className={cn(
@@ -205,7 +205,7 @@ function OrderStatsCardsComponent({
   onStatusClick,
   activeStatus,
   className,
-}: OrderStatsCardsProps) {
+}: Readonly<OrderStatsCardsProps>) {
   // Calcular totales
   const totals = useMemo(() => {
     const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);

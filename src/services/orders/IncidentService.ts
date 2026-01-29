@@ -45,7 +45,7 @@ const generateId = (prefix: string): string => {
  */
 class IncidentService {
   private catalog: IncidentCatalogItem[] = [...mockIncidentsCatalog];
-  private records: Map<string, IncidentRecord[]> = new Map();
+  private readonly records: Map<string, IncidentRecord[]> = new Map();
 
   // ============================================
   // MÉTODOS DE CATÁLOGO

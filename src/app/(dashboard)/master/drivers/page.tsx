@@ -41,12 +41,12 @@ function StatCard({
   value, 
   icon: Icon, 
   variant = "default" 
-}: { 
+}: Readonly<{ 
   title: string; 
   value: number | string; 
   icon: React.ElementType;
   variant?: "default" | "success" | "warning" | "danger" | "info";
-}) {
+}>) {
   const variantStyles = {
     default: "bg-muted/50",
     success: "bg-green-500/10 text-green-600",
@@ -75,7 +75,7 @@ function StatCard({
 /**
  * Estado de disponibilidad del conductor
  */
-function AvailabilityBadge({ availability }: { availability: Driver["availability"] }) {
+function AvailabilityBadge({ availability }: Readonly<{ availability: Driver["availability"] }>) {
   const config: Record<Driver["availability"], { label: string; variant: "default" | "secondary" | "outline" | "destructive"; icon: typeof CheckCircle }> = {
     "available": { label: "Disponible", variant: "default", icon: CheckCircle },
     "on-route": { label: "En Ruta", variant: "secondary", icon: MapPin },
@@ -98,7 +98,7 @@ function AvailabilityBadge({ availability }: { availability: Driver["availabilit
 /**
  * Tarjeta de conductor
  */
-function DriverCard({ driver }: { driver: Driver }) {
+function DriverCard({ driver }: Readonly<{ driver: Driver }>) {
   const checklistProgress = driver.checklist.completionPercentage;
 
   return (
@@ -167,14 +167,16 @@ function DriverCard({ driver }: { driver: Driver }) {
   );
 }
 
+const CARD_SKELETON_KEYS = ['card-1', 'card-2', 'card-3', 'card-4', 'card-5', 'card-6'] as const;
+
 /**
  * Skeleton de carga
  */
 function CardsSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i}>
+      {CARD_SKELETON_KEYS.map((key) => (
+        <Card key={key}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-4">
               <Skeleton className="h-12 w-12 rounded-full" />
@@ -189,6 +191,106 @@ function CardsSkeleton() {
         </Card>
       ))}
     </div>
+  );
+}
+
+const STATS_SKELETON_KEYS = ['stat-1', 'stat-2', 'stat-3', 'stat-4', 'stat-5', 'stat-6'] as const;
+
+/**
+ * Helper function for rendering stats section
+ */
+function renderStatsSection(statsLoading: boolean, stats: DriverStats | null) {
+  if (statsLoading) {
+    return STATS_SKELETON_KEYS.map((key) => (
+      <Card key={key}>
+        <CardContent className="p-4">
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    ));
+  }
+  
+  if (!stats) return null;
+  
+  return (
+    <>
+      <StatCard 
+        title="Total" 
+        value={stats.total} 
+        icon={UserCircle}
+      />
+      <StatCard 
+        title="Habilitados" 
+        value={stats.enabled} 
+        icon={Shield}
+        variant="success"
+      />
+      <StatCard 
+        title="Bloqueados" 
+        value={stats.blocked} 
+        icon={ShieldOff}
+        variant="danger"
+      />
+      <StatCard 
+        title="Disponibles" 
+        value={stats.available} 
+        icon={CheckCircle}
+        variant="info"
+      />
+      <StatCard 
+        title="En Ruta" 
+        value={stats.onRoute} 
+        icon={MapPin}
+        variant="warning"
+      />
+      <StatCard 
+        title="Docs por vencer" 
+        value={stats.expiringSoon} 
+        icon={AlertTriangle}
+        variant="danger"
+      />
+    </>
+  );
+}
+
+/**
+ * Helper function for rendering drivers list
+ */
+function renderDriversList(
+  driversLoading: boolean,
+  drivers: Driver[] | null,
+  search: string
+) {
+  if (driversLoading) {
+    return <CardsSkeleton />;
+  }
+  
+  if (drivers && drivers.length > 0) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {drivers.map((driver) => (
+          <DriverCard key={driver.id} driver={driver} />
+        ))}
+      </div>
+    );
+  }
+  
+  return (
+    <Card>
+      <CardContent className="text-center py-12">
+        <UserCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium">No hay conductores</h3>
+        <p className="text-muted-foreground mb-4">
+          {search ? "No se encontraron resultados" : "Comienza agregando tu primer conductor"}
+        </p>
+        {!search && (
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Agregar Conductor
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -252,53 +354,7 @@ export default function DriversPage() {
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-        {statsLoading ? (
-          [...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <Skeleton className="h-16 w-full" />
-              </CardContent>
-            </Card>
-          ))
-        ) : stats ? (
-          <>
-            <StatCard 
-              title="Total" 
-              value={stats.total} 
-              icon={UserCircle}
-            />
-            <StatCard 
-              title="Habilitados" 
-              value={stats.enabled} 
-              icon={Shield}
-              variant="success"
-            />
-            <StatCard 
-              title="Bloqueados" 
-              value={stats.blocked} 
-              icon={ShieldOff}
-              variant="danger"
-            />
-            <StatCard 
-              title="Disponibles" 
-              value={stats.available} 
-              icon={CheckCircle}
-              variant="info"
-            />
-            <StatCard 
-              title="En Ruta" 
-              value={stats.onRoute} 
-              icon={MapPin}
-              variant="warning"
-            />
-            <StatCard 
-              title="Docs por vencer" 
-              value={stats.expiringSoon} 
-              icon={AlertTriangle}
-              variant="danger"
-            />
-          </>
-        ) : null}
+        {renderStatsSection(statsLoading, stats)}
       </div>
 
       {/* Búsqueda */}
@@ -317,31 +373,7 @@ export default function DriversPage() {
       </Card>
 
       {/* Lista de conductores */}
-      {driversLoading ? (
-        <CardsSkeleton />
-      ) : drivers && drivers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {drivers.map((driver) => (
-            <DriverCard key={driver.id} driver={driver} />
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <UserCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No hay conductores</h3>
-            <p className="text-muted-foreground mb-4">
-              {search ? "No se encontraron resultados" : "Comienza agregando tu primer conductor"}
-            </p>
-            {!search && (
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Conductor
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {renderDriversList(driversLoading, drivers, search)}
     </PageWrapper>
   );
 }

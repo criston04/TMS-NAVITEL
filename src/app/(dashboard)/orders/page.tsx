@@ -42,6 +42,18 @@ import {
 type ViewMode = 'list' | 'grid';
 
 // ============================================
+// HELPERS
+// ============================================
+
+/**
+ * Convierte status a array para manejo uniforme
+ */
+function toStatusArray(status: OrderStatus | OrderStatus[] | undefined): OrderStatus[] {
+  if (!status) return [];
+  return Array.isArray(status) ? status : [status];
+}
+
+// ============================================
 // COMPONENTE PRINCIPAL
 // ============================================
 
@@ -120,8 +132,7 @@ export default function OrdersPage() {
 
   // Filtrar por estado desde las cards
   const handleStatusClick = useCallback((status: OrderStatus) => {
-    const currentStatus = filters.status;
-    const currentArray = Array.isArray(currentStatus) ? currentStatus : currentStatus ? [currentStatus] : [];
+    const currentArray = toStatusArray(filters.status);
     
     if (currentArray.includes(status)) {
       // Quitar el filtro si ya está activo
@@ -154,8 +165,7 @@ export default function OrdersPage() {
 
   // Estado activo seleccionado (para highlight en cards)
   const activeStatus = useMemo(() => {
-    const currentStatus = filters.status;
-    const currentArray = Array.isArray(currentStatus) ? currentStatus : currentStatus ? [currentStatus] : [];
+    const currentArray = toStatusArray(filters.status);
     if (currentArray.length === 1) {
       return currentArray[0];
     }

@@ -1,118 +1,101 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Box, Plus, Upload, Download, Search } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { PageWrapper } from '@/components/page-wrapper';
+import { Box, Plus, Upload, Download, Search } from 'lucide-react';
 
 export default function ProductsPage() {
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Productos</h1>
-          <p className="text-muted-foreground">
-            Catálogo de productos para transporte
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Importar Excel/CSV
+    <PageWrapper
+      title="Productos"
+      description="Catálogo de productos para transporte"
+      actions={
+        <>
+          <Button variant="outline" size="sm">
+            <Upload className="mr-1.5 h-3.5 w-3.5" />
+            Importar
           </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm">
+            <Download className="mr-1.5 h-3.5 w-3.5" />
             Exportar
           </Button>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button size="sm">
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
             Nuevo Producto
           </Button>
-        </div>
-      </div>
-
+        </>
+      }
+    >
       {/* Search and Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
+        <CardContent className="p-3">
+          <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar productos por nombre, SKU, categoría..."
-                className="pl-10"
+                className="pl-8 h-8 text-sm"
               />
             </div>
-            <Button variant="secondary">Filtrar</Button>
+            <Button variant="secondary" size="sm">Filtrar</Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Productos</CardTitle>
-            <Box className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-          </CardContent>
+      <div className="grid gap-3 md:grid-cols-4">
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium text-muted-foreground">Total Productos</p>
+            <Box className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <p className="mt-1 text-xl font-bold">0</p>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Activos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">0</div>
-          </CardContent>
+        <Card className="p-3">
+          <p className="text-xs font-medium text-muted-foreground">Activos</p>
+          <p className="mt-1 text-xl font-bold text-green-600">0</p>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Inactivos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-400">0</div>
-          </CardContent>
+        <Card className="p-3">
+          <p className="text-xs font-medium text-muted-foreground">Inactivos</p>
+          <p className="mt-1 text-xl font-bold text-gray-400">0</p>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Categorías</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">0</div>
-          </CardContent>
+        <Card className="p-3">
+          <p className="text-xs font-medium text-muted-foreground">Categorías</p>
+          <p className="mt-1 text-xl font-bold text-blue-600">0</p>
         </Card>
       </div>
 
       {/* Table Placeholder */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="p-3 pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
             Catálogo de Productos
-            <Badge variant="outline" className="ml-2">0 registros</Badge>
+            <Badge variant="outline" className="text-[10px]">0 registros</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Box className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium">No hay productos registrados</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+        <CardContent className="p-3 pt-0">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Box className="h-10 w-10 text-muted-foreground/50 mb-3" />
+            <h3 className="text-sm font-medium">No hay productos registrados</h3>
+            <p className="text-xs text-muted-foreground mb-3">
               Agrega productos manualmente o importa desde Excel/CSV
             </p>
             <div className="flex gap-2">
-              <Button variant="outline">
-                <Upload className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm">
+                <Upload className="mr-1.5 h-3.5 w-3.5" />
                 Importar
               </Button>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Producto
+              <Button size="sm">
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Agregar
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageWrapper>
   );
 }

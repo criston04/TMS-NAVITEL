@@ -44,12 +44,12 @@ function StatCard({
   value, 
   icon: Icon, 
   variant = "default" 
-}: { 
+}: Readonly<{ 
   title: string; 
   value: number | string; 
   icon: React.ElementType;
   variant?: "default" | "success" | "warning" | "danger" | "info";
-}) {
+}>) {
   const variantStyles = {
     default: "bg-muted/50",
     success: "bg-green-500/10 text-green-600",
@@ -78,7 +78,7 @@ function StatCard({
 /**
  * Estado operacional del vehículo
  */
-function OperationalBadge({ status }: { status: Vehicle["operationalStatus"] }) {
+function OperationalBadge({ status }: Readonly<{ status: Vehicle["operationalStatus"] }>) {
   const config: Record<Vehicle["operationalStatus"], { label: string; variant: "default" | "secondary" | "outline" | "destructive"; icon: typeof CheckCircle }> = {
     "available": { label: "Disponible", variant: "default", icon: CheckCircle },
     "on-route": { label: "En Ruta", variant: "secondary", icon: MapPin },
@@ -101,7 +101,7 @@ function OperationalBadge({ status }: { status: Vehicle["operationalStatus"] }) 
 /**
  * Tarjeta de vehículo
  */
-function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+function VehicleCard({ vehicle }: Readonly<{ vehicle: Vehicle }>) {
   const checklistProgress = vehicle.checklist.completionPercentage;
 
   return (
@@ -184,14 +184,16 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   );
 }
 
+const CARD_SKELETON_KEYS = ['card-1', 'card-2', 'card-3', 'card-4', 'card-5', 'card-6'] as const;
+
 /**
  * Skeleton de carga
  */
 function CardsSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i}>
+      {CARD_SKELETON_KEYS.map((key) => (
+        <Card key={key}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-4">
               <Skeleton className="h-12 w-12 rounded-full" />
@@ -206,6 +208,112 @@ function CardsSkeleton() {
         </Card>
       ))}
     </div>
+  );
+}
+
+const STATS_SKELETON_KEYS = ['stat-1', 'stat-2', 'stat-3', 'stat-4', 'stat-5', 'stat-6', 'stat-7'] as const;
+
+/**
+ * Helper function for rendering stats section
+ */
+function renderStatsSection(statsLoading: boolean, stats: VehicleStats | null) {
+  if (statsLoading) {
+    return STATS_SKELETON_KEYS.map((key) => (
+      <Card key={key}>
+        <CardContent className="p-4">
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    ));
+  }
+  
+  if (!stats) return null;
+  
+  return (
+    <>
+      <StatCard 
+        title="Total" 
+        value={stats.total} 
+        icon={Truck}
+      />
+      <StatCard 
+        title="Habilitados" 
+        value={stats.enabled} 
+        icon={Shield}
+        variant="success"
+      />
+      <StatCard 
+        title="Bloqueados" 
+        value={stats.blocked} 
+        icon={ShieldOff}
+        variant="danger"
+      />
+      <StatCard 
+        title="Disponibles" 
+        value={stats.available} 
+        icon={CheckCircle}
+        variant="info"
+      />
+      <StatCard 
+        title="En Ruta" 
+        value={stats.onRoute} 
+        icon={MapPin}
+        variant="warning"
+      />
+      <StatCard 
+        title="Mantenimiento" 
+        value={stats.inMaintenance} 
+        icon={Wrench}
+        variant="warning"
+      />
+      <StatCard 
+        title="Docs por vencer" 
+        value={stats.expiringSoon} 
+        icon={AlertTriangle}
+        variant="danger"
+      />
+    </>
+  );
+}
+
+/**
+ * Helper function for rendering vehicles list
+ */
+function renderVehiclesList(
+  vehiclesLoading: boolean,
+  vehicles: Vehicle[] | null,
+  search: string
+) {
+  if (vehiclesLoading) {
+    return <CardsSkeleton />;
+  }
+  
+  if (vehicles && vehicles.length > 0) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {vehicles.map((vehicle) => (
+          <VehicleCard key={vehicle.id} vehicle={vehicle} />
+        ))}
+      </div>
+    );
+  }
+  
+  return (
+    <Card>
+      <CardContent className="text-center py-12">
+        <Truck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium">No hay vehículos</h3>
+        <p className="text-muted-foreground mb-4">
+          {search ? "No se encontraron resultados" : "Comienza agregando tu primer vehículo"}
+        </p>
+        {!search && (
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Agregar Vehículo
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -269,59 +377,7 @@ export default function VehiclesPage() {
 
       {/* Estadísticas */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
-        {statsLoading ? (
-          [...Array(7)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <Skeleton className="h-16 w-full" />
-              </CardContent>
-            </Card>
-          ))
-        ) : stats ? (
-          <>
-            <StatCard 
-              title="Total" 
-              value={stats.total} 
-              icon={Truck}
-            />
-            <StatCard 
-              title="Habilitados" 
-              value={stats.enabled} 
-              icon={Shield}
-              variant="success"
-            />
-            <StatCard 
-              title="Bloqueados" 
-              value={stats.blocked} 
-              icon={ShieldOff}
-              variant="danger"
-            />
-            <StatCard 
-              title="Disponibles" 
-              value={stats.available} 
-              icon={CheckCircle}
-              variant="info"
-            />
-            <StatCard 
-              title="En Ruta" 
-              value={stats.onRoute} 
-              icon={MapPin}
-              variant="warning"
-            />
-            <StatCard 
-              title="Mantenimiento" 
-              value={stats.inMaintenance} 
-              icon={Wrench}
-              variant="warning"
-            />
-            <StatCard 
-              title="Docs por vencer" 
-              value={stats.expiringSoon} 
-              icon={AlertTriangle}
-              variant="danger"
-            />
-          </>
-        ) : null}
+        {renderStatsSection(statsLoading, stats)}
       </div>
 
       {/* Búsqueda */}
@@ -340,31 +396,7 @@ export default function VehiclesPage() {
       </Card>
 
       {/* Lista de vehículos */}
-      {vehiclesLoading ? (
-        <CardsSkeleton />
-      ) : vehicles && vehicles.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {vehicles.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Truck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No hay vehículos</h3>
-            <p className="text-muted-foreground mb-4">
-              {search ? "No se encontraron resultados" : "Comienza agregando tu primer vehículo"}
-            </p>
-            {!search && (
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Vehículo
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {renderVehiclesList(vehiclesLoading, vehicles, search)}
     </PageWrapper>
   );
 }

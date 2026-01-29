@@ -67,12 +67,12 @@ interface TimelineItemProps {
 /**
  * Configuración de estados de hitos
  */
-const MILESTONE_STATUS_CONFIG: Record<MilestoneStatus, {
+const MILESTONE_STATUS_CONFIG: Readonly<Record<MilestoneStatus, {
   icon: typeof Circle;
   className: string;
   lineClass: string;
   label: string;
-}> = {
+}>> = {
   pending: {
     icon: Circle,
     className: 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400',
@@ -179,7 +179,7 @@ function TimelineItem({
   showTimes,
   interactive,
   onClick,
-}: TimelineItemProps) {
+}: Readonly<TimelineItemProps>) {
   const statusConfig = MILESTONE_STATUS_CONFIG[milestone.status];
   const TypeIcon = MILESTONE_TYPE_ICONS[milestone.type];
   const StatusIcon = statusConfig.icon;
@@ -200,7 +200,10 @@ function TimelineItem({
         'flex gap-4',
         interactive && 'cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2',
       )}
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
       onClick={() => onClick?.(milestone)}
+      onKeyDown={interactive ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(milestone); } : undefined}
     >
       {/* Indicador y línea */}
       <div className="flex flex-col items-center">
@@ -324,7 +327,7 @@ function OrderTimelineComponent({
   interactive = false,
   onMilestoneClick,
   className,
-}: OrderTimelineProps) {
+}: Readonly<OrderTimelineProps>) {
   const { milestones } = order;
 
   // Ordenar hitos por secuencia
@@ -369,7 +372,10 @@ function OrderTimelineComponent({
                   'flex flex-col items-center min-w-25 px-2',
                   interactive && 'cursor-pointer hover:opacity-80',
                 )}
+                role={interactive ? 'button' : undefined}
+                tabIndex={interactive ? 0 : undefined}
                 onClick={() => onMilestoneClick?.(milestone)}
+                onKeyDown={interactive ? (e) => { if (e.key === 'Enter' || e.key === ' ') onMilestoneClick?.(milestone); } : undefined}
               >
                 <div
                   className={cn(

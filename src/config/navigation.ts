@@ -11,8 +11,6 @@ import {
   FileText,
   DollarSign,
   Users,
-  Truck,
-  Factory,
   Box,
   UserCircle,
   Car,

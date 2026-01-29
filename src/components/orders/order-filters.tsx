@@ -97,7 +97,7 @@ function OrderFiltersComponent({
   activeFilterCount,
   isLoading = false,
   className,
-}: OrderFiltersProps) {
+}: Readonly<OrderFiltersProps>) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
 
@@ -138,16 +138,24 @@ function OrderFiltersComponent({
   }, [applySearch]);
 
   /**
+   * Convierte status a array para manejo uniforme
+   */
+  const toStatusArray = useCallback((status: OrderStatus | OrderStatus[] | undefined): OrderStatus[] => {
+    if (!status) return [];
+    return Array.isArray(status) ? status : [status];
+  }, []);
+
+  /**
    * Toggle de estado en los filtros
    */
   const toggleStatus = useCallback((status: OrderStatus) => {
-    const currentStatuses = Array.isArray(filters.status) ? filters.status : (filters.status ? [filters.status] : []);
+    const currentStatuses = toStatusArray(filters.status);
     const newStatuses = currentStatuses.includes(status)
       ? currentStatuses.filter((s: OrderStatus) => s !== status)
       : [...currentStatuses, status];
     
     updateFilter('status', newStatuses.length > 0 ? newStatuses : undefined);
-  }, [filters.status, updateFilter]);
+  }, [filters.status, updateFilter, toStatusArray]);
 
   /**
    * Obtiene label de estado
@@ -159,7 +167,7 @@ function OrderFiltersComponent({
   /**
    * Obtiene los estados actuales como array
    */
-  const currentStatusArray = Array.isArray(filters.status) ? filters.status : (filters.status ? [filters.status] : []);
+  const currentStatusArray = toStatusArray(filters.status);
 
   return (
     <div className={cn('space-y-3', className)}>

@@ -190,14 +190,14 @@ function OrderCardComponent({
   variant = 'default',
   showCheckbox = true,
   className,
-}: OrderCardProps) {
+}: Readonly<OrderCardProps>) {
   const statusConfig = STATUS_CONFIG[order.status];
   const priorityConfig = PRIORITY_CONFIG[order.priority];
   const StatusIcon = statusConfig.icon;
 
   // Calcular tiempo de entrega
   const deliveryTime = useMemo(() => {
-    const lastMilestone = order.milestones[order.milestones.length - 1];
+    const lastMilestone = order.milestones.at(-1);
     if (lastMilestone?.estimatedArrival) {
       return getTimeRemaining(new Date(lastMilestone.estimatedArrival));
     }
@@ -206,7 +206,7 @@ function OrderCardComponent({
 
   // Origen y destino
   const origin = order.milestones[0];
-  const destination = order.milestones[order.milestones.length - 1];
+  const destination = order.milestones.at(-1);
 
   /**
    * Maneja el click en el checkbox
@@ -236,7 +236,12 @@ function OrderCardComponent({
         <CardContent className="p-3">
           <div className="flex items-center gap-3">
             {showCheckbox && (
-              <div onClick={handleCheckboxClick}>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={handleCheckboxClick}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCheckboxClick(e as unknown as React.MouseEvent); }}
+              >
                 <Checkbox checked={isSelected} />
               </div>
             )}
@@ -282,7 +287,13 @@ function OrderCardComponent({
         {/* Header */}
         <div className="flex items-start gap-3 mb-3">
           {showCheckbox && (
-            <div onClick={handleCheckboxClick} className="mt-1">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleCheckboxClick}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCheckboxClick(e as unknown as React.MouseEvent); }}
+              className="mt-1"
+            >
               <Checkbox checked={isSelected} />
             </div>
           )}
@@ -327,7 +338,7 @@ function OrderCardComponent({
           <div className="flex items-center gap-1">
             <Package className="w-3 h-3" />
             <span>{order.cargo.type}</span>
-            {order.cargo.weightKg && (
+            {Boolean(order.cargo.weightKg) && (
               <span className="text-muted-foreground">
                 ({order.cargo.weightKg.toLocaleString()} kg)
               </span>

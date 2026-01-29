@@ -105,7 +105,7 @@ class OrderImportService {
     extraColumns: string[];
   } {
     const normalizedHeaders = headers.map(h => 
-      h.toLowerCase().trim().replace(/\s+/g, '_')
+      h.toLowerCase().trim().replaceAll(/\s+/g, '_')
     );
 
     const requiredColumns = [
@@ -181,43 +181,43 @@ class OrderImportService {
     // Validar coordenadas
     const originLat = Number(row['origen_lat']);
     const originLng = Number(row['origen_lng']);
-    if (row['origen_lat'] && (isNaN(originLat) || originLat < -90 || originLat > 90)) {
+    if (row['origen_lat'] && (Number.isNaN(originLat) || originLat < -90 || originLat > 90)) {
       errors.push('Latitud de origen inválida');
     }
-    if (row['origen_lng'] && (isNaN(originLng) || originLng < -180 || originLng > 180)) {
+    if (row['origen_lng'] && (Number.isNaN(originLng) || originLng < -180 || originLng > 180)) {
       errors.push('Longitud de origen inválida');
     }
 
     const destLat = Number(row['destino_lat']);
     const destLng = Number(row['destino_lng']);
-    if (row['destino_lat'] && (isNaN(destLat) || destLat < -90 || destLat > 90)) {
+    if (row['destino_lat'] && (Number.isNaN(destLat) || destLat < -90 || destLat > 90)) {
       errors.push('Latitud de destino inválida');
     }
-    if (row['destino_lng'] && (isNaN(destLng) || destLng < -180 || destLng > 180)) {
+    if (row['destino_lng'] && (Number.isNaN(destLng) || destLng < -180 || destLng > 180)) {
       errors.push('Longitud de destino inválida');
     }
 
     // Validar fechas
     const startDate = new Date(row['fecha_inicio'] as string);
     const endDate = new Date(row['fecha_fin'] as string);
-    if (row['fecha_inicio'] && isNaN(startDate.getTime())) {
+    if (row['fecha_inicio'] && Number.isNaN(startDate.getTime())) {
       errors.push('Formato de fecha_inicio inválido');
     }
-    if (row['fecha_fin'] && isNaN(endDate.getTime())) {
+    if (row['fecha_fin'] && Number.isNaN(endDate.getTime())) {
       errors.push('Formato de fecha_fin inválido');
     }
-    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && startDate > endDate) {
+    if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && startDate > endDate) {
       errors.push('La fecha de inicio no puede ser posterior a la fecha de fin');
     }
 
     // Validar peso y cantidad
     const weight = Number(row['carga_peso_kg']);
-    if (row['carga_peso_kg'] && (isNaN(weight) || weight <= 0)) {
+    if (row['carga_peso_kg'] && (Number.isNaN(weight) || weight <= 0)) {
       warnings.push('Peso de carga inválido o no especificado');
     }
 
     const quantity = Number(row['carga_cantidad']);
-    if (row['carga_cantidad'] && (isNaN(quantity) || quantity <= 0)) {
+    if (row['carga_cantidad'] && (Number.isNaN(quantity) || quantity <= 0)) {
       warnings.push('Cantidad de carga inválida o no especificada');
     }
 
@@ -273,8 +273,17 @@ class OrderImportService {
       data,
       errors,
       warnings,
-      status: errors.length > 0 ? 'invalid' : warnings.length > 0 ? 'warning' : 'valid',
+      status: this.determineRowStatus(errors, warnings),
     };
+  }
+
+  /**
+   * Determines the row status based on errors and warnings
+   */
+  private determineRowStatus(errors: string[], warnings: string[]): 'valid' | 'warning' | 'invalid' {
+    if (errors.length > 0) return 'invalid';
+    if (warnings.length > 0) return 'warning';
+    return 'valid';
   }
 
   /**
@@ -378,8 +387,8 @@ class OrderImportService {
           origen_lng: -77.0428,
           destino_nombre: 'Centro Distribución',
           destino_direccion: 'Calle Destino 456',
-          destino_lat: -12.1000,
-          destino_lng: -77.0500,
+          destino_lat: -12.1,
+          destino_lng: -77.05,
           fecha_inicio: '2026-02-01T08:00:00',
           fecha_fin: '2026-02-01T18:00:00',
           referencia_externa: 'REF-EXT-001',
@@ -431,7 +440,7 @@ class OrderImportService {
         origen_lng: -77.0428,
         destino_nombre: 'Centro Arequipa',
         destino_direccion: 'Parque Industrial',
-        destino_lat: -16.4090,
+        destino_lat: -16.409,
         destino_lng: -71.5375,
         fecha_inicio: new Date().toISOString(),
         fecha_fin: new Date(Date.now() + 24 * 3600000).toISOString(),

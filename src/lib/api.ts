@@ -53,7 +53,7 @@ function buildUrl(endpoint: string, params?: RequestOptions["params"]): string {
  * Obtiene el token de autenticación
  */
 function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
+  if (typeof globalThis.window === "undefined") return null;
   
   try {
     const user = localStorage.getItem("tms_user");

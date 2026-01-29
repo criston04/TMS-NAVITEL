@@ -17,12 +17,12 @@ interface SkeletonTextProps {
 }
 
 /** Skeleton para texto con múltiples líneas */
-export function SkeletonText({ lines = 1, className }: SkeletonTextProps) {
+export function SkeletonText({ lines = 1, className }: Readonly<SkeletonTextProps>) {
   return (
     <div className={cn("space-y-2", className)}>
-      {Array.from({ length: lines }).map((_, i) => (
+      {new Array(lines).fill(null).map((_, i) => (
         <Skeleton
-          key={i}
+          key={`text-line-${i}`}
           className={cn("h-4", i === lines - 1 && lines > 1 && "w-3/4")}
         />
       ))}
@@ -36,7 +36,7 @@ interface SkeletonAvatarProps {
 }
 
 /** Skeleton para avatares */
-export function SkeletonAvatar({ size = "md", className }: SkeletonAvatarProps) {
+export function SkeletonAvatar({ size = "md", className }: Readonly<SkeletonAvatarProps>) {
   const sizeClasses = {
     sm: "h-8 w-8",
     md: "h-10 w-10",
@@ -54,7 +54,7 @@ interface SkeletonButtonProps {
 }
 
 /** Skeleton para botones */
-export function SkeletonButton({ size = "md", className }: SkeletonButtonProps) {
+export function SkeletonButton({ size = "md", className }: Readonly<SkeletonButtonProps>) {
   const sizeClasses = {
     sm: "h-8 w-20",
     md: "h-10 w-24",
@@ -89,11 +89,11 @@ export function SkeletonKPICard() {
 }
 
 /** Skeleton para fila de tabla */
-export function SkeletonTableRow({ columns = 6 }: { columns?: number }) {
+export function SkeletonTableRow({ columns = 6 }: Readonly<{ columns?: number }>) {
   return (
     <tr className="border-b">
-      {Array.from({ length: columns }).map((_, i) => (
-        <td key={i} className="py-4 px-2">
+      {new Array(columns).fill(null).map((_, i) => (
+        <td key={`col-${i}`} className="py-4 px-2">
           {i === 0 ? (
             <div className="flex items-center gap-3">
               <Skeleton className="h-10 w-10 rounded-lg" />
@@ -117,7 +117,7 @@ interface SkeletonTableProps {
 }
 
 /** Skeleton para tabla completa */
-export function SkeletonTable({ rows = 5, columns = 6 }: SkeletonTableProps) {
+export function SkeletonTable({ rows = 5, columns = 6 }: Readonly<SkeletonTableProps>) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -129,16 +129,16 @@ export function SkeletonTable({ rows = 5, columns = 6 }: SkeletonTableProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                {Array.from({ length: columns }).map((_, i) => (
-                  <th key={i} className="pb-3 px-2">
+                {new Array(columns).fill(null).map((_, i) => (
+                  <th key={`header-${i}`} className="pb-3 px-2">
                     <Skeleton className="h-4 w-20" />
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: rows }).map((_, i) => (
-                <SkeletonTableRow key={i} columns={columns} />
+              {new Array(rows).fill(null).map((_, i) => (
+                <SkeletonTableRow key={`row-${i}`} columns={columns} />
               ))}
             </tbody>
           </table>
@@ -158,16 +158,16 @@ export function SkeletonVehicleOverview() {
       <CardContent className="space-y-6">
         {/* Labels */}
         <div className="flex justify-between">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-3 w-16" />
+          {new Array(4).fill(null).map((_, i) => (
+            <Skeleton key={`label-${i}`} className="h-3 w-16" />
           ))}
         </div>
         {/* Progress bar */}
         <Skeleton className="h-10 w-full rounded-lg" />
         {/* Stats list */}
         <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center justify-between">
+          {new Array(4).fill(null).map((_, i) => (
+            <div key={`stat-${i}`} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-9 w-9 rounded-lg" />
                 <Skeleton className="h-4 w-24" />

@@ -26,7 +26,7 @@ export function StatCard({
   data,
   className,
   color = "hsl(var(--primary))", // Default to primary color
-}: StatCardProps) {
+}: Readonly<StatCardProps>) {
   const isPositive = trend?.value ? trend.value > 0 : null;
 
   return (

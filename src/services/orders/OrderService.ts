@@ -81,9 +81,9 @@ const generateOrderNumber = (index: number): string => {
  * Implementa patrón Repository con soporte para mock y API real
  */
 class OrderService {
-  private config: OrderServiceConfig;
+  private readonly config: OrderServiceConfig;
   private orders: Order[] = [...mockOrders];
-  private eventListeners: Map<string, Set<(event: OrderRealtimeEvent) => void>> = new Map();
+  private readonly eventListeners: Map<string, Set<(event: OrderRealtimeEvent) => void>> = new Map();
 
   /**
    * Crea una instancia del servicio de órdenes

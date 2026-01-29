@@ -8,5 +8,10 @@
   ],
   "files.associations": {
     "*.css": "tailwindcss"
+  },
+  "github.copilot.enable": {
+    "markdown": true,
+    "plaintext": true,
+    "scminput": true
   }
 }

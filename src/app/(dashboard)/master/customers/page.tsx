@@ -38,12 +38,12 @@ function StatCard({
   value, 
   icon: Icon, 
   variant = "default" 
-}: { 
+}: Readonly<{ 
   title: string; 
   value: number | string; 
   icon: React.ElementType;
   variant?: "default" | "success" | "warning" | "danger";
-}) {
+}>) {
   const variantStyles = {
     default: "bg-muted/50",
     success: "bg-green-500/10 text-green-600",
@@ -71,7 +71,7 @@ function StatCard({
 /**
  * Fila de cliente en la tabla
  */
-function CustomerRow({ customer }: { customer: Customer }) {
+function CustomerRow({ customer }: Readonly<{ customer: Customer }>) {
   // Obtener el contacto principal
   const primaryContact = customer.contacts?.find(c => c.isPrimary) || customer.contacts?.[0];
   
@@ -117,11 +117,13 @@ function CustomerRow({ customer }: { customer: Customer }) {
 /**
  * Skeleton de carga para la tabla
  */
+const TABLE_SKELETON_KEYS = ['row-1', 'row-2', 'row-3', 'row-4', 'row-5'] as const;
+
 function TableSkeleton() {
   return (
     <div className="space-y-4">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="flex items-center gap-4 p-4">
+      {TABLE_SKELETON_KEYS.map((key) => (
+        <div key={key} className="flex items-center gap-4 p-4">
           <Skeleton className="h-10 w-10 rounded-full" />
           <div className="space-y-2 flex-1">
             <Skeleton className="h-4 w-50" />
@@ -130,6 +132,105 @@ function TableSkeleton() {
           <Skeleton className="h-6 w-20" />
         </div>
       ))}
+    </div>
+  );
+}
+
+const STATS_SKELETON_KEYS = ['stat-1', 'stat-2', 'stat-3', 'stat-4'] as const;
+
+/**
+ * Helper function for rendering stats section
+ */
+function renderStatsSection(statsLoading: boolean, stats: CustomerStats | null) {
+  if (statsLoading) {
+    return STATS_SKELETON_KEYS.map((key) => (
+      <Card key={key}>
+        <CardContent className="p-4">
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    ));
+  }
+  
+  if (!stats) return null;
+  
+  return (
+    <>
+      <StatCard 
+        title="Total Clientes" 
+        value={stats.total} 
+        icon={Building2}
+      />
+      <StatCard 
+        title="Activos" 
+        value={stats.active} 
+        icon={CheckCircle}
+        variant="success"
+      />
+      <StatCard 
+        title="Inactivos" 
+        value={stats.inactive} 
+        icon={XCircle}
+        variant="danger"
+      />
+      <StatCard 
+        title="Nuevos este mes" 
+        value={stats.newThisMonth} 
+        icon={TrendingUp}
+        variant="warning"
+      />
+    </>
+  );
+}
+
+/**
+ * Helper function for rendering customers table content
+ */
+function renderCustomersContent(
+  customersLoading: boolean, 
+  customers: Customer[] | null, 
+  search: string
+) {
+  if (customersLoading) {
+    return <TableSkeleton />;
+  }
+  
+  if (customers && customers.length > 0) {
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b text-left">
+              <th className="p-4 font-medium">Cliente</th>
+              <th className="p-4 font-medium">Documento</th>
+              <th className="p-4 font-medium">Contacto</th>
+              <th className="p-4 font-medium">Estado</th>
+              <th className="p-4 font-medium">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {customers.map((customer) => (
+              <CustomerRow key={customer.id} customer={customer} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="text-center py-12">
+      <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+      <h3 className="text-lg font-medium">No hay clientes</h3>
+      <p className="text-muted-foreground mb-4">
+        {search ? "No se encontraron resultados para tu búsqueda" : "Comienza agregando tu primer cliente"}
+      </p>
+      {!search && (
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Agregar Cliente
+        </Button>
+      )}
     </div>
   );
 }
@@ -194,41 +295,7 @@ export default function CustomersPage() {
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {statsLoading ? (
-          [...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <Skeleton className="h-16 w-full" />
-              </CardContent>
-            </Card>
-          ))
-        ) : stats ? (
-          <>
-            <StatCard 
-              title="Total Clientes" 
-              value={stats.total} 
-              icon={Building2}
-            />
-            <StatCard 
-              title="Activos" 
-              value={stats.active} 
-              icon={CheckCircle}
-              variant="success"
-            />
-            <StatCard 
-              title="Inactivos" 
-              value={stats.inactive} 
-              icon={XCircle}
-              variant="danger"
-            />
-            <StatCard 
-              title="Nuevos este mes" 
-              value={stats.newThisMonth} 
-              icon={TrendingUp}
-              variant="warning"
-            />
-          </>
-        ) : null}
+        {renderStatsSection(statsLoading, stats)}
       </div>
 
       {/* Tabla de clientes */}
@@ -248,42 +315,7 @@ export default function CustomersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {customersLoading ? (
-            <TableSkeleton />
-          ) : customers && customers.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b text-left">
-                    <th className="p-4 font-medium">Cliente</th>
-                    <th className="p-4 font-medium">Documento</th>
-                    <th className="p-4 font-medium">Contacto</th>
-                    <th className="p-4 font-medium">Estado</th>
-                    <th className="p-4 font-medium">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {customers.map((customer) => (
-                    <CustomerRow key={customer.id} customer={customer} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No hay clientes</h3>
-              <p className="text-muted-foreground mb-4">
-                {search ? "No se encontraron resultados para tu búsqueda" : "Comienza agregando tu primer cliente"}
-              </p>
-              {!search && (
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Cliente
-                </Button>
-              )}
-            </div>
-          )}
+          {renderCustomersContent(customersLoading, customers, search)}
         </CardContent>
       </Card>
     </PageWrapper>

@@ -3,9 +3,9 @@ import { Navbar } from "@/components/layout/navbar";
 
 export default function DashboardLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <div className="flex h-screen overflow-hidden bg-muted/30">
       {/* Sidebar */}
@@ -17,7 +17,7 @@ export default function DashboardLayout({
         <Navbar />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );
