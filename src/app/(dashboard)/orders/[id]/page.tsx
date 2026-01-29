@@ -1,0 +1,526 @@
+/**
+ * @fileoverview Página de detalle de orden
+ * @module app/(dashboard)/orders/[id]/page
+ * @description Vista detallada de una orden con timeline, hitos e incidencias.
+ * @author TMS-NAVITEL
+ * @version 1.0.0
+ */
+
+'use client';
+
+import { use, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ArrowLeft,
+  Edit,
+  Send,
+  Download,
+  Clock,
+  MapPin,
+  Truck,
+  User,
+  Package,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  PlayCircle,
+  Lock,
+  Calendar,
+  FileText,
+} from 'lucide-react';
+// No se necesitan imports de tipo aquí, se infieren de los hooks
+
+// Hooks
+import { useOrder } from '@/hooks/useOrders';
+import { useWorkflowProgress } from '@/hooks/useWorkflows';
+import { useOrderIncidents } from '@/hooks/useIncidents';
+import { useOrderExport } from '@/hooks/useOrderImportExport';
+
+// Componentes
+import { PageWrapper } from '@/components/page-wrapper';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { OrderTimeline, STATUS_CONFIG, PRIORITY_CONFIG } from '@/components/orders';
+import { cn } from '@/lib/utils';
+
+// ============================================
+// TIPOS
+// ============================================
+
+interface OrderDetailPageProps {
+  params: Promise<{ id: string }>;
+}
+
+// ============================================
+// UTILIDADES
+// ============================================
+
+/**
+ * Formatea una fecha
+ */
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(date));
+}
+
+/**
+ * Formatea fecha corta
+ */
+function formatShortDate(date: Date): string {
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(date));
+}
+
+// ============================================
+// COMPONENTE SKELETON
+// ============================================
+
+function OrderDetailSkeleton() {
+  return (
+    <PageWrapper>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10" />
+          <div>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-32 mt-1" />
+          </div>
+        </div>
+
+        {/* Cards principales */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <Skeleton className="h-48 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </PageWrapper>
+  );
+}
+
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
+
+/**
+ * Página de detalle de una orden
+ */
+export default function OrderDetailPage({ params }: OrderDetailPageProps) {
+  const { id } = use(params);
+  const router = useRouter();
+  
+  // Estado local
+  const [activeTab, setActiveTab] = useState<'timeline' | 'incidents' | 'history'>('timeline');
+
+  // Hooks de datos
+  const { order, isLoading, error, startTrip, sendToExternal } = useOrder(id, {
+    realtimeUpdates: true,
+  });
+  const { progress, percentComplete, nextStep } = useWorkflowProgress(order);
+  const { incidents, pendingIncidents } = useOrderIncidents(id);
+  const { exportOrders } = useOrderExport();
+
+  // Navegación
+  const handleBack = useCallback(() => {
+    router.push('/orders');
+  }, [router]);
+
+  const handleEdit = useCallback(() => {
+    router.push(`/orders/${id}/edit`);
+  }, [router, id]);
+
+  // Acciones
+  const handleStartTrip = useCallback(async () => {
+    await startTrip();
+  }, [startTrip]);
+
+  const handleSendToExternal = useCallback(async () => {
+    await sendToExternal();
+  }, [sendToExternal]);
+
+  const handleExport = useCallback(async () => {
+    if (order) {
+      await exportOrders([order]);
+    }
+  }, [order, exportOrders]);
+
+  // Loading
+  if (isLoading) {
+    return <OrderDetailSkeleton />;
+  }
+
+  // Error o no encontrado
+  if (error || !order) {
+    return (
+      <PageWrapper>
+        <div className="flex flex-col items-center justify-center min-h-100">
+          <XCircle className="w-16 h-16 text-destructive mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Orden no encontrada</h2>
+          <p className="text-muted-foreground mb-4">
+            {error || 'La orden que buscas no existe o fue eliminada'}
+          </p>
+          <Button onClick={handleBack}>Volver a órdenes</Button>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  const statusConfig = STATUS_CONFIG[order.status];
+  const priorityConfig = PRIORITY_CONFIG[order.priority];
+  const StatusIcon = statusConfig.icon;
+
+  // Determinar acciones disponibles
+  const canStartTrip = order.status === 'assigned' && order.vehicle && order.driver;
+  const canSendToExternal = order.status === 'pending' || order.status === 'assigned';
+  const canClose = order.status === 'completed';
+
+  return (
+    <PageWrapper>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={handleBack}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold font-mono">{order.orderNumber}</h1>
+                <Badge className={cn('text-sm', statusConfig.className)}>
+                  <StatusIcon className="w-3 h-3 mr-1" />
+                  {statusConfig.label}
+                </Badge>
+                <Badge variant="outline" className={priorityConfig.className}>
+                  {priorityConfig.label}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground">
+                {order.customer?.name || 'Cliente no disponible'}
+                {order.customer?.code && ` (${order.customer.code})`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {canStartTrip && (
+              <Button className="gap-2" onClick={handleStartTrip}>
+                <PlayCircle className="w-4 h-4" />
+                Iniciar viaje
+              </Button>
+            )}
+            {canSendToExternal && (
+              <Button variant="outline" className="gap-2" onClick={handleSendToExternal}>
+                <Send className="w-4 h-4" />
+                Enviar
+              </Button>
+            )}
+            <Button variant="outline" size="icon" onClick={handleExport}>
+              <Download className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={handleEdit}>
+              <Edit className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Progreso del workflow */}
+        {progress && (
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Progreso del viaje</span>
+                <span className="text-sm text-muted-foreground">{percentComplete}%</span>
+              </div>
+              <Progress value={percentComplete} className="h-2" />
+              {nextStep && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Siguiente: <span className="font-medium">{nextStep.name}</span>
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Contenido principal */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Columna izquierda - Timeline y tabs */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Tabs */}
+            <div className="flex gap-2 border-b">
+              <button
+                className={cn(
+                  'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                  activeTab === 'timeline'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => setActiveTab('timeline')}
+              >
+                <MapPin className="w-4 h-4 inline mr-2" />
+                Timeline
+              </button>
+              <button
+                className={cn(
+                  'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                  activeTab === 'incidents'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => setActiveTab('incidents')}
+              >
+                <AlertTriangle className="w-4 h-4 inline mr-2" />
+                Incidencias
+                {pendingIncidents.length > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {pendingIncidents.length}
+                  </Badge>
+                )}
+              </button>
+              <button
+                className={cn(
+                  'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                  activeTab === 'history'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => setActiveTab('history')}
+              >
+                <Clock className="w-4 h-4 inline mr-2" />
+                Historial
+              </button>
+            </div>
+
+            {/* Contenido del tab */}
+            <Card>
+              <CardContent className="p-6">
+                {activeTab === 'timeline' && (
+                  <OrderTimeline
+                    order={order}
+                    showTimes
+                    interactive
+                  />
+                )}
+
+                {activeTab === 'incidents' && (
+                  <div className="space-y-4">
+                    {incidents.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <AlertTriangle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>No hay incidencias registradas</p>
+                      </div>
+                    ) : (
+                      incidents.map((incident) => (
+                        <div
+                          key={incident.id}
+                          className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
+                        >
+                          <AlertTriangle
+                            className={cn(
+                              'w-5 h-5 mt-0.5',
+                              incident.severity === 'critical' && 'text-red-500',
+                              incident.severity === 'high' && 'text-orange-500',
+                              incident.severity === 'medium' && 'text-yellow-500',
+                              incident.severity === 'low' && 'text-gray-500'
+                            )}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">{incident.description}</span>
+                              <Badge variant={incident.resolutionStatus === 'resolved' ? 'secondary' : 'destructive'}>
+                                {incident.resolutionStatus === 'resolved' ? 'Resuelto' : 'Pendiente'}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {formatShortDate(new Date(incident.reportedAt))}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'history' && (
+                  <div className="space-y-3">
+                    {order.statusHistory.map((history, index) => (
+                      <div
+                        key={history.id || index}
+                        className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">
+                              {STATUS_CONFIG[history.toStatus]?.label || history.toStatus}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {formatShortDate(new Date(history.changedAt))}
+                            </span>
+                          </div>
+                          {history.reason && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {history.reason}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Por: {history.changedByName}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Columna derecha - Info */}
+          <div className="space-y-6">
+            {/* Información general */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Información general</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Package className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tipo de carga</p>
+                    <p className="font-medium">{order.cargo.type}</p>
+                  </div>
+                </div>
+
+                {order.cargo.weightKg && (
+                  <div className="flex items-center gap-3">
+                    <Package className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Peso</p>
+                      <p className="font-medium">{order.cargo.weightKg.toLocaleString()} kg</p>
+                    </div>
+                  </div>
+                )}
+
+                <Separator />
+
+                {order.vehicle && (
+                  <div className="flex items-center gap-3">
+                    <Truck className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Vehículo</p>
+                      <p className="font-medium">{order.vehicle.plate}</p>
+                      <p className="text-xs text-muted-foreground">{order.vehicle.type}</p>
+                    </div>
+                  </div>
+                )}
+
+                {order.driver && (
+                  <div className="flex items-center gap-3">
+                    <User className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Operador</p>
+                      <p className="font-medium">{order.driver.fullName}</p>
+                      {order.driver.phone && (
+                        <p className="text-xs text-muted-foreground">{order.driver.phone}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <Separator />
+
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Creada</p>
+                    <p className="font-medium">{formatDate(new Date(order.createdAt))}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Carrier y GPS */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Asignaciones</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Transportista</p>
+                  <p className="font-medium">{order.carrierName || 'Sin asignar'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Operador GPS</p>
+                  <p className="font-medium">{order.gpsOperatorName || 'Sin asignar'}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cierre de orden */}
+            {canClose && (
+              <Card className="border-green-200 dark:border-green-800">
+                <CardHeader>
+                  <CardTitle className="text-lg text-green-600">
+                    <CheckCircle className="w-5 h-5 inline mr-2" />
+                    Cerrar orden
+                  </CardTitle>
+                  <CardDescription>
+                    Esta orden está lista para ser cerrada
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full gap-2" variant="default">
+                    <Lock className="w-4 h-4" />
+                    Cerrar orden
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Notas */}
+            {order.notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    <FileText className="w-5 h-5 inline mr-2" />
+                    Notas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm whitespace-pre-wrap">{order.notes}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </PageWrapper>
+  );
+}
