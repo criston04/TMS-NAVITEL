@@ -4,3 +4,4 @@
  */
 
 export * from './scheduling';
+export * from './master/geofences.mock';

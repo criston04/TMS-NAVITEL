@@ -2,8 +2,9 @@
  * @fileoverview Hooks para gestión de workflows
  * @module hooks/useWorkflows
  * @description Hooks para selección y seguimiento de workflows.
+ * Conecta con el servicio unificado de workflows.
  * @author TMS-NAVITEL
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 'use client';
@@ -11,7 +12,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { Workflow, WorkflowProgress } from '@/types/workflow';
 import type { Order } from '@/types/order';
-import { workflowService } from '@/services/orders';
+import { unifiedWorkflowService } from '@/services/workflow.service';
 
 // ============================================
 // TIPOS
@@ -31,8 +32,10 @@ interface UseWorkflowsResult {
   isLoading: boolean;
   /** Error si lo hay */
   error: string | null;
-  /** Obtiene workflows para un tipo de carga (asíncrono) */
-  getWorkflowsForCargoType: (cargoType: string) => Promise<Workflow[]>;
+  /** Obtiene workflows para un cliente específico */
+  getWorkflowsForCustomer: (customerId: string) => Promise<Workflow[]>;
+  /** Sugiere workflow basado en cliente y tipo de carga */
+  suggestWorkflow: (customerId: string, cargoType?: string) => Promise<Workflow | null>;
   /** Recarga los workflows */
   refresh: () => Promise<void>;
 }
@@ -61,14 +64,15 @@ interface UseWorkflowProgressResult {
 
 /**
  * Hook para obtener la lista de workflows disponibles
+ * Usa el servicio unificado que conecta con geocercas, órdenes y programación
  * @param options - Opciones del hook
  * @returns Lista de workflows y métodos
  * @example
  * ```tsx
- * const { workflows, defaultWorkflow, getWorkflowsForCargoType } = useWorkflows();
+ * const { workflows, defaultWorkflow, suggestWorkflow } = useWorkflows();
  * 
- * // Obtener workflows para carga refrigerada
- * const refrigeratedWorkflows = getWorkflowsForCargoType('refrigerated');
+ * // Sugerir workflow para un cliente
+ * const suggested = await suggestWorkflow('cust-001', 'refrigerated');
  * ```
  */
 export function useWorkflows(
@@ -81,14 +85,14 @@ export function useWorkflows(
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Fetch de workflows
+   * Fetch de workflows usando servicio unificado
    */
   const fetchWorkflows = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const data = await workflowService.getWorkflows();
+      const data = await unifiedWorkflowService.getAll();
       setWorkflows(data);
     } catch (err) {
       setError((err as Error).message);
@@ -112,10 +116,20 @@ export function useWorkflows(
   }, [workflows]);
 
   /**
-   * Obtiene workflows para tipo de carga
+   * Obtiene workflows para un cliente específico
    */
-  const getWorkflowsForCargoType = useCallback(async (cargoType: string): Promise<Workflow[]> => {
-    return workflowService.getWorkflowsForCargoType(cargoType);
+  const getWorkflowsForCustomer = useCallback(async (customerId: string): Promise<Workflow[]> => {
+    return unifiedWorkflowService.getWorkflowsForCustomer(customerId);
+  }, []);
+
+  /**
+   * Sugiere workflow basado en cliente y tipo de carga
+   */
+  const suggestWorkflow = useCallback(async (
+    customerId: string, 
+    cargoType?: string
+  ): Promise<Workflow | null> => {
+    return unifiedWorkflowService.suggestWorkflowForOrder(customerId, cargoType);
   }, []);
 
   /**
@@ -138,7 +152,8 @@ export function useWorkflows(
     defaultWorkflow,
     isLoading,
     error,
-    getWorkflowsForCargoType,
+    getWorkflowsForCustomer,
+    suggestWorkflow,
     refresh,
   };
 }
@@ -149,6 +164,7 @@ export function useWorkflows(
 
 /**
  * Hook para obtener y seguir el progreso de un workflow en una orden
+ * Usa el servicio unificado para tracking de progreso
  * @param order - Orden para calcular progreso
  * @returns Progreso del workflow
  * @example
@@ -168,10 +184,10 @@ export function useWorkflowProgress(order: Order | null): UseWorkflowProgressRes
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Calcula el progreso
+   * Calcula el progreso usando servicio unificado
    */
   const calculateProgress = useCallback(async () => {
-    if (!order?.workflowId) {
+    if (!order?.id) {
       setProgress(null);
       setNextStep(null);
       return;
@@ -181,11 +197,14 @@ export function useWorkflowProgress(order: Order | null): UseWorkflowProgressRes
     setError(null);
 
     try {
-      const calculatedProgress = await workflowService.calculateProgress(order);
-      setProgress(calculatedProgress);
-
-      const next = await workflowService.getNextStep(order);
-      setNextStep(next);
+      const orderProgress = await unifiedWorkflowService.getOrderWorkflowProgress(order.id);
+      if (orderProgress) {
+        setProgress(orderProgress);
+        setNextStep(orderProgress.nextStep);
+      } else {
+        setProgress(null);
+        setNextStep(null);
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -245,6 +264,7 @@ interface UseWorkflowEscalationResult {
 
 /**
  * Hook para monitorear escalaciones de workflow
+ * Usa el servicio unificado para verificar reglas de escalación
  * @param order - Orden a monitorear
  * @returns Estado de escalaciones
  */
@@ -255,26 +275,37 @@ export function useWorkflowEscalation(order: Order | null): UseWorkflowEscalatio
   const isInitializedRef = useRef(false);
 
   /**
-   * Verifica escalaciones
+   * Verifica escalaciones usando servicio unificado
    */
   const checkEscalations = useCallback(async () => {
-    if (!order?.workflowId) {
+    if (!order?.id || !order?.workflowId) {
       setActiveEscalations([]);
       return;
     }
 
     try {
-      const escalations = await workflowService.checkEscalationRules(order);
-      setActiveEscalations(
-        escalations
-          .filter(e => e.triggered)
-          .map(e => ({
-            ruleId: e.rule,
-            stepId: e.rule,
-            message: e.message ?? 'Escalación activada',
+      // Obtener progreso que incluye información de escalaciones
+      const progress = await unifiedWorkflowService.getOrderWorkflowProgress(order.id);
+      
+      if (progress?.currentStep && progress.startTime) {
+        // Verificar si el paso actual ha excedido su tiempo estimado
+        const stepStartTime = new Date(progress.startTime);
+        const currentStep = progress.currentStep;
+        const elapsed = (Date.now() - stepStartTime.getTime()) / 1000 / 60; // minutos
+        
+        // Si el tiempo estimado ha sido excedido, crear escalación
+        if (currentStep.estimatedDuration && elapsed > currentStep.estimatedDuration) {
+          setActiveEscalations([{
+            ruleId: `escalation-${currentStep.id}`,
+            stepId: currentStep.id,
+            message: `Paso "${currentStep.name}" ha excedido el tiempo estimado de ${currentStep.estimatedDuration} minutos`,
             triggeredAt: new Date(),
-          }))
-      );
+          }]);
+          return;
+        }
+      }
+      
+      setActiveEscalations([]);
     } catch {
       setActiveEscalations([]);
     }

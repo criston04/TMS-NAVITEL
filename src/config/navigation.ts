@@ -16,6 +16,7 @@ import {
   Car,
   Building2,
   MapPinned,
+  Route,
 } from "lucide-react";
 import { NavGroup } from "@/types/navigation";
 
@@ -44,6 +45,7 @@ export const navigationConfig: NavGroup[] = [
       { title: "Operadores Logísticos", href: "/master/operators", icon: Building2 },
       { title: "Productos", href: "/master/products", icon: Box },
       { title: "Geocercas", href: "/master/geofences", icon: MapPinned },
+      { title: "Workflows", href: "/master/workflows", icon: Route },
     ],
   },
 ];

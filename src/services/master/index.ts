@@ -12,8 +12,8 @@
 export { customersService } from "./customers.service";
 export { driversService } from "./drivers.service";
 export { vehiclesService } from "./vehicles.service";
+export { geofencesService } from "./geofences.service";
 
 // TODO: Agregar cuando se implementen
 // export { operatorsService } from "./operators.service";
 // export { productsService } from "./products.service";
-// export { geofencesService } from "./geofences.service";
