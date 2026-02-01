@@ -27,6 +27,7 @@ import {
   type MockVehicle,
   type MockDriver,
 } from '@/mocks/scheduling';
+import { moduleConnectorService } from '@/services/integration';
 
 // ============================================
 // TIPOS
@@ -196,7 +197,7 @@ class SchedulingService {
   }
 
   /**
-   * Asigna recursos a una orden
+   * Asigna recursos a una orden con validación de workflow
    */
   async assignOrder(payload: AssignmentPayload): Promise<SchedulingServiceResult<ScheduledOrder>> {
     await this.delay(800);
@@ -220,6 +221,38 @@ class SchedulingService {
         };
       }
 
+      // =============================================
+      // CONEXIÓN CON WORKFLOWS (VALIDACIÓN)
+      // =============================================
+      // Nota: En producción, se obtendría la orden completa con su workflowId
+      // Por ahora validamos si se pasa la información
+      const scheduledOrderPartial: Partial<ScheduledOrder> = {
+        scheduledDate: payload.scheduledDate,
+        vehicleId: payload.vehicleId,
+        driverId: payload.driverId,
+        estimatedDuration: 4, // Default, en producción vendría del payload
+      };
+
+      const { validation, recommendations } = 
+        await moduleConnectorService.prepareScheduledOrderWithValidation(scheduledOrderPartial);
+      
+      if (!validation.isValid) {
+        console.warn('[SchedulingService] Validación de workflow falló:', validation.errors);
+        return {
+          success: false,
+          error: validation.errors.join('. '),
+        };
+      }
+
+      if (validation.warnings.length > 0) {
+        console.info('[SchedulingService] Advertencias de workflow:', validation.warnings);
+      }
+      
+      if (recommendations.length > 0) {
+        console.info('[SchedulingService] Recomendaciones:', recommendations);
+      }
+      // =============================================
+
       // En producción aquí iría la llamada real a la API
       return {
         success: true,
@@ -230,6 +263,43 @@ class SchedulingService {
         error: error instanceof Error ? error.message : 'Error desconocido',
       };
     }
+  }
+
+  /**
+   * Valida una orden contra su workflow antes de programar
+   * @param order - Orden a validar
+   * @returns Resultado de validación con sugerencias
+   */
+  async validateOrderWorkflow(order: Partial<ScheduledOrder>): Promise<{
+    isValid: boolean;
+    suggestedDuration: number | null;
+    warnings: string[];
+    errors: string[];
+  }> {
+    const result = await moduleConnectorService.validateSchedulingWithWorkflow(order);
+    return {
+      isValid: result.isValid,
+      suggestedDuration: result.suggestedDuration || null,
+      warnings: result.warnings,
+      errors: result.errors,
+    };
+  }
+
+  /**
+   * Obtiene información del workflow para mostrar en la UI de programación
+   */
+  async getWorkflowInfoForScheduling(workflowId: string): Promise<{
+    steps: number;
+    totalDuration: number;
+    requiredGeofences: string[];
+  } | null> {
+    const info = await moduleConnectorService.getWorkflowStepsForScheduling(workflowId);
+    if (!info) return null;
+    return {
+      steps: info.steps.length,
+      totalDuration: info.totalDuration,
+      requiredGeofences: info.requiredGeofences,
+    };
   }
 
   /**

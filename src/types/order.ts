@@ -536,3 +536,79 @@ export interface OrderRealtimeEvent {
   /** Timestamp del evento */
   timestamp: string;
 }
+
+// ============================================
+// TIPOS DE CONEXIÓN CON OTROS MÓDULOS
+// ============================================
+
+/**
+ * Información del workflow conectado a la orden
+ * @interface OrderWorkflowInfo
+ */
+export interface OrderWorkflowInfo {
+  /** ID del workflow asignado */
+  workflowId: string;
+  /** Nombre del workflow */
+  workflowName: string;
+  /** Código del workflow */
+  workflowCode: string;
+  /** Estado actual en el workflow */
+  currentStepId?: string;
+  /** Nombre del paso actual */
+  currentStepName?: string;
+  /** Índice del paso actual (1-based) */
+  currentStepIndex?: number;
+  /** Total de pasos */
+  totalSteps: number;
+  /** Porcentaje de avance en el workflow */
+  workflowProgress: number;
+  /** Duración estimada total (horas) */
+  estimatedDurationHours: number;
+  /** Está retrasado según el workflow */
+  isDelayed: boolean;
+}
+
+/**
+ * Información de programación conectada a la orden
+ * @interface OrderSchedulingInfo
+ */
+export interface OrderSchedulingInfo {
+  /** Fecha programada */
+  scheduledDate: string;
+  /** Hora de inicio programada */
+  scheduledStartTime?: string;
+  /** Hora de fin estimada */
+  estimatedEndTime?: string;
+  /** ID del vehículo asignado */
+  vehicleId?: string;
+  /** Placa del vehículo */
+  vehiclePlate?: string;
+  /** ID del conductor asignado */
+  driverId?: string;
+  /** Nombre del conductor */
+  driverName?: string;
+  /** Tiene conflictos de programación */
+  hasConflicts: boolean;
+  /** Mensajes de conflicto */
+  conflictMessages?: string[];
+}
+
+/**
+ * Orden enriquecida con información de conexiones
+ * @interface EnrichedOrder
+ */
+export interface EnrichedOrder extends Order {
+  /** Información del workflow conectado */
+  workflowInfo?: OrderWorkflowInfo;
+  /** Información de programación conectada */
+  schedulingInfo?: OrderSchedulingInfo;
+  /** Metadatos de conexión */
+  connectionMetadata?: {
+    /** Fecha de última sincronización de workflow */
+    workflowSyncedAt?: string;
+    /** Fecha de última sincronización de programación */
+    schedulingSyncedAt?: string;
+    /** Advertencias de conexión */
+    connectionWarnings?: string[];
+  };
+}

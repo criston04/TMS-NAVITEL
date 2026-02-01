@@ -28,6 +28,7 @@ import {
   getOrderCarriers,
   getOrderGPSOperators,
 } from '@/mocks/orders/orders.mock';
+import { moduleConnectorService } from '@/services/integration';
 
 /**
  * Configuración del servicio
@@ -187,7 +188,7 @@ class OrderService {
   // ============================================
 
   /**
-   * Crea una nueva orden
+   * Crea una nueva orden con auto-asignación de workflow
    * @param data - Datos para crear la orden
    * @returns Promesa con la orden creada
    */
@@ -195,6 +196,25 @@ class OrderService {
     await simulateDelay(500);
 
     if (this.config.useMock) {
+      // =============================================
+      // CONEXIÓN CON WORKFLOWS (AUTO-ASIGNACIÓN)
+      // =============================================
+      const { enrichedData, workflowAssignment, validationWarnings } = 
+        await moduleConnectorService.prepareOrderWithConnections(data);
+      
+      // Log de conexión para debugging
+      if (workflowAssignment.success) {
+        console.info('[OrderService] Workflow asignado:', {
+          workflowId: workflowAssignment.workflowId,
+          workflowName: workflowAssignment.workflowName,
+          reason: workflowAssignment.reason,
+        });
+      }
+      if (validationWarnings.length > 0) {
+        console.info('[OrderService] Advertencias:', validationWarnings);
+      }
+      // =============================================
+
       const id = generateOrderId();
       const orderNumber = generateOrderNumber(this.orders.length + 1);
       const now = new Date().toISOString();
@@ -202,16 +222,17 @@ class OrderService {
       const newOrder: Order = {
         id,
         orderNumber,
-        customerId: data.customerId,
-        carrierId: data.carrierId,
-        vehicleId: data.vehicleId,
-        driverId: data.driverId,
-        workflowId: data.workflowId,
+        customerId: enrichedData.customerId,
+        carrierId: enrichedData.carrierId,
+        vehicleId: enrichedData.vehicleId,
+        driverId: enrichedData.driverId,
+        workflowId: enrichedData.workflowId, // ← Workflow conectado
+        workflowName: workflowAssignment.workflowName || undefined, // ← Nombre del workflow
         status: 'draft',
-        priority: data.priority,
+        priority: enrichedData.priority,
         syncStatus: 'not_sent',
-        cargo: data.cargo,
-        milestones: data.milestones.map((m, index) => ({
+        cargo: enrichedData.cargo,
+        milestones: enrichedData.milestones.map((m, index) => ({
           ...m,
           id: `${id}-ms-${index + 1}`,
           orderId: id,
@@ -221,8 +242,8 @@ class OrderService {
         createdAt: now,
         createdBy: 'current-user', // TODO: obtener de contexto de auth
         updatedAt: now,
-        scheduledStartDate: data.scheduledStartDate,
-        scheduledEndDate: data.scheduledEndDate,
+        scheduledStartDate: enrichedData.scheduledStartDate,
+        scheduledEndDate: enrichedData.scheduledEndDate,
         statusHistory: [
           {
             id: `${id}-hist-1`,
@@ -234,9 +255,9 @@ class OrderService {
             reason: 'Orden creada',
           },
         ],
-        externalReference: data.externalReference,
-        notes: data.notes,
-        tags: data.tags,
+        externalReference: enrichedData.externalReference,
+        notes: enrichedData.notes,
+        tags: enrichedData.tags,
       };
 
       this.orders.unshift(newOrder);

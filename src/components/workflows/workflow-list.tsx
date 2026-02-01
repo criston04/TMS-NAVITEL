@@ -128,181 +128,192 @@ export const WorkflowList: FC<WorkflowListProps> = ({
   }
 
   return (
-    <div className={cn('space-y-6', className)}>
-      {/* Stats */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <Badge variant="outline" className="bg-white dark:bg-slate-900">
-          Total: <strong className="ml-1">{stats.total}</strong>
-        </Badge>
-        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-          Activos: <strong className="ml-1">{stats.active}</strong>
-        </Badge>
-        <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-          Inactivos: <strong className="ml-1">{stats.inactive}</strong>
-        </Badge>
-        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-          Borradores: <strong className="ml-1">{stats.draft}</strong>
-        </Badge>
+    <div className={cn("flex flex-col h-full bg-background", className)}>
+      {/* Fixed Header Section */}
+      <div className="flex-none p-6 pb-4 border-b space-y-4 bg-card/30">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">Workflows</h2>
+            <p className="text-sm text-muted-foreground mt-1">Gestión de procesos operativos</p>
+          </div>
+          
+          {/* Stats Badges */}
+          <div className="hidden lg:flex items-center gap-2">
+            <Badge variant="secondary" className="h-7">
+              Total: {stats.total}
+            </Badge>
+            <div className="h-4 w-px bg-border mx-1" />
+            <div className="flex gap-2">
+               <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-md">
+                 <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                 Activos: {stats.active}
+               </span>
+               <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                 <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                 Inactivos: {stats.inactive}
+               </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
+           <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
+            {/* Búsqueda */}
+            <div className="relative flex-1 sm:flex-none sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                className="pl-9 h-9"
+              />
+            </div>
+
+            {/* Filtros */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar max-w-full">
+              <Select
+                value={filters.status}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, status: value as WorkflowStatus | 'all' }))}
+              >
+                <SelectTrigger className="w-[110px] h-9">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {Object.entries(workflowStatusConfig).map(([key, config]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: config.color }}
+                        />
+                        {config.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filters.type}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
+              >
+                <SelectTrigger className="w-[130px] h-9">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los tipos</SelectItem>
+                  {workflowTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                       {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Clear filters */}
+              {activeFilterCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-9 px-2 text-muted-foreground hover:bg-muted"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            {/* View mode toggle */}
+            <div className="flex items-center border rounded-md overflow-hidden bg-background">
+              <Button
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-9 w-9 rounded-none bg-transparent hover:bg-muted data-[variant=secondary]:bg-muted"
+                onClick={() => setViewMode('grid')}
+                data-variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-9 w-9 rounded-none bg-transparent hover:bg-muted data-[variant=secondary]:bg-muted"
+                onClick={() => setViewMode('list')}
+                data-variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Create button */}
+            <Button onClick={onCreateNew} className="h-9 gap-2 shadow-sm">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Nuevo Workflow</span>
+              <span className="sm:hidden">Nuevo</span>
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-1 items-center gap-3 flex-wrap">
-          {/* Búsqueda */}
-          <div className="relative flex-1 min-w-50 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar workflows..."
-              value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="pl-9 bg-white dark:bg-slate-900"
-            />
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto bg-muted/5 p-6">
+        {/* Results Info */}
+        {(filters.search || filters.status !== 'all' || filters.type !== 'all') && (
+          <div className="mb-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Resultados: {filteredWorkflows.length}
           </div>
+        )}
 
-          {/* Filtro por estado */}
-          <Select
-            value={filters.status}
-            onValueChange={(value) => setFilters(prev => ({ ...prev, status: value as WorkflowStatus | 'all' }))}
-          >
-            <SelectTrigger className="w-36 bg-white dark:bg-slate-900">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {Object.entries(workflowStatusConfig).map(([key, config]) => (
-                <SelectItem key={key} value={key}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: config.color }}
-                    />
-                    {config.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Filtro por tipo */}
-          <Select
-            value={filters.type}
-            onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
-          >
-            <SelectTrigger className="w-40 bg-white dark:bg-slate-900">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              {workflowTypes.map(type => (
-                <SelectItem key={type.value} value={type.value}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: type.color }}
-                    />
-                    {type.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Clear filters */}
-          {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-9 px-2 text-muted-foreground"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Limpiar ({activeFilterCount})
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* View mode toggle */}
-          <div className="flex items-center border rounded-lg overflow-hidden">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="icon"
-              className="h-9 w-9 rounded-none"
-              onClick={() => setViewMode('grid')}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="icon"
-              className="h-9 w-9 rounded-none"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
+        {/* Empty State */}
+        {filteredWorkflows.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl bg-card/50">
+            <div className="p-4 rounded-full bg-muted mb-4">
+              <Filter className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No se encontraron workflows</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+              {activeFilterCount > 0
+                ? 'Intenta ajustar los filtros de búsqueda para encontrar lo que necesitas.'
+                : 'Comienza creando tu primer workflow operacional.'}
+            </p>
+            {activeFilterCount > 0 ? (
+              <Button variant="outline" onClick={clearFilters}>
+                Limpiar filtros
+              </Button>
+            ) : (
+              <Button onClick={onCreateNew}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Workflow
+              </Button>
+            )}
           </div>
-
-          {/* Create button */}
-          <Button onClick={onCreateNew} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nuevo Workflow
-          </Button>
-        </div>
+        ) : (
+          /* Grid/List */
+          <div
+            className={cn(
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                : 'flex flex-col gap-3'
+            )}
+          >
+            {filteredWorkflows.map(workflow => (
+              <WorkflowCard
+                key={workflow.id}
+                workflow={workflow}
+                onEdit={onEdit}
+                onDuplicate={onDuplicate}
+                onDelete={onDelete}
+                onToggleStatus={onToggleStatus}
+                className={viewMode === 'list' ? 'flex-row' : undefined}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Results count */}
-      {filters.search || filters.status !== 'all' || filters.type !== 'all' ? (
-        <p className="text-sm text-muted-foreground">
-          Mostrando {filteredWorkflows.length} de {workflows.length} workflows
-        </p>
-      ) : null}
-
-      {/* Workflow grid/list */}
-      {filteredWorkflows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-            <Filter className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-            No se encontraron workflows
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            {activeFilterCount > 0
-              ? 'Intenta ajustar los filtros de búsqueda'
-              : 'Comienza creando tu primer workflow'}
-          </p>
-          {activeFilterCount > 0 ? (
-            <Button variant="outline" onClick={clearFilters}>
-              Limpiar filtros
-            </Button>
-          ) : (
-            <Button onClick={onCreateNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              Crear Workflow
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div
-          className={cn(
-            viewMode === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-              : 'flex flex-col gap-3'
-          )}
-        >
-          {filteredWorkflows.map(workflow => (
-            <WorkflowCard
-              key={workflow.id}
-              workflow={workflow}
-              onEdit={onEdit}
-              onDuplicate={onDuplicate}
-              onDelete={onDelete}
-              onToggleStatus={onToggleStatus}
-              className={viewMode === 'list' ? 'flex-row' : undefined}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 };

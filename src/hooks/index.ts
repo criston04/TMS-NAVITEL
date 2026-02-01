@@ -9,3 +9,4 @@ export * from "./use-service";
 export * from "./useGeofences";
 export * from "./useLeafletMap";
 export * from "./useDrawingTools";
+export * from "./useWorkflowIntegration";
