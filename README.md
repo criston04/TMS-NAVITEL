@@ -240,7 +240,7 @@ Mapa interactivo con marcadores de vehículos.
   vehicles={vehicles}
   selectedVehicle={selected}
   onSelectVehicle={handleSelect}
-  className="h-[600px]"
+  className="h-150"
 />
 ```
 

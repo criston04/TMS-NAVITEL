@@ -1,61 +1,51 @@
 /**
  * Navigation Configuration - Configuración centralizada del menú
+ * Estructura basada en grupos: OPERACIONES, FINANZAS, MAESTRO
  * Principio: Single Source of Truth
  */
 
 import {
-  LayoutDashboard,
-  Truck,
+  Radio,
   Package,
-  MapPin,
-  Route,
+  CalendarDays,
   FileText,
+  DollarSign,
   Users,
-  Warehouse,
-  BarChart3,
-  ClipboardList,
+  Box,
+  UserCircle,
+  Car,
+  Building2,
+  MapPinned,
+  Route,
 } from "lucide-react";
-import { NavItem } from "@/types/navigation";
+import { NavGroup } from "@/types/navigation";
 
-export const navigationConfig: NavItem[] = [
+export const navigationConfig: NavGroup[] = [
   {
-    title: "Logística",
-    href: "#",
-    icon: Package,
-    children: [
-      { title: "Dashboard", href: "/", icon: LayoutDashboard },
-      { title: "Flota", href: "/fleet", icon: Truck },
+    groupTitle: "OPERACIONES",
+    items: [
+      { title: "Control Tower", href: "/", icon: Radio },
+      { title: "Órdenes", href: "/orders", icon: Package },
+      { title: "Programación", href: "/scheduling", icon: CalendarDays },
     ],
   },
   {
-    title: "Envíos",
-    href: "#",
-    icon: ClipboardList,
-    children: [
-      { title: "Todos los envíos", href: "/shipments", icon: Package },
-      { title: "En tránsito", href: "/shipments/transit", icon: MapPin },
-      { title: "Rutas", href: "/routes", icon: Route },
+    groupTitle: "FINANZAS",
+    items: [
+      { title: "Facturas", href: "/invoices", icon: FileText },
+      { title: "Tarifario", href: "/pricing", icon: DollarSign },
     ],
   },
   {
-    title: "Almacén",
-    href: "/warehouse",
-    icon: Warehouse,
-  },
-  {
-    title: "Reportes",
-    href: "/reports",
-    icon: BarChart3,
-  },
-  {
-    title: "Facturación",
-    href: "/invoices",
-    icon: FileText,
-    badge: "3",
-  },
-  {
-    title: "Usuarios",
-    href: "/users",
-    icon: Users,
+    groupTitle: "MAESTRO",
+    items: [
+      { title: "Clientes", href: "/master/customers", icon: Users },
+      { title: "Conductores", href: "/master/drivers", icon: UserCircle },
+      { title: "Vehículos", href: "/master/vehicles", icon: Car },
+      { title: "Operadores Logísticos", href: "/master/operators", icon: Building2 },
+      { title: "Productos", href: "/master/products", icon: Box },
+      { title: "Geocercas", href: "/master/geofences", icon: MapPinned },
+      { title: "Workflows", href: "/master/workflows", icon: Route },
+    ],
   },
 ];

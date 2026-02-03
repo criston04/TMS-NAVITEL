@@ -1,0 +1,255 @@
+/**
+ * @fileoverview Celda de día en el calendario de programación
+ * @module components/scheduling/SchedulingDayCell
+ * @description Representa un día en el calendario, muestra órdenes
+ * programadas y acepta drops de órdenes pendientes.
+ * @author TMS-NAVITEL
+ * @version 1.0.0
+ */
+
+'use client';
+
+import { memo, useState, useCallback } from 'react';
+import { Plus, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import type { ScheduledOrder, CalendarDayData } from '@/types/scheduling';
+import type { Order } from '@/types/order';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { SchedulingOrderCard } from './scheduling-order-card';
+import { cn } from '@/lib/utils';
+
+// ============================================
+// TIPOS
+// ============================================
+
+interface SchedulingDayCellProps {
+  /** Datos del día */
+  dayData: CalendarDayData;
+  /** Es el día actual */
+  isToday?: boolean;
+  /** Está fuera del mes actual */
+  isOutsideMonth?: boolean;
+  /** Está seleccionado */
+  isSelected?: boolean;
+  /** Hay un arrastre activo sobre este día */
+  isDragOver?: boolean;
+  /** Callback al soltar una orden */
+  onDrop?: (order: Order, date: Date) => void;
+  /** Callback al hacer clic en el día */
+  onClick?: (date: Date) => void;
+  /** Callback al hacer clic en una orden */
+  onOrderClick?: (order: ScheduledOrder) => void;
+  /** Callback para agregar orden manualmente */
+  onAddOrder?: (date: Date) => void;
+  /** Mostrar en vista compacta (semana) */
+  compact?: boolean;
+  /** Clase adicional */
+  className?: string;
+}
+
+// ============================================
+// CONSTANTES
+// ============================================
+
+const MAX_VISIBLE_ORDERS = 3;
+
+// ============================================
+// COMPONENTE
+// ============================================
+
+export const SchedulingDayCell = memo(function SchedulingDayCell({
+  dayData,
+  isToday = false,
+  isOutsideMonth = false,
+  isSelected = false,
+  isDragOver = false,
+  onDrop,
+  onClick,
+  onOrderClick,
+  onAddOrder,
+  compact = false,
+  className,
+}: Readonly<SchedulingDayCellProps>) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+  // ----------------------------------------
+  // DRAG & DROP HANDLERS
+  // ----------------------------------------
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isDraggingOver) {
+      setIsDraggingOver(true);
+    }
+  }, [isDraggingOver]);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    
+    try {
+      const orderData = e.dataTransfer.getData('application/json');
+      if (orderData) {
+        const order = JSON.parse(orderData) as Order;
+        onDrop?.(order, dayData.date);
+      }
+    } catch (error) {
+      console.error('Error parsing dropped order:', error);
+    }
+  }, [dayData.date, onDrop]);
+
+  // ----------------------------------------
+  // CÁLCULOS
+  // ----------------------------------------
+  const visibleOrders = dayData.orders.slice(0, MAX_VISIBLE_ORDERS);
+  const hiddenCount = Math.max(0, dayData.orders.length - MAX_VISIBLE_ORDERS);
+  const hasConflicts = dayData.orders.some(o => o.hasConflict);
+  const allConfirmed = dayData.orders.length > 0 && 
+    dayData.orders.every(o => o.scheduleStatus === 'ready' || o.scheduleStatus === 'completed');
+
+  // ----------------------------------------
+  // RENDER
+  // ----------------------------------------
+  return (
+    <div
+      className={cn(
+        'relative flex flex-col min-h-30 border-r border-b',
+        'transition-all duration-200',
+        // Estados base
+        isOutsideMonth && 'bg-muted/30',
+        !isOutsideMonth && 'bg-card',
+        // Estados interactivos
+        isToday && 'ring-2 ring-primary ring-inset',
+        isSelected && 'bg-primary/5',
+        (isDragOver || isDraggingOver) && 'bg-primary/10 ring-2 ring-primary ring-dashed',
+        isHovered && !isDraggingOver && 'bg-muted/50',
+        // Compacto
+        compact && 'min-h-20',
+        className
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onClick?.(dayData.date)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(dayData.date); }}
+      tabIndex={0}
+      role="gridcell"
+      aria-label={`${dayData.date.toLocaleDateString()}, ${dayData.orders.length} órdenes`}
+    >
+      {/* Header del día */}
+      <div className="flex items-center justify-between px-2 py-1 border-b bg-muted/20">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              'text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full',
+              isToday && 'bg-primary text-primary-foreground',
+              isOutsideMonth && 'text-muted-foreground/50'
+            )}
+          >
+            {dayData.date.getDate()}
+          </span>
+          
+          {/* Indicadores */}
+          {hasConflicts && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Hay conflictos de asignación</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
+          {allConfirmed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Todas las órdenes confirmadas</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+
+        {/* Contador y botón agregar */}
+        <div className="flex items-center gap-1">
+          {dayData.orders.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="h-5 px-1.5 text-xs"
+            >
+              {dayData.orders.length}
+            </Badge>
+          )}
+          
+          {(isHovered || isDraggingOver) && onAddOrder && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddOrder(dayData.date);
+              }}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Contenido del día - Órdenes */}
+      <div className="flex-1 p-1 space-y-1 overflow-hidden">
+        {visibleOrders.map(order => (
+          <SchedulingOrderCard
+            key={order.id}
+            order={order}
+            variant="calendar"
+            onClick={() => onOrderClick?.(order)}
+            className="cursor-pointer"
+          />
+        ))}
+        
+        {hiddenCount > 0 && (
+          <button
+            className={cn(
+              'w-full text-xs text-center py-1 rounded',
+              'bg-muted/50 text-muted-foreground',
+              'hover:bg-muted transition-colors'
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick?.(dayData.date);
+            }}
+          >
+            +{hiddenCount} más
+          </button>
+        )}
+      </div>
+
+      {/* Indicador de capacidad */}
+      <div className="absolute bottom-0 left-0 right-0 h-1">
+        <div
+          className={cn(
+            'h-full transition-all duration-300',
+            dayData.utilization < 50 && 'bg-green-500/50',
+            dayData.utilization >= 50 && dayData.utilization < 80 && 'bg-amber-500/50',
+            dayData.utilization >= 80 && 'bg-red-500/50'
+          )}
+          style={{ width: `${Math.min(dayData.utilization, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+});

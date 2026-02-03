@@ -54,7 +54,7 @@ export default function AuthLayout({
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
          
          {/* Map Grid Pattern */}
-         <div className="absolute inset-0 bg-[linear-gradient(rgba(30,41,59,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(30,41,59,0.3)_1px,transparent_1px)] bg-[size:60px_60px] opacity-10" />
+         <div className="absolute inset-0 bg-[linear-gradient(rgba(30,41,59,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(30,41,59,0.3)_1px,transparent_1px)] bg-size-[60px_60px] opacity-10" />
          
          {/* Radial Vignette */}
          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#0a0f1c_90%)]" />
@@ -155,7 +155,7 @@ export default function AuthLayout({
         FOREGROUND CONTENT (Glass Cards)
         ------------------------------------------------
       */}
-      <div className="flex-1 w-full max-w-[1400px] mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 items-center h-full min-h-screen">
+      <div className="flex-1 w-full max-w-350 mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 items-center h-full min-h-screen">
           
           {/* LEFT SIDE: Hero Text (Visible on LG screens) */}
           <div className="hidden lg:flex lg:col-span-7 flex-col justify-center space-y-8 select-none pointer-events-none">
@@ -166,7 +166,7 @@ export default function AuthLayout({
                 </div>
                 
                 <h1 className="text-7xl font-bold tracking-tight text-white drop-shadow-2xl">
-                  Navitel <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">TMS</span>
+                  Navitel <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500">TMS</span>
                 </h1>
                 
                 <p className="text-xl text-slate-300 font-light max-w-lg leading-relaxed drop-shadow-lg">
@@ -194,7 +194,7 @@ export default function AuthLayout({
             <div className="w-full max-w-md bg-white/90 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.3)] rounded-3xl p-8 relative overflow-hidden ring-1 ring-slate-900/5 dark:ring-white/5 transition-colors duration-300">
                 
                 {/* Decorative sheen */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/5 dark:from-white/5 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-tr from-slate-900/5 dark:from-white/5 to-transparent pointer-events-none" />
 
                 {/* Mobile Heading (Visible only on small screens) */}
                 <div className="lg:hidden flex items-center justify-between mb-8">

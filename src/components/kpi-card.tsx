@@ -78,7 +78,7 @@ export function KPICard({
   change,
   icon: Icon,
   variant = "default",
-}: KPICardProps) {
+}: Readonly<KPICardProps>) {
   const styles = variantStyles[variant];
 
   return (

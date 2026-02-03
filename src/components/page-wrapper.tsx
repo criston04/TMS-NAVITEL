@@ -43,6 +43,8 @@ interface PageWrapperProps {
   description?: string;
   /** Acciones para el header como botones (opcional) */
   actions?: ReactNode;
+  /** Sin padding - para páginas con layout propio como Scheduling */
+  noPadding?: boolean;
 }
 
 export function PageWrapper({
@@ -51,22 +53,32 @@ export function PageWrapper({
   title,
   description,
   actions,
-}: PageWrapperProps) {
+  noPadding = false,
+}: Readonly<PageWrapperProps>) {
   return (
-    <div className={cn("space-y-6 animate-fade-in", className)}>
+    <div
+      className={cn(
+        // Spacing
+        !noPadding && 'p-4',
+        'space-y-4',
+        // Animation
+        'animate-fade-in',
+        className
+      )}
+    >
       {/* Page Header */}
       {(title || actions) && (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {title && (
             <div className="animate-slide-in-left">
-              <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+              <h1 className="text-xl font-bold tracking-tight">{title}</h1>
               {description && (
-                <p className="text-muted-foreground">{description}</p>
+                <p className="text-sm text-muted-foreground">{description}</p>
               )}
             </div>
           )}
           {actions && (
-            <div className="animate-slide-in-right">{actions}</div>
+            <div className="flex items-center gap-2 animate-slide-in-right">{actions}</div>
           )}
         </div>
       )}

@@ -77,7 +77,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Middle Section: Overview, Stats, Orders */}
-      <div className="grid gap-4 md:grid-cols-12 lg:grid-cols-12 h-auto lg:h-[400px]">
+      <div className="grid gap-4 md:grid-cols-12 lg:grid-cols-12 h-auto lg:h-100">
         {/* Vehicle Overview (Left) */}
         <div className="col-span-12 md:col-span-6 lg:col-span-4 h-full animate-slide-up" style={{ animationDelay: '400ms' }}>
             <VehicleOverview />
