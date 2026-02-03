@@ -12,10 +12,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ChevronLeft, Package, Settings, HelpCircle, LogOut } from "lucide-react";
+import { ChevronLeft, Settings, HelpCircle, LogOut } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context";
 import { useNavigation } from "@/hooks/use-navigation";
@@ -28,17 +29,42 @@ import { NavGroup } from "./nav-group";
    ============================================ */
 function SidebarHeader({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
   return (
-    <div className="flex h-12 items-center justify-between px-3">
+    <div className="flex h-16 items-center justify-center px-2">
       {isCollapsed ? (
-        <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Package className="h-4 w-4" />
+        <div className="flex h-10 w-10 items-center justify-center">
+          <Image
+            src="/navitel-logo-black.png"
+            alt="Navitel"
+            width={40}
+            height={40}
+            className="dark:hidden object-contain"
+          />
+          <Image
+            src="/navitel-logo-white.png"
+            alt="Navitel"
+            width={40}
+            height={40}
+            className="hidden dark:block object-contain"
+          />
         </div>
       ) : (
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground transition-transform group-hover:scale-105">
-            <Package className="h-4 w-4" />
+        <Link href="/" className="flex items-center justify-center group">
+          <div className="flex h-20 w-48 items-center justify-center">
+            <Image
+              src="/navitel-logo-black.png"
+              alt="Navitel"
+              width={180}
+              height={72}
+              className="dark:hidden object-contain transition-transform group-hover:scale-105"
+            />
+            <Image
+              src="/navitel-logo-white.png"
+              alt="Navitel"
+              width={180}
+              height={72}
+              className="hidden dark:block object-contain transition-transform group-hover:scale-105"
+            />
           </div>
-          <span className="text-base font-bold text-primary">Navitel</span>
         </Link>
       )}
     </div>
