@@ -513,4 +513,4 @@ export default function GeofenceForm({
   );
 }
 
-export type { GeofenceFormProps, GeofenceFormData };
+export type { GeofenceFormProps };

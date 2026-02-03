@@ -69,7 +69,7 @@ export interface SearchParams extends PaginationParams {
 /**
  * Estados posibles de una entidad
  */
-export type EntityStatus = "active" | "inactive" | "pending" | "blocked";
+export type EntityStatus = "active" | "inactive" | "pending" | "blocked" | "suspended" | "on_leave" | "terminated";
 
 /**
  * Estado de validación de documentos

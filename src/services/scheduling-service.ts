@@ -305,7 +305,7 @@ class SchedulingService {
   /**
    * Obtiene sugerencias de recursos para una orden
    */
-  async getSuggestions(orderId: string, date: Date): Promise<ResourceSuggestion[]> {
+  async getSuggestions(orderId: string, _date: Date): Promise<ResourceSuggestion[]> {
     await this.delay(600);
     return generateMockSuggestions(orderId);
   }

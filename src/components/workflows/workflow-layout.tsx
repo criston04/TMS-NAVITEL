@@ -43,7 +43,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [_isSidebarCollapsed, _setIsSidebarCollapsed] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -82,8 +82,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
         type: g.category,
         color: g.color || '#3b82f6'
       })));
-    } catch (err) {
-      console.error('Error loading workflow data:', err);
+    } catch {
       error('Error al cargar datos del módulo');
     } finally {
       setIsLoading(false);
@@ -98,7 +97,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
   // HANDLERS
   // ----------------------------------------
 
-  const handleSelectWorkflow = useCallback((workflow: Workflow) => {
+  const _handleSelectWorkflow = useCallback((workflow: Workflow) => {
     // Navigate to detail view
     setSelectedWorkflow(workflow);
     setIsEditing(false); // View mode initially
@@ -165,8 +164,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
         success('Workflow creado correctamente');
       }
       setIsEditing(false);
-    } catch (err) {
-      console.error('Error saving:', err);
+    } catch {
       error('No se pudo guardar el workflow');
     } finally {
       setIsSaving(false);
@@ -179,7 +177,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
       setWorkflows(prev => [copy, ...prev]);
       // Stay in list or go to detail? Let's stay in list but refresh
       success('Copia creada correctamente');
-    } catch (err) {
+    } catch {
       error('Error duplicando workflow');
     }
   }, [success, error]);
@@ -200,7 +198,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
         setActiveView('list'); // Force back to list if deleted the active one
       }
       success('Workflow eliminado');
-    } catch (err) {
+    } catch {
       error('Error eliminando workflow');
     } finally {
       setDeleteData({ isOpen: false, workflow: null, loading: false });
@@ -216,7 +214,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
         setSelectedWorkflow(updated);
       }
       success(`Estado cambiado a ${newStatus}`);
-    } catch (err) {
+    } catch {
       error('Error cambiando estado');
     }
   }, [selectedWorkflow, success, error]);

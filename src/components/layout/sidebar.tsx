@@ -14,7 +14,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChevronLeft, Package, Settings, HelpCircle, LogOut } from "lucide-react";
 
@@ -142,24 +141,41 @@ export function Sidebar() {
           isCollapsed ? "w-14" : "w-56"
         )}
       >
-        <SidebarHeader isCollapsed={isCollapsed} />
+        {/* Header fijo */}
+        <div className="shrink-0">
+          <SidebarHeader isCollapsed={isCollapsed} />
+        </div>
         <SidebarToggle isCollapsed={isCollapsed} onToggle={toggleSidebar} />
 
-        {/* Navigation */}
-        <ScrollArea className="flex-1 px-2">
-          <nav className="flex flex-col py-2">
-            {navigationConfig.map((group) => (
-              <NavGroup
-                key={group.groupTitle}
-                group={group}
-                isCollapsed={isCollapsed}
-                isActive={isActive}
-              />
-            ))}
+        {/* Navigation con scroll invisible */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <nav 
+            className={cn(
+              "h-full px-2 py-2 pb-4 overflow-y-auto",
+              // Ocultar scrollbar en todos los navegadores
+              "scrollbar-none",
+              "[&::-webkit-scrollbar]:hidden",
+              "[-ms-overflow-style:none]",
+              "[scrollbar-width:none]"
+            )}
+          >
+            <div className="flex flex-col">
+              {navigationConfig.map((group) => (
+                <NavGroup
+                  key={group.groupTitle}
+                  group={group}
+                  isCollapsed={isCollapsed}
+                  isActive={isActive}
+                />
+              ))}
+            </div>
           </nav>
-        </ScrollArea>
+        </div>
 
-        <SidebarFooter isCollapsed={isCollapsed} onLogout={logout} />
+        {/* Footer fijo */}
+        <div className="shrink-0">
+          <SidebarFooter isCollapsed={isCollapsed} onLogout={logout} />
+        </div>
       </aside>
     </TooltipProvider>
   );

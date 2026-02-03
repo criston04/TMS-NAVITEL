@@ -38,6 +38,7 @@ export interface IBaseService<T extends BaseEntity> {
 export interface IBulkService<T extends BaseEntity> extends IBaseService<T> {
   importBulk(file: File): Promise<ImportResult>;
   exportData(options: ExportOptions): Promise<Blob>;
+  bulkDelete(ids: string[]): Promise<void>;
 }
 
 /**
@@ -272,5 +273,24 @@ export abstract class BulkService<T extends BaseEntity>
     });
     
     return response.blob();
+  }
+
+  /**
+   * Elimina múltiples registros
+   */
+  async bulkDelete(ids: string[]): Promise<void> {
+    if (this.useMocks) {
+      await this.simulateDelay(500);
+      // Eliminar los registros del mock
+      for (const id of ids) {
+        const index = this.mockData.findIndex((item) => item.id === id);
+        if (index !== -1) {
+          this.mockData.splice(index, 1);
+        }
+      }
+      return;
+    }
+    
+    return apiClient.post(`${this.endpoint}/bulk-delete`, { ids });
   }
 }

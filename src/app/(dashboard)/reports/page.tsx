@@ -1,0 +1,237 @@
+/**
+ * @fileoverview Página principal del módulo de Reportes
+ * @module app/(dashboard)/reports/page
+ * @description Centro de reportes con generación, programación y descarga.
+ * @author TMS-NAVITEL
+ * @version 1.0.0
+ */
+
+"use client";
+
+import { useState } from "react";
+import {
+  FileText,
+  Download,
+  Calendar,
+  Clock,
+  Plus,
+  RefreshCw,
+  Play,
+  TrendingUp,
+  Truck,
+  Users,
+  Package,
+} from "lucide-react";
+
+// Hooks
+import { useReports, useQuickReportGenerator } from "@/hooks/useReports";
+
+// Tipos
+import type { ReportType } from "@/types/report";
+
+// Componentes UI
+import { PageWrapper } from "@/components/page-wrapper";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+// Componentes de Reportes
+import {
+  ReportDefinitionsList,
+  GeneratedReportsList,
+  ReportSchedulesList,
+  QuickReportCard,
+  CreateReportDialog,
+  ScheduleReportDialog,
+} from "@/components/reports";
+
+// ============================================
+// REPORTES RÁPIDOS
+// ============================================
+
+const quickReports = [
+  {
+    id: "quick-ops-daily",
+    title: "Operaciones del Día",
+    description: "Resumen de todas las operaciones de hoy",
+    icon: Package,
+    color: "text-blue-500",
+    bgColor: "bg-blue-50 dark:bg-blue-950/20",
+    type: "operational" as const,
+  },
+  {
+    id: "quick-fleet-status",
+    title: "Estado de Flota",
+    description: "Disponibilidad y ubicación de vehículos",
+    icon: Truck,
+    color: "text-green-500",
+    bgColor: "bg-green-50 dark:bg-green-950/20",
+    type: "fleet" as const,
+  },
+  {
+    id: "quick-driver-performance",
+    title: "Rendimiento Conductores",
+    description: "KPIs y métricas de conductores",
+    icon: Users,
+    color: "text-violet-500",
+    bgColor: "bg-violet-50 dark:bg-violet-950/20",
+    type: "driver" as const,
+  },
+  {
+    id: "quick-financial",
+    title: "Resumen Financiero",
+    description: "Ingresos, costos y rentabilidad",
+    icon: TrendingUp,
+    color: "text-amber-500",
+    bgColor: "bg-amber-50 dark:bg-amber-950/20",
+    type: "financial" as const,
+  },
+];
+
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
+
+export default function ReportsPage() {
+  const [activeTab, setActiveTab] = useState("quick");
+
+  // Hooks de datos
+  const {
+    definitions,
+    generatedReports,
+    schedules,
+    loading,
+    refresh,
+  } = useReports();
+
+  const { generate, generating } = useQuickReportGenerator();
+
+  const handleQuickReport = async (type: ReportType) => {
+    await generate(type, "pdf");
+  };
+
+  return (
+    <PageWrapper
+      title="Reportes"
+      description="Genera, programa y descarga reportes del sistema"
+    >
+      {/* Header con acciones */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Button onClick={refresh} variant="outline" size="sm" disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            Actualizar
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <ScheduleReportDialog
+            trigger={
+              <Button variant="outline">
+                <Clock className="h-4 w-4 mr-2" />
+                Programar
+              </Button>
+            }
+          />
+          <CreateReportDialog
+            trigger={
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Reporte
+              </Button>
+            }
+          />
+        </div>
+      </div>
+
+      {/* Tabs de contenido */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="quick" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
+            Reportes Rápidos
+          </TabsTrigger>
+          <TabsTrigger value="definitions" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Definiciones
+          </TabsTrigger>
+          <TabsTrigger value="generated" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Generados
+          </TabsTrigger>
+          <TabsTrigger value="schedules" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Programados
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab: Reportes Rápidos */}
+        <TabsContent value="quick" className="space-y-6">
+          {/* Reportes rápidos predefinidos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickReports.map((report) => (
+              <QuickReportCard
+                key={report.id}
+                title={report.title}
+                description={report.description}
+                icon={report.icon}
+                color={report.color}
+                bgColor={report.bgColor}
+                onGenerate={() => handleQuickReport(report.type)}
+                generating={generating}
+              />
+            ))}
+          </div>
+
+          {/* Reportes recientes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Reportes Recientes
+              </CardTitle>
+              <CardDescription>
+                Últimos reportes generados
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GeneratedReportsList
+                reports={generatedReports.slice(0, 5)}
+                loading={loading}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Definiciones */}
+        <TabsContent value="definitions" className="space-y-4">
+          <ReportDefinitionsList
+            definitions={definitions}
+            loading={loading}
+          />
+        </TabsContent>
+
+        {/* Tab: Reportes Generados */}
+        <TabsContent value="generated" className="space-y-4">
+          <GeneratedReportsList
+            reports={generatedReports}
+            loading={loading}
+          />
+        </TabsContent>
+
+        {/* Tab: Programaciones */}
+        <TabsContent value="schedules" className="space-y-4">
+          <ReportSchedulesList
+            schedules={schedules}
+            loading={loading}
+          />
+        </TabsContent>
+      </Tabs>
+    </PageWrapper>
+  );
+}

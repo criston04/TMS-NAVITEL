@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus,
@@ -75,7 +75,7 @@ export default function OrdersPage() {
     isLoadingOptions,
   } = useOrderFilters();
 
-  // Hook principal de órdenes
+  // Hook principal de órdenes - pasamos filters como dependencia
   const {
     orders,
     total,
@@ -90,11 +90,17 @@ export default function OrdersPage() {
     toggleSelection,
     selectAll,
     clearSelection,
+    setFilters: setOrderFilters,
   } = useOrders({
     initialFilters: filters,
     pageSize: 10,
     autoFetch: true,
   });
+
+  // Sincronizar filtros del hook de órdenes cuando cambian los filtros locales
+  useEffect(() => {
+    setOrderFilters(filters);
+  }, [filters, setOrderFilters]);
 
   // Hook de exportación
   const { exportOrders, isExporting } = useOrderExport();

@@ -78,7 +78,7 @@ class ModuleConnectorService {
     try {
       // 1. Buscar workflow sugerido basado en criterios
       const suggestedWorkflow = await unifiedWorkflowService.suggestWorkflowForOrder(
-        orderData.customerId,
+        orderData.customerId || "",
         orderData.cargo?.type
       );
 
@@ -125,7 +125,7 @@ class ModuleConnectorService {
   /**
    * Genera los milestones de una orden basándose en los steps del workflow
    */
-  private generateMilestonesFromWorkflow(
+  public generateMilestonesFromWorkflow(
     workflow: Workflow,
     orderData: Partial<CreateOrderDTO> | Partial<Order>
   ): OrderMilestone[] {
@@ -312,14 +312,20 @@ class ModuleConnectorService {
   // ------------------------------------------------
 
   /**
-   * Valida que todas las geocercas de un workflow existan y estén activas
+   * Valida que todas las geocercas de un workflow existan y esten activas
    */
   async validateWorkflowGeofences(workflowId: string): Promise<{
     valid: boolean;
     missingGeofences: string[];
     inactiveGeofences: string[];
   }> {
-    return unifiedWorkflowService.validateWorkflowGeofences(workflowId);
+    const result = await unifiedWorkflowService.validateWorkflowGeofences(workflowId);
+    // Convertir el resultado al formato esperado
+    return {
+      valid: result.valid,
+      missingGeofences: result.issues?.filter(i => i.issue.includes("missing")).map(i => i.stepId) || [],
+      inactiveGeofences: result.issues?.filter(i => i.issue.includes("inactive")).map(i => i.stepId) || [],
+    };
   }
 
   // ------------------------------------------------
@@ -338,7 +344,7 @@ class ModuleConnectorService {
     validationWarnings: string[];
   }> {
     const validationWarnings: string[] = [];
-    let enrichedData = { ...orderData };
+    const enrichedData = { ...orderData };
 
     // 1. Auto-asignar workflow si no tiene uno
     let workflowAssignment: WorkflowAssignmentResult;
