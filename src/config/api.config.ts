@@ -17,21 +17,34 @@ interface ApiConfig {
   useMocks: boolean;
 }
 
+/**
+ * Determina si usar mocks basado en variables de entorno
+ * NEXT_PUBLIC_USE_MOCKS=true fuerza mocks en cualquier entorno (útil para demos)
+ */
+const shouldUseMocks = (envDefault: boolean): boolean => {
+  const forcesMocks = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
+  const forcesApi = process.env.NEXT_PUBLIC_USE_MOCKS === 'false';
+  
+  if (forcesMocks) return true;
+  if (forcesApi) return false;
+  return envDefault;
+};
+
 const configs: Record<Environment, ApiConfig> = {
   development: {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
     timeout: 30000,
-    useMocks: true, // Usar mocks en desarrollo
+    useMocks: shouldUseMocks(true), // Usar mocks en desarrollo por defecto
   },
   staging: {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "https://staging-api.navitel.com/api",
     timeout: 30000,
-    useMocks: false,
+    useMocks: shouldUseMocks(false),
   },
   production: {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "https://api.navitel.com/api",
     timeout: 15000,
-    useMocks: false,
+    useMocks: shouldUseMocks(true), // Usar mocks por defecto en producción para demo
   },
 };
 
