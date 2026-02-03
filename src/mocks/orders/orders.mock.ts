@@ -84,11 +84,11 @@ const mockGPSOperators = [
  * Lista de vehículos mock para órdenes
  */
 const mockVehicles = [
-  { id: 'veh-001', plate: 'ABC-123', brand: 'Volvo', model: 'FH16', type: 'truck' as const },
-  { id: 'veh-002', plate: 'DEF-456', brand: 'Scania', model: 'R450', type: 'truck' as const },
-  { id: 'veh-003', plate: 'GHI-789', brand: 'Mercedes-Benz', model: 'Actros', type: 'truck' as const },
-  { id: 'veh-004', plate: 'JKL-012', brand: 'Kenworth', model: 'T680', type: 'truck' as const },
-  { id: 'veh-005', plate: 'MNO-345', brand: 'Freightliner', model: 'Cascadia', type: 'truck' as const },
+  { id: 'veh-001', plate: 'ABC-123', brand: 'Volvo', model: 'FH16', type: 'tractocamion' as const },
+  { id: 'veh-002', plate: 'DEF-456', brand: 'Scania', model: 'R450', type: 'tractocamion' as const },
+  { id: 'veh-003', plate: 'GHI-789', brand: 'Mercedes-Benz', model: 'Actros', type: 'camion' as const },
+  { id: 'veh-004', plate: 'JKL-012', brand: 'Kenworth', model: 'T680', type: 'tractocamion' as const },
+  { id: 'veh-005', plate: 'MNO-345', brand: 'Freightliner', model: 'Cascadia', type: 'camion' as const },
 ];
 
 /**

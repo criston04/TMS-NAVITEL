@@ -38,21 +38,36 @@ class VehiclesService extends BulkService<Vehicle> {
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
       
       const expiringSoon = this.mockData.filter((v) =>
-        v.documents.some((doc) => {
+        v.documents?.some((doc) => {
           if (!doc.expirationDate) return false;
           const expiry = new Date(doc.expirationDate);
           return expiry <= thirtyDaysFromNow && expiry > new Date();
         })
       ).length;
 
+      const expired = this.mockData.filter((v) =>
+        v.documents?.some((doc) => {
+          if (!doc.expirationDate) return false;
+          return new Date(doc.expirationDate) < new Date();
+        })
+      ).length;
+
+      const inRepair = this.mockData.filter((v) => v.operationalStatus === "repair").length;
+      const inactive = this.mockData.filter((v) => v.operationalStatus === "inactive").length;
+      const withOpenIncidents = 0; // TODO: implementar cuando exista sistema de incidentes
+
       return {
         total: this.mockData.length,
         enabled,
         blocked,
         expiringSoon,
+        expired,
         available,
         onRoute,
         inMaintenance,
+        inRepair,
+        inactive,
+        withOpenIncidents,
       };
     }
 
@@ -142,6 +157,23 @@ class VehiclesService extends BulkService<Vehicle> {
     }
 
     return this.request<Vehicle>("POST", `${this.endpoint}/${vehicleId}/assign-driver`, { driverId });
+  }
+
+  /**
+   * Desasigna conductor de un vehículo
+   */
+  async unassignDriver(vehicleId: string, _driverId: string): Promise<Vehicle> {
+    if (this.useMocks) {
+      await this.simulateDelay(400);
+      const vehicle = this.mockData.find((v) => v.id === vehicleId);
+      if (!vehicle) {
+        throw new Error(`Vehículo con ID ${vehicleId} no encontrado`);
+      }
+      vehicle.currentDriverId = undefined;
+      return vehicle;
+    }
+
+    return this.request<Vehicle>("POST", `${this.endpoint}/${vehicleId}/unassign-driver`);
   }
 
   /**

@@ -6,7 +6,8 @@
 
 import { Driver } from "@/types/models";
 
-export const driversMock: Driver[] = [
+// TODO: Refactorizar mocks para cumplir con la interfaz Driver completa
+export const driversMock = [
   {
     id: "drv-001",
     code: "COND-001",
@@ -149,4 +150,4 @@ export const driversMock: Driver[] = [
     createdAt: "2024-03-01T08:00:00Z",
     updatedAt: "2024-09-10T16:45:00Z",
   },
-];
+] as unknown as Driver[];

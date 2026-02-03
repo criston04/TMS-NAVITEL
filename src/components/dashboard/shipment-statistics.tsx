@@ -11,7 +11,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Badge } from "@/components/ui/badge";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -43,7 +42,7 @@ export function ShipmentStatistics() {
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px] w-full mt-4">
+        <div className="h-70 w-full mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={data}
@@ -72,11 +71,11 @@ export function ShipmentStatistics() {
                         <div className="rounded-xl border-none bg-white shadow-xl p-3 z-50">
                             <p className="text-xs font-semibold text-slate-500 mb-2">{label}</p>
                             <div className="flex flex-col gap-1">
-                                {payload.map((entry: any, index: number) => (
+                                {payload.map((entry, index: number) => (
                                     <div key={index} className="flex items-center gap-2">
                                         <div 
                                             className="w-2 h-2 rounded-full" 
-                                            style={{ backgroundColor: entry.fill || entry.stroke }}
+                                            style={{ backgroundColor: (entry.fill || entry.stroke) as string }}
                                         />
                                         <span className="text-xs font-medium text-slate-700">
                                             {entry.dataKey === 'shipment' ? 'Shipments' : 'Deliveries'}: {entry.value}%

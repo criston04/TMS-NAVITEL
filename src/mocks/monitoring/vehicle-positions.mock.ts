@@ -1,0 +1,350 @@
+/**
+ * @fileoverview Datos mock para posiciones de vehículos en tiempo real
+ * 
+ * @module mocks/monitoring/vehicle-positions.mock
+ * @description Posiciones y simulación de movimiento de vehículos
+ */
+
+import type { 
+  VehiclePosition, 
+  TrackedVehicle, 
+  MovementStatus,
+  RetransmissionStatus 
+} from "@/types/monitoring";
+import { vehiclesMock } from "@/mocks/master/vehicles.mock";
+
+/**
+ * Nombres de conductores de ejemplo
+ */
+const driverNames = [
+  "Carlos Mendoza",
+  "Juan Pérez",
+  "Luis García",
+  "Roberto Sánchez",
+  "Miguel Torres",
+  "Fernando López",
+  "Ricardo Díaz",
+  "Eduardo Vargas",
+  "Alberto Ruiz",
+  "José Ramírez",
+];
+
+/**
+ * Empresas/operadores de ejemplo
+ */
+const companyNames = [
+  "Transportes Lima SAC",
+  "Cargo Express Peru",
+  "Logística del Norte",
+  "TransAndina SRL",
+  "Distribuciones Rápidas",
+];
+
+/**
+ * Rutas predefinidas en Lima para simulación realista
+ * Cada ruta es un array de puntos [lat, lng]
+ */
+const predefinedRoutes = [
+  // Via Expresa (Norte a Sur)
+  [
+    [-12.0560, -77.0370],
+    [-12.0620, -77.0350],
+    [-12.0700, -77.0330],
+    [-12.0800, -77.0300],
+    [-12.0950, -77.0250],
+    [-12.1100, -77.0200],
+    [-12.1300, -77.0150], // Barranco
+  ],
+  // Javier Prado (Oeste a Este)
+  [
+    [-12.0900, -77.0700], // Magdalena
+    [-12.0920, -77.0500],
+    [-12.0930, -77.0300],
+    [-12.0900, -77.0100], // San Borja
+    [-12.0850, -76.9900],
+    [-12.0800, -76.9700], // Jockey Plaza
+    [-12.0750, -76.9500], // La Molina
+  ],
+  // Panamericana Sur (Sur a Norte)
+  [
+    [-12.1500, -76.9800], // Surco
+    [-12.1300, -76.9850],
+    [-12.1100, -76.9900],
+    [-12.0900, -76.9950],
+    [-12.0700, -77.0000], // Evitamiento
+  ],
+  // Av. Arequipa (Centro a Miraflores)
+  [
+    [-12.0650, -77.0370],
+    [-12.0800, -77.0350],
+    [-12.0950, -77.0330],
+    [-12.1100, -77.0310],
+    [-12.1200, -77.0300],
+  ],
+  // Circuito de Playas (Costa Verde)
+  [
+    [-12.0900, -77.0700], // San Miguel
+    [-12.1000, -77.0600],
+    [-12.1100, -77.0500],
+    [-12.1200, -77.0400], // Miraflores
+    [-12.1300, -77.0300], // Barranco
+    [-12.1500, -77.0250], // Chorrillos
+  ]
+];
+
+/**
+ * Asigna una ruta a cada vehículo para mantener consistencia
+ */
+const vehicleRouteMap = new Map<string, { 
+  routeIndex: number, 
+  pointIndex: number, 
+  progress: number,
+  direction: 1 | -1 
+}>();
+
+/**
+ * Inicializa la posición de un vehículo en una ruta o punto válido
+ */
+function initializeVehiclePosition(vehicleId: string): VehiclePosition {
+  const routeIndex = Math.floor(Math.random() * predefinedRoutes.length);
+  const route = predefinedRoutes[routeIndex];
+  // Posición inicial aleatoria en la ruta
+  const pointIndex = Math.floor(Math.random() * (route.length - 1));
+  const progress = Math.random(); 
+
+  // Guardamos estado para simulación
+  vehicleRouteMap.set(vehicleId, {
+    routeIndex,
+    pointIndex,
+    progress,
+    direction: Math.random() > 0.5 ? 1 : -1
+  });
+
+  const p1 = route[pointIndex];
+  const p2 = route[pointIndex + 1];
+
+  const lat = p1[0] + (p2[0] - p1[0]) * progress;
+  const lng = p1[1] + (p2[1] - p1[1]) * progress;
+
+  // Calcular heading
+  const dy = p2[0] - p1[0];
+  const dx = Math.cos(Math.PI/180 * p1[0]) * (p2[1] - p1[1]);
+  let heading = Math.atan2(dx, dy) * 180 / Math.PI;
+  if (heading < 0) heading += 360;
+
+  return {
+    lat,
+    lng,
+    speed: Math.floor(Math.random() * 40) + 20,
+    heading,
+    timestamp: new Date().toISOString(),
+    accuracy: 5,
+    altitude: 100,
+  };
+}
+
+/**
+ * Genera el estado de movimiento basado en la velocidad
+ */
+function getMovementStatus(speed: number): MovementStatus {
+  return speed > 5 ? "moving" : "stopped";
+}
+
+/**
+ * Genera el estado de conexión aleatorio
+ */
+function getConnectionStatus(): RetransmissionStatus {
+  const random = Math.random();
+  if (random < 0.85) return "online";
+  if (random < 0.95) return "temporary_loss";
+  return "disconnected";
+}
+
+/**
+ * Genera vehículos con tracking
+ */
+function generateVehiclePositions(): TrackedVehicle[] {
+  const trackedVehicles: TrackedVehicle[] = [];
+
+  vehiclesMock.forEach((vehicle, index) => {
+    // Usar tracking simulado en rutas en vez de aleatorio
+    const position = initializeVehiclePosition(vehicle.id);
+
+    const connectionStatus = getConnectionStatus();
+    const movementStatus = connectionStatus === "disconnected" 
+      ? "stopped" 
+      : getMovementStatus(position.speed);
+
+    trackedVehicles.push({
+      id: vehicle.id,
+      plate: vehicle.plate,
+      economicNumber: vehicle.code,
+      type: vehicle.type,
+      position,
+      movementStatus,
+      connectionStatus,
+      driverId: `drv-${String(index + 1).padStart(3, "0")}`,
+      driverName: driverNames[index % driverNames.length],
+      activeOrderId: index < 5 ? `ord-${String(index + 1).padStart(5, "0")}` : undefined,
+      activeOrderNumber: index < 5 ? `ORD-2024-${String(index + 1).padStart(5, "0")}` : undefined,
+      companyName: companyNames[index % companyNames.length],
+      lastUpdate: new Date().toISOString(),
+    });
+  });
+
+  return trackedVehicles;
+}
+
+/**
+ * Datos mock de posiciones de vehículos
+ */
+export const vehiclePositionsMock: TrackedVehicle[] = generateVehiclePositions();
+
+/**
+ * Simula el movimiento de un vehículo siguiendo su ruta asignada
+ * @param vehicle - Vehículo a mover
+ * @returns Nueva posición del vehículo
+ */
+export function simulateVehicleMovement(vehicle: TrackedVehicle): TrackedVehicle {
+  if (vehicle.connectionStatus === "disconnected") {
+    return vehicle;
+  }
+
+  const isMoving = vehicle.movementStatus === "moving";
+
+  // Probabilidad de cambio de estado
+  const shouldChangeState = isMoving 
+    ? Math.random() < 0.05 
+    : Math.random() < 0.1;
+
+  let newSpeed = vehicle.position.speed;
+  let newLat = vehicle.position.lat;
+  let newLng = vehicle.position.lng;
+  let newHeading = vehicle.position.heading;
+
+  // Recuperar estado de ruta
+  let routeState = vehicleRouteMap.get(vehicle.id);
+
+  // Si no tiene ruta (nuevo o reinicio), asignar una
+  if (!routeState) {
+    initializeVehiclePosition(vehicle.id); 
+    routeState = vehicleRouteMap.get(vehicle.id)!;
+  }
+
+  if (shouldChangeState) {
+    newSpeed = isMoving ? 0 : Math.floor(Math.random() * 40) + 30;
+  } else if (isMoving) {
+    // Mover a lo largo de la ruta
+    const route = predefinedRoutes[routeState.routeIndex];
+    let { pointIndex, progress, direction } = routeState;
+
+    // Velocidad de avance (ajustable)
+    const step = (newSpeed / 3600) * 0.005; // Factor arbitrario
+
+    progress += step * direction;
+
+    // Manejar fin de segmento
+    if (progress > 1) {
+      if (pointIndex < route.length - 2) {
+        pointIndex++;
+        progress = 0;
+      } else {
+        direction = -1;
+        progress = 1;
+      }
+    } else if (progress < 0) {
+      if (pointIndex > 0) {
+        pointIndex--;
+        progress = 1;
+      } else {
+        direction = 1;
+        progress = 0;
+      }
+    }
+
+    // Calcular nueva posición
+    const p1 = route[pointIndex];
+    const p2 = route[pointIndex + 1];
+
+    newLat = p1[0] + (p2[0] - p1[0]) * progress;
+    newLng = p1[1] + (p2[1] - p1[1]) * progress;
+
+    // Calcular heading
+    const dy = (p2[0] - p1[0]) * direction;
+    const dx = Math.cos(Math.PI/180 * p1[0]) * (p2[1] - p1[1]) * direction;
+    let heading = Math.atan2(dx, dy) * 180 / Math.PI;
+    if (heading < 0) heading += 360;
+
+    newHeading = heading;
+
+    // Actualizar estado
+    vehicleRouteMap.set(vehicle.id, { ...routeState, pointIndex, progress, direction });
+  }
+
+  // Pequeña probabilidad de cambio de estado de conexión
+  let newConnectionStatus: RetransmissionStatus = vehicle.connectionStatus;
+  if (Math.random() < 0.02) {
+    const statuses: RetransmissionStatus[] = ["online", "temporary_loss", "disconnected"];
+    newConnectionStatus = statuses[Math.floor(Math.random() * statuses.length)] as RetransmissionStatus;
+  }
+
+  return {
+    ...vehicle,
+    position: {
+      ...vehicle.position,
+      lat: newLat,
+      lng: newLng,
+      speed: Math.round(newSpeed),
+      heading: Math.round(newHeading),
+      timestamp: new Date().toISOString(),
+    },
+    movementStatus: getMovementStatus(newSpeed),
+    connectionStatus: newConnectionStatus,
+    lastUpdate: new Date().toISOString(),
+  };
+}
+
+/**
+ * Obtiene un vehículo por ID
+ */
+export function getTrackedVehicleById(vehicleId: string): TrackedVehicle | undefined {
+  return vehiclePositionsMock.find(v => v.id === vehicleId);
+}
+
+/**
+ * Obtiene vehículos con órdenes activas
+ */
+export function getVehiclesWithActiveOrders(): TrackedVehicle[] {
+  return vehiclePositionsMock.filter(v => v.activeOrderId !== undefined);
+}
+
+/**
+ * Filtra vehículos por estado de conexión
+ */
+export function filterVehiclesByConnection(status: RetransmissionStatus): TrackedVehicle[] {
+  return vehiclePositionsMock.filter(v => v.connectionStatus === status);
+}
+
+/**
+ * Actualiza la posición de un vehículo en el mock
+ */
+export function updateVehiclePosition(
+  vehicleId: string, 
+  position: Partial<VehiclePosition>
+): TrackedVehicle | undefined {
+  const index = vehiclePositionsMock.findIndex(v => v.id === vehicleId);
+  if (index === -1) return undefined;
+
+  vehiclePositionsMock[index] = {
+    ...vehiclePositionsMock[index],
+    position: {
+      ...vehiclePositionsMock[index].position,
+      ...position,
+      timestamp: new Date().toISOString(),
+    },
+    movementStatus: getMovementStatus(position.speed ?? vehiclePositionsMock[index].position.speed),
+    lastUpdate: new Date().toISOString(),
+  };
+
+  return vehiclePositionsMock[index];
+}

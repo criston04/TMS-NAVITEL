@@ -17,7 +17,7 @@ import type { CreateOrderDTO } from '@/types/order';
 // Componentes
 import { PageWrapper } from '@/components/page-wrapper';
 import { Button } from '@/components/ui/button';
-import { OrderForm } from '@/components/orders/order-form';
+import { OrderFormWizard } from '@/components/orders/order-form-wizard';
 import {
   Dialog,
   DialogContent,
@@ -126,7 +126,7 @@ export default function NewOrderPage() {
         )}
 
         {/* Formulario */}
-        <OrderForm
+        <OrderFormWizard
           onSubmit={handleSubmit}
           onCancel={handleBack}
           isSubmitting={isSubmitting}

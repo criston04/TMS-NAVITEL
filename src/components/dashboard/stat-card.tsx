@@ -63,10 +63,10 @@ export function StatCard({
               {/* Sparkline Chart */}
               {data && data.length > 0 && (
                 <div className="h-10 w-20 sm:w-25 -mr-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={50} minHeight={30}>
+                    <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                       <defs>
-                        <linearGradient id={`gradient-${title}`} x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id={`gradient-${title.replace(/\s+/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor={color} stopOpacity={0.2} />
                           <stop offset="100%" stopColor={color} stopOpacity={0} />
                         </linearGradient>
@@ -76,8 +76,8 @@ export function StatCard({
                         dataKey="value"
                         stroke={color}
                         strokeWidth={2}
-                        fill={`url(#gradient-${title})`}
-                        isAnimationActive={true}
+                        fill={`url(#gradient-${title.replace(/\s+/g, '-')})`}
+                        isAnimationActive={false}
                       />
                     </AreaChart>
                   </ResponsiveContainer>

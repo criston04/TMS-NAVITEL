@@ -12,13 +12,8 @@ import { memo, useMemo } from 'react';
 import {
   Package,
   Truck,
-  Clock,
   CheckCircle,
   AlertTriangle,
-  XCircle,
-  FileText,
-  TrendingUp,
-  TrendingDown,
 } from 'lucide-react';
 import type { OrderStatus } from '@/types/order';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,163 +37,14 @@ interface OrderStatsCardsProps {
   className?: string;
 }
 
-/**
- * Props para una card individual de stat
- */
-interface StatCardProps {
-  /** Título */
-  title: string;
-  /** Valor numérico */
-  value: number;
-  /** Icono */
-  icon: typeof Package;
-  /** Color del icono */
-  iconClassName: string;
-  /** Color de fondo */
-  bgClassName: string;
-  /** Si está activo */
-  isActive?: boolean;
-  /** Callback al click */
-  onClick?: () => void;
-  /** Tendencia (positivo = up, negativo = down) */
-  trend?: number;
-}
-
-// ============================================
-// CONFIGURACIÓN
-// ============================================
-
-/**
- * Configuración de cards por estado
- */
-const STATUS_CARD_CONFIG: Record<OrderStatus, {
-  title: string;
-  icon: typeof Package;
-  iconClassName: string;
-  bgClassName: string;
-}> = {
-  draft: {
-    title: 'Borradores',
-    icon: FileText,
-    iconClassName: 'text-gray-500',
-    bgClassName: 'bg-gray-100 dark:bg-gray-800',
-  },
-  pending: {
-    title: 'Pendientes',
-    icon: Clock,
-    iconClassName: 'text-yellow-500',
-    bgClassName: 'bg-yellow-50 dark:bg-yellow-900/20',
-  },
-  assigned: {
-    title: 'Asignadas',
-    icon: Package,
-    iconClassName: 'text-blue-500',
-    bgClassName: 'bg-blue-50 dark:bg-blue-900/20',
-  },
-  in_transit: {
-    title: 'En tránsito',
-    icon: Truck,
-    iconClassName: 'text-indigo-500',
-    bgClassName: 'bg-indigo-50 dark:bg-indigo-900/20',
-  },
-  at_milestone: {
-    title: 'En hito',
-    icon: Package,
-    iconClassName: 'text-purple-500',
-    bgClassName: 'bg-purple-50 dark:bg-purple-900/20',
-  },
-  delayed: {
-    title: 'Retrasadas',
-    icon: AlertTriangle,
-    iconClassName: 'text-orange-500',
-    bgClassName: 'bg-orange-50 dark:bg-orange-900/20',
-  },
-  completed: {
-    title: 'Completadas',
-    icon: CheckCircle,
-    iconClassName: 'text-green-500',
-    bgClassName: 'bg-green-50 dark:bg-green-900/20',
-  },
-  closed: {
-    title: 'Cerradas',
-    icon: CheckCircle,
-    iconClassName: 'text-emerald-500',
-    bgClassName: 'bg-emerald-50 dark:bg-emerald-900/20',
-  },
-  cancelled: {
-    title: 'Canceladas',
-    icon: XCircle,
-    iconClassName: 'text-red-500',
-    bgClassName: 'bg-red-50 dark:bg-red-900/20',
-  },
-};
-
-// ============================================
-// COMPONENTE STAT CARD
-// ============================================
-
-/**
- * Card individual de estadística
- */
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  iconClassName,
-  bgClassName,
-  isActive,
-  onClick,
-  trend,
-}: Readonly<StatCardProps>) {
-  return (
-    <Card
-      className={cn(
-        'cursor-pointer transition-all duration-200 hover:shadow-md',
-        isActive && 'ring-2 ring-primary',
-        onClick && 'hover:scale-[1.02]',
-      )}
-      onClick={onClick}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold">{value.toLocaleString()}</span>
-              {trend !== undefined && trend !== 0 && (
-                <span
-                  className={cn(
-                    'flex items-center text-xs',
-                    trend > 0 ? 'text-green-500' : 'text-red-500',
-                  )}
-                >
-                  {trend > 0 ? (
-                    <TrendingUp className="w-3 h-3 mr-0.5" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3 mr-0.5" />
-                  )}
-                  {Math.abs(trend)}%
-                </span>
-              )}
-            </div>
-          </div>
-          <div className={cn('p-3 rounded-full', bgClassName)}>
-            <Icon className={cn('w-6 h-6', iconClassName)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 // ============================================
 // COMPONENTE PRINCIPAL
 // ============================================
 
 /**
- * Grid de cards de estadísticas por estado
+ * Grid de cards de estadísticas esenciales
  * @param props - Props del componente
- * @returns Componente de estadísticas
+ * @returns Componente de estadísticas simplificado
  */
 function OrderStatsCardsComponent({
   statusCounts,
@@ -209,109 +55,75 @@ function OrderStatsCardsComponent({
   // Calcular totales
   const totals = useMemo(() => {
     const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);
-    const active = statusCounts.in_transit + statusCounts.at_milestone + statusCounts.assigned;
-    const attention = statusCounts.delayed + statusCounts.pending;
-    return { total, active, attention };
+    const inProgress = statusCounts.in_transit + statusCounts.at_milestone;
+    return { total, inProgress };
   }, [statusCounts]);
 
-  // Estados a mostrar (los más relevantes primero)
-  const primaryStatuses: OrderStatus[] = ['pending', 'in_transit', 'delayed', 'completed'];
-  const secondaryStatuses: OrderStatus[] = ['assigned', 'at_milestone', 'closed', 'cancelled', 'draft'];
+  // Solo 4 cards esenciales
+  const essentialStats = [
+    {
+      key: 'total',
+      title: 'Total',
+      value: totals.total,
+      icon: Package,
+      iconClassName: 'text-primary',
+      bgClassName: 'bg-primary/10',
+      status: undefined as OrderStatus | undefined,
+    },
+    {
+      key: 'in_transit',
+      title: 'En Tránsito',
+      value: totals.inProgress,
+      icon: Truck,
+      iconClassName: 'text-blue-500',
+      bgClassName: 'bg-blue-50 dark:bg-blue-900/20',
+      status: 'in_transit' as OrderStatus,
+    },
+    {
+      key: 'delayed',
+      title: 'Retrasadas',
+      value: statusCounts.delayed,
+      icon: AlertTriangle,
+      iconClassName: 'text-orange-500',
+      bgClassName: 'bg-orange-50 dark:bg-orange-900/20',
+      status: 'delayed' as OrderStatus,
+    },
+    {
+      key: 'completed',
+      title: 'Completadas',
+      value: statusCounts.completed + statusCounts.closed,
+      icon: CheckCircle,
+      iconClassName: 'text-green-500',
+      bgClassName: 'bg-green-50 dark:bg-green-900/20',
+      status: 'completed' as OrderStatus,
+    },
+  ];
 
   return (
-    <div className={cn('space-y-4', className)}>
-      {/* Resumen general */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total órdenes</p>
-                <span className="text-3xl font-bold">{totals.total.toLocaleString()}</span>
+    <div className={cn('grid grid-cols-2 md:grid-cols-4 gap-3', className)}>
+      {essentialStats.map((stat) => (
+        <Card
+          key={stat.key}
+          className={cn(
+            'transition-all duration-200 hover:shadow-md',
+            stat.status && 'cursor-pointer hover:scale-[1.01]',
+            activeStatus === stat.status && 'ring-2 ring-primary',
+          )}
+          onClick={() => stat.status && onStatusClick?.(stat.status)}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className={cn('p-2 rounded-lg', stat.bgClassName)}>
+                <stat.icon className={cn('w-5 h-5', stat.iconClassName)} />
               </div>
-              <div className="p-3 rounded-full bg-primary/10">
-                <Package className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">En curso</p>
-                <span className="text-3xl font-bold text-indigo-500">
-                  {totals.active.toLocaleString()}
-                </span>
-              </div>
-              <div className="p-3 rounded-full bg-indigo-50 dark:bg-indigo-900/20">
-                <Truck className="w-8 h-8 text-indigo-500" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground truncate">{stat.title}</p>
+                <span className="text-xl font-bold">{stat.value.toLocaleString()}</span>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Requieren atención</p>
-                <span className="text-3xl font-bold text-orange-500">
-                  {totals.attention.toLocaleString()}
-                </span>
-              </div>
-              <div className="p-3 rounded-full bg-orange-50 dark:bg-orange-900/20">
-                <AlertTriangle className="w-8 h-8 text-orange-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Estados principales */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {primaryStatuses.map((status) => {
-          const config = STATUS_CARD_CONFIG[status];
-          return (
-            <StatCard
-              key={status}
-              title={config.title}
-              value={statusCounts[status]}
-              icon={config.icon}
-              iconClassName={config.iconClassName}
-              bgClassName={config.bgClassName}
-              isActive={activeStatus === status}
-              onClick={() => onStatusClick?.(status)}
-            />
-          );
-        })}
-      </div>
-
-      {/* Estados secundarios (colapsables en mobile) */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {secondaryStatuses.map((status) => {
-          const config = STATUS_CARD_CONFIG[status];
-          return (
-            <Card
-              key={status}
-              className={cn(
-                'cursor-pointer transition-all hover:bg-muted/50',
-                activeStatus === status && 'ring-2 ring-primary',
-              )}
-              onClick={() => onStatusClick?.(status)}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <config.icon className={cn('w-4 h-4', config.iconClassName)} />
-                  <span className="text-sm">{config.title}</span>
-                  <span className="ml-auto font-semibold">{statusCounts[status]}</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      ))}
     </div>
   );
 }

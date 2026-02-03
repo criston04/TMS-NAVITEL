@@ -183,6 +183,179 @@ class OrderService {
     throw new Error('API not implemented');
   }
 
+  /**
+   * Obtiene órdenes asignadas a un conductor específico
+   * @param driverId - ID del conductor
+   * @param options - Opciones de filtrado
+   * @returns Promesa con historial de órdenes del conductor
+   */
+  async getOrdersByDriver(
+    driverId: string,
+    options: {
+      status?: OrderStatus[];
+      startDate?: string;
+      endDate?: string;
+      limit?: number;
+    } = {}
+  ): Promise<{
+    orders: Order[];
+    stats: {
+      total: number;
+      completed: number;
+      cancelled: number;
+      inProgress: number;
+      onTimeDeliveryRate: number;
+      avgDeliveryTime: number;
+    };
+  }> {
+    await simulateDelay(300);
+
+    if (this.config.useMock) {
+      let driverOrders = this.orders.filter(o => o.driverId === driverId);
+
+      // Filtrar por estado
+      if (options.status && options.status.length > 0) {
+        driverOrders = driverOrders.filter(o => options.status!.includes(o.status));
+      }
+
+      // Filtrar por rango de fechas
+      if (options.startDate) {
+        const startDate = new Date(options.startDate);
+        driverOrders = driverOrders.filter(o => new Date(o.createdAt) >= startDate);
+      }
+      if (options.endDate) {
+        const endDate = new Date(options.endDate);
+        driverOrders = driverOrders.filter(o => new Date(o.createdAt) <= endDate);
+      }
+
+      // Aplicar límite
+      if (options.limit) {
+        driverOrders = driverOrders.slice(0, options.limit);
+      }
+
+      // Calcular estadísticas
+      const allDriverOrders = this.orders.filter(o => o.driverId === driverId);
+      const completed = allDriverOrders.filter(o => o.status === 'completed' || o.status === 'closed').length;
+      const cancelled = allDriverOrders.filter(o => o.status === 'cancelled').length;
+      const inProgress = allDriverOrders.filter(o => 
+        o.status === 'in_transit' || o.status === 'at_milestone' || o.status === 'assigned'
+      ).length;
+
+      // Calcular tasa de entrega a tiempo (mock)
+      const onTimeOrders = allDriverOrders.filter(o => {
+        if (o.status !== 'completed' && o.status !== 'closed') return false;
+        if (!o.actualEndDate || !o.scheduledEndDate) return true;
+        return new Date(o.actualEndDate) <= new Date(o.scheduledEndDate);
+      }).length;
+      const onTimeDeliveryRate = completed > 0 ? (onTimeOrders / completed) * 100 : 100;
+
+      // Calcular tiempo promedio de entrega (mock - en horas)
+      const deliveryTimes = allDriverOrders
+        .filter(o => o.actualStartDate && o.actualEndDate)
+        .map(o => {
+          const start = new Date(o.actualStartDate!).getTime();
+          const end = new Date(o.actualEndDate!).getTime();
+          return (end - start) / (1000 * 60 * 60);
+        });
+      const avgDeliveryTime = deliveryTimes.length > 0
+        ? deliveryTimes.reduce((sum, t) => sum + t, 0) / deliveryTimes.length
+        : 0;
+
+      return {
+        orders: driverOrders,
+        stats: {
+          total: allDriverOrders.length,
+          completed,
+          cancelled,
+          inProgress,
+          onTimeDeliveryRate: Math.round(onTimeDeliveryRate * 10) / 10,
+          avgDeliveryTime: Math.round(avgDeliveryTime * 10) / 10,
+        },
+      };
+    }
+
+    throw new Error('API not implemented');
+  }
+
+  /**
+   * Obtiene órdenes asignadas a un vehículo específico
+   * @param vehicleId - ID del vehículo
+   * @param options - Opciones de filtrado
+   * @returns Promesa con historial de órdenes del vehículo
+   */
+  async getOrdersByVehicle(
+    vehicleId: string,
+    options: {
+      status?: OrderStatus[];
+      startDate?: string;
+      endDate?: string;
+      limit?: number;
+    } = {}
+  ): Promise<{
+    orders: Order[];
+    stats: {
+      total: number;
+      completed: number;
+      cancelled: number;
+      inProgress: number;
+      totalDistanceKm: number;
+    };
+  }> {
+    await simulateDelay(300);
+
+    if (this.config.useMock) {
+      let vehicleOrders = this.orders.filter(o => o.vehicleId === vehicleId);
+
+      // Filtrar por estado
+      if (options.status && options.status.length > 0) {
+        vehicleOrders = vehicleOrders.filter(o => options.status!.includes(o.status));
+      }
+
+      // Filtrar por rango de fechas
+      if (options.startDate) {
+        const startDate = new Date(options.startDate);
+        vehicleOrders = vehicleOrders.filter(o => new Date(o.createdAt) >= startDate);
+      }
+      if (options.endDate) {
+        const endDate = new Date(options.endDate);
+        vehicleOrders = vehicleOrders.filter(o => new Date(o.createdAt) <= endDate);
+      }
+
+      // Aplicar límite
+      if (options.limit) {
+        vehicleOrders = vehicleOrders.slice(0, options.limit);
+      }
+
+      // Calcular estadísticas
+      const allVehicleOrders = this.orders.filter(o => o.vehicleId === vehicleId);
+      const completed = allVehicleOrders.filter(o => o.status === 'completed' || o.status === 'closed').length;
+      const cancelled = allVehicleOrders.filter(o => o.status === 'cancelled').length;
+      const inProgress = allVehicleOrders.filter(o => 
+        o.status === 'in_transit' || o.status === 'at_milestone' || o.status === 'assigned'
+      ).length;
+
+      // Calcular distancia total (mock - estimado basado en cantidad de hitos)
+      const totalDistanceKm = allVehicleOrders.reduce((sum, o) => {
+        // Estimar ~100km por hito como aproximación
+        const estimatedDistance = (o.milestones?.length || 1) * 100;
+        return sum + estimatedDistance;
+      }, 0);
+
+      return {
+        orders: vehicleOrders,
+        stats: {
+          total: allVehicleOrders.length,
+          completed,
+          cancelled,
+          inProgress,
+          totalDistanceKm: Math.round(totalDistanceKm),
+        },
+      };
+    }
+
+    throw new Error('API not implemented');
+  }
+
   // ============================================
   // MÉTODOS DE ESCRITURA (CREATE/UPDATE/DELETE)
   // ============================================

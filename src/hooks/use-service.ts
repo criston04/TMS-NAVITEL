@@ -14,7 +14,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 /**
  * Estado de la operación async
@@ -33,13 +33,15 @@ export interface ServiceState<T> {
 /**
  * Opciones de configuración del hook
  */
-export interface UseServiceOptions {
+export interface UseServiceOptions<T = unknown> {
   /** Ejecutar automáticamente al montar */
   immediate?: boolean;
   /** Callback cuando la operación es exitosa */
-  onSuccess?: <T>(data: T) => void;
+  onSuccess?: (data: T) => void;
   /** Callback cuando ocurre un error */
   onError?: (error: Error) => void;
+  /** Dependencias que disparan re-fetch automático */
+  deps?: unknown[];
 }
 
 /**
@@ -52,61 +54,69 @@ export interface UseServiceReturn<T> extends ServiceState<T> {
   reset: () => void;
   /** Actualiza los datos manualmente */
   setData: (data: T | null) => void;
+  /** Indica si se ejecutó al menos una vez */
+  hasExecuted: boolean;
 }
 
 /**
- * Hook genérico para consumir servicios
+ * Hook genérico para consumir servicios (CORREGIDO)
  * 
  * @param serviceFn - Función que retorna una promesa
  * @param options - Opciones de configuración
  * @returns Estado y métodos para controlar la operación
  * 
  * @example
- * // Carga inmediata
+ * // Carga inmediata simple
  * const { data: customers, loading } = useService(
  *   () => customersService.getAll(),
  *   { immediate: true }
  * );
  * 
  * @example
- * // Carga manual
- * const { execute, loading } = useService(
- *   () => customersService.create(formData)
+ * // Con dependencias (re-fetch cuando cambian)
+ * const { data, loading } = useService(
+ *   () => customersService.getAll({ search }),
+ *   { immediate: true, deps: [search] }
  * );
- * // Luego: await execute();
  */
 export function useService<T>(
   serviceFn: () => Promise<T>,
-  options: UseServiceOptions = {}
+  options: UseServiceOptions<T> = {}
 ): UseServiceReturn<T> {
-  const { immediate = false, onSuccess, onError } = options;
-  
+  const { immediate = false, onSuccess, onError, deps = [] } = options;
+
   const [state, setState] = useState<ServiceState<T>>({
     data: null,
-    loading: immediate,
+    loading: false,
     error: null,
     isSuccess: false,
   });
+  const [hasExecuted, setHasExecuted] = useState(false);
 
-  // Ref para evitar actualizaciones en componentes desmontados
+  // Refs para evitar actualizaciones en componentes desmontados
   const mountedRef = useRef(true);
-  // Ref para almacenar la última versión de serviceFn
   const serviceFnRef = useRef(serviceFn);
-  
-  // Actualizar ref en effect para cumplir reglas de React
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+
+  // Actualizar refs en cada render
   useEffect(() => {
     serviceFnRef.current = serviceFn;
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
   });
 
   /**
    * Ejecuta la operación del servicio
    */
   const execute = useCallback(async (): Promise<T | null> => {
+    if (!mountedRef.current) return null;
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
       const result = await serviceFnRef.current();
-      
+
       if (mountedRef.current) {
         setState({
           data: result,
@@ -114,13 +124,15 @@ export function useService<T>(
           error: null,
           isSuccess: true,
         });
-        onSuccess?.(result);
+        setHasExecuted(true);
+        onSuccessRef.current?.(result);
       }
-      
+
       return result;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      
+      console.error('[useService] Error ejecutando servicio:', error);
+
       if (mountedRef.current) {
         setState({
           data: null,
@@ -128,12 +140,13 @@ export function useService<T>(
           error,
           isSuccess: false,
         });
-        onError?.(error);
+        setHasExecuted(true);
+        onErrorRef.current?.(error);
       }
-      
+
       return null;
     }
-  }, [onSuccess, onError]);
+  }, []);
 
   /**
    * Resetea el estado al inicial
@@ -145,6 +158,7 @@ export function useService<T>(
       error: null,
       isSuccess: false,
     });
+    setHasExecuted(false);
   }, []);
 
   /**
@@ -154,33 +168,32 @@ export function useService<T>(
     setState((prev) => ({ ...prev, data }));
   }, []);
 
-  // Ejecutar automáticamente si immediate es true
-  // Usamos un flag para evitar múltiples ejecuciones
-  const hasRun = useRef(false);
+  // Serializar deps para comparación
+  const depsKey = useMemo(() => JSON.stringify(deps), deps);
+
+  // Ejecutar cuando cambian las dependencias o en mount si immediate
   useEffect(() => {
-    if (immediate && !hasRun.current) {
-      hasRun.current = true;
-      // Usar setTimeout para evitar setState durante render
-      const timeoutId = setTimeout(() => {
-        execute();
-      }, 0);
-      return () => clearTimeout(timeoutId);
+    if (immediate && mountedRef.current) {
+      execute();
     }
-  }, [immediate, execute]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [immediate, depsKey]);
 
   // Cleanup al desmontar
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
-  return {
+  return useMemo(() => ({
     ...state,
+    hasExecuted,
     execute,
     reset,
     setData,
-  };
+  }), [state, hasExecuted, execute, reset, setData]);
 }
 
 /**
@@ -233,7 +246,7 @@ export function useServiceList<T>(
     return result.data;
   }, [serviceFn, page, pageSize]);
 
-  const { data, loading, error, isSuccess, execute, reset, setData } = useService(
+  const { data, loading, error, isSuccess, execute, reset, setData, hasExecuted } = useService(
     fetchData,
     serviceOptions
   );
@@ -262,6 +275,7 @@ export function useServiceList<T>(
     loading,
     error,
     isSuccess,
+    hasExecuted,
     execute,
     reset,
     setData,

@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, MapPin, MoreVertical } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -46,12 +45,12 @@ export function OrdersByCountries() {
               <button className="text-sm font-medium text-muted-foreground hover:text-foreground">Shipping</button>
           </div>
 
-          <ScrollArea className="h-[280px] -mr-4 pr-4">
+          <ScrollArea className="h-70 -mr-4 pr-4">
             <div className="space-y-6">
-                {orders.map((order, i) => (
+                {orders.map((order, _i) => (
                     <div key={order.id} className="relative pl-2 pb-6 border-b last:border-0 last:pb-0">
                         {/* Timeline Connector */}
-                         <div className="absolute left-[11px] top-6 h-[calc(100%-20px)] w-[2px] border-l-2 border-dashed border-slate-200 dark:border-slate-800" />
+                         <div className="absolute left-2.75 top-6 h-[calc(100%-20px)] w-0.5 border-l-2 border-dashed border-slate-200 dark:border-slate-800" />
                         
                         {/* Sender */}
                         <div className="flex gap-4 mb-4 relative z-10">

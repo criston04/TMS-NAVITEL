@@ -4,12 +4,17 @@
  * @module types/models/operator
  */
 
-import { ActivatableEntity, RequiredDocument, ValidationChecklist } from "@/types/common";
+import { BaseEntity } from "@/types/common";
 
 /**
  * Tipo de operador
  */
 export type OperatorType = "propio" | "tercero" | "asociado";
+
+/**
+ * Estado del operador (específico para operadores)
+ */
+export type OperatorStatus = "enabled" | "blocked" | "pending";
 
 /**
  * Contacto del operador
@@ -24,9 +29,41 @@ export interface OperatorContact {
 }
 
 /**
+ * Ítem del checklist de operador
+ */
+export interface OperatorChecklistItem {
+  id: string;
+  label: string;
+  checked: boolean;
+  date?: string;
+}
+
+/**
+ * Checklist de validación del operador
+ */
+export interface OperatorValidationChecklist {
+  items: OperatorChecklistItem[];
+  isComplete: boolean;
+  lastUpdated: string;
+}
+
+/**
+ * Documento requerido del operador
+ */
+export interface OperatorDocument {
+  id: string;
+  name: string;
+  required: boolean;
+  uploaded: boolean;
+  fileName?: string;
+  uploadedAt?: string;
+  expiresAt?: string;
+}
+
+/**
  * Entidad Operador Logístico
  */
-export interface Operator extends ActivatableEntity {
+export interface Operator extends BaseEntity {
   /** Código interno */
   code: string;
   /** RUC */
@@ -46,9 +83,9 @@ export interface Operator extends ActivatableEntity {
   /** Contactos */
   contacts: OperatorContact[];
   /** Checklist de validación */
-  checklist: ValidationChecklist;
+  checklist: OperatorValidationChecklist;
   /** Documentos */
-  documents: RequiredDocument[];
+  documents: OperatorDocument[];
   /** Cantidad de conductores asociados */
   driversCount: number;
   /** Cantidad de vehículos asociados */
@@ -59,6 +96,8 @@ export interface Operator extends ActivatableEntity {
   contractEndDate?: string;
   /** Notas */
   notes?: string;
+  /** Estado del operador */
+  status: OperatorStatus;
 }
 
 /**

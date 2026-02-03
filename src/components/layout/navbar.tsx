@@ -1,14 +1,14 @@
 /**
  * @fileoverview Barra de navegación superior
  * @module components/layout/Navbar
- * @description Navbar con búsqueda, acciones rápidas y menú de usuario
+ * @description Navbar con búsqueda, logo de empresa cliente, acciones rápidas y menú de usuario
  * @author TMS-NAVITEL
  * @version 1.0.0
  */
 
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import {
   Search,
   LayoutGrid,
@@ -17,6 +17,7 @@ import {
   User,
   LogOut,
   Globe,
+  Building2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -33,10 +34,82 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 
 // ============================================
+// TIPOS
+// ============================================
+
+interface TenantConfig {
+  /** Nombre de la empresa */
+  name: string;
+  /** Nombre corto/siglas */
+  shortName?: string;
+  /** URL del logo (opcional) */
+  logoUrl?: string;
+  /** Color primario de la marca */
+  brandColor?: string;
+}
+
+// ============================================
 // CONSTANTES
 // ============================================
 
 const NAVBAR_HEIGHT = 'h-14'; // 56px - compacto pero funcional
+
+// Configuración del tenant actual (en producción vendría de un contexto/API)
+const CURRENT_TENANT: TenantConfig = {
+  name: 'ANTARES LOGISTICS',
+  shortName: 'GT',
+  logoUrl: '/images/antares-logo.jpeg', // Logo de la empresa cliente
+  brandColor: '#0055EE', // Azul del logo de Antares
+};
+
+// ============================================
+// COMPONENTE LOGO EMPRESA
+// ============================================
+
+interface TenantLogoProps {
+  tenant: TenantConfig;
+  className?: string;
+}
+
+function TenantLogo({ tenant, className }: TenantLogoProps) {
+  const [imageError, setImageError] = useState(false);
+
+  // Si hay logo y no hubo error, mostrarlo (SOLO LA IMAGEN)
+  if (tenant.logoUrl && !imageError) {
+    return (
+      <div className={cn('flex items-center', className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={tenant.logoUrl}
+          alt={tenant.name}
+          className="h-10 w-auto object-contain"
+          onError={() => setImageError(true)}
+        />
+      </div>
+    );
+  }
+
+  // Sin logo o con error, mostrar icono + nombre
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      <div 
+        className="flex items-center justify-center h-9 w-9 rounded-lg shadow-sm"
+        style={{ backgroundColor: tenant.brandColor || '#2563eb' }}
+      >
+        {tenant.shortName ? (
+          <span className="text-sm font-bold text-white">
+            {tenant.shortName}
+          </span>
+        ) : (
+          <Building2 className="h-5 w-5 text-white" />
+        )}
+      </div>
+      <span className="hidden md:block text-sm font-semibold" style={{ color: tenant.brandColor }}>
+        {tenant.name}
+      </span>
+    </div>
+  );
+}
 
 // ============================================
 // COMPONENTE
@@ -76,35 +149,45 @@ export const Navbar = memo(function Navbar() {
         />
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1">
-        {/* Language */}
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Globe className="h-4 w-4 text-muted-foreground" />
-        </Button>
+      {/* Logo de la empresa cliente (tenant) + Actions - Agrupados a la derecha */}
+      <div className="flex items-center gap-4">
+        {/* Logo del tenant - SIEMPRE VISIBLE */}
+        <div className="flex items-center">
+          <TenantLogo tenant={CURRENT_TENANT} />
+        </div>
 
-        {/* Theme Toggle */}
-        <ThemeToggle />
+        {/* Separador vertical */}
+        <div className="hidden sm:block h-6 w-px bg-border" />
 
-        {/* Grid Menu */}
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-        </Button>
+        {/* Actions */}
+        <div className="flex items-center gap-1">
+          {/* Language */}
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          </Button>
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative h-8 w-8">
-          <Bell className="h-4 w-4 text-muted-foreground" />
-          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-destructive" />
-        </Button>
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative ml-1 h-8 w-8 rounded-full">
-              <Avatar className="h-7 w-7">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  JD
-                </AvatarFallback>
+          {/* Grid Menu */}
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+          </Button>
+
+          {/* Notifications */}
+          <Button variant="ghost" size="icon" className="relative h-8 w-8">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-destructive" />
+          </Button>
+
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative ml-1 h-8 w-8 rounded-full">
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                    JD
+                  </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -133,7 +216,12 @@ export const Navbar = memo(function Navbar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   );
 });
+
+// Exportar tipos y configuración para uso externo
+export type { TenantConfig };
+export { CURRENT_TENANT, TenantLogo };

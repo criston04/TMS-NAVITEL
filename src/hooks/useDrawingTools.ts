@@ -2,7 +2,7 @@
  * @fileoverview Hook para herramientas de dibujo en Leaflet
  * 
  * Principio SRP: Solo maneja las herramientas de dibujo.
- * Principio DRY: Centraliza toda la lógica de Leaflet.Draw.
+ * Principio DRY: Centraliza toda la logica de Leaflet.Draw.
  * 
  * @module hooks/useDrawingTools
  */
@@ -25,11 +25,12 @@ interface DrawingStyle {
 }
 
 /**
- * Evento de creación de geometría
+ * Evento de creacion de geometria
  */
 interface GeometryCreatedEvent {
   type: "polygon" | "circle";
-  layer: L.Layer;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  layer: any;
   geometry: PolygonGeometry | CircleGeometry;
 }
 
@@ -37,47 +38,59 @@ interface GeometryCreatedEvent {
  * Opciones del hook
  */
 interface UseDrawingToolsOptions {
-  map: L.Map | null;
-  drawnItems: L.FeatureGroup | null;
-  L: typeof L | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  map: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  drawnItems: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  L: any;
   defaultStyle?: DrawingStyle;
   onGeometryCreated?: (event: GeometryCreatedEvent) => void;
-  onGeometryEdited?: (layer: L.Layer) => void;
-  onGeometryDeleted?: (layer: L.Layer) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onGeometryEdited?: (layer: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onGeometryDeleted?: (layer: any) => void;
 }
 
 /**
  * Retorno del hook
  */
 interface UseDrawingToolsReturn {
-  // Estado
   drawingMode: DrawingMode;
-  activeLayer: L.Layer | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  activeLayer: any;
   isEditing: boolean;
-  
-  // Acciones de dibujo
+
   startDrawPolygon: () => void;
   startDrawCircle: () => void;
   startDrawRectangle: () => void;
-  createPentagon: (center?: GeoCoordinate) => L.Polygon | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createPentagon: (center?: GeoCoordinate) => any;
   cancelDrawing: () => void;
-  
-  // Acciones de edición
-  enableEditing: (layer: L.Layer) => void;
-  disableEditing: (layer: L.Layer) => void;
-  enableDragging: (layer: L.Layer) => void;
-  disableDragging: (layer: L.Layer) => void;
-  
-  // Acciones de capas
-  addLayer: (layer: L.Layer) => void;
-  removeLayer: (layer: L.Layer) => void;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  enableEditing: (layer: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  disableEditing: (layer: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  enableDragging: (layer: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  disableDragging: (layer: any) => void;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addLayer: (layer: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  removeLayer: (layer: any) => void;
   clearAllLayers: () => void;
-  getLayerGeometry: (layer: L.Layer) => PolygonGeometry | CircleGeometry | null;
-  
-  // Crear capas desde geometría
-  createPolygonLayer: (coordinates: GeoCoordinate[], style?: DrawingStyle) => L.Polygon | null;
-  createCircleLayer: (center: GeoCoordinate, radius: number, style?: DrawingStyle) => L.Circle | null;
-  createLayerFromGeofence: (geofence: Geofence) => L.Layer | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getLayerGeometry: (layer: any) => PolygonGeometry | CircleGeometry | null;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createPolygonLayer: (coordinates: GeoCoordinate[], style?: DrawingStyle) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createCircleLayer: (center: GeoCoordinate, radius: number, style?: DrawingStyle) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createLayerFromGeofence: (geofence: Geofence) => any;
   
   // Estilo
   setLayerStyle: (layer: L.Layer, style: DrawingStyle) => void;
@@ -127,24 +140,26 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
   const [drawingMode, setDrawingMode] = useState<DrawingMode>("none");
   const [currentStyle, setCurrentStyle] = useState<DrawingStyle>(defaultStyle);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Referencias
-  const activeLayerRef = useRef<L.Layer | null>(null);
-  const drawHandlerRef = useRef<L.Draw.Polygon | L.Draw.Circle | L.Draw.Rectangle | null>(null);
-  const drawControlRef = useRef<L.Control.Draw | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const activeLayerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const drawHandlerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const drawControlRef = useRef<any>(null);
   const eventsRegisteredRef = useRef(false);
-  
+
   // Registrar eventos de dibujo
   useEffect(() => {
     if (!map || !L || !drawnItems || eventsRegisteredRef.current) return;
-    
+
     eventsRegisteredRef.current = true;
-    
-    // Evento: Geometría creada
-    map.on(L.Draw.Event.CREATED, (e: L.LeafletEvent) => {
-      const event = e as L.DrawEvents.Created;
-      const layer = event.layer;
-      
+
+    // Evento: Geometria creada
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on(L.Draw.Event.CREATED, (e: any) => {
+      const layer = e.layer;
       // Inicializar dragging
       initializeDragging(layer);
       
@@ -161,30 +176,32 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
           geometry,
         });
       }
-      
+
       setDrawingMode("none");
     });
-    
-    // Evento: Geometría editada
-    map.on(L.Draw.Event.EDITED, (e: L.LeafletEvent) => {
-      const event = e as L.DrawEvents.Edited;
-      event.layers.eachLayer((layer: L.Layer) => {
+
+    // Evento: Geometria editada
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on(L.Draw.Event.EDITED, (e: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      e.layers.eachLayer((layer: any) => {
         if (onGeometryEdited) {
           onGeometryEdited(layer);
         }
       });
     });
-    
-    // Evento: Geometría eliminada
-    map.on(L.Draw.Event.DELETED, (e: L.LeafletEvent) => {
-      const event = e as L.DrawEvents.Deleted;
-      event.layers.eachLayer((layer: L.Layer) => {
+
+    // Evento: Geometria eliminada
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on(L.Draw.Event.DELETED, (e: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      e.layers.eachLayer((layer: any) => {
         if (onGeometryDeleted) {
           onGeometryDeleted(layer);
         }
       });
     });
-    
+
     return () => {
       if (map && L) {
         map.off(L.Draw.Event.CREATED);
@@ -194,21 +211,21 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
       eventsRegisteredRef.current = false;
     };
   }, [map, L, drawnItems, onGeometryCreated, onGeometryEdited, onGeometryDeleted]);
-  
+
   /**
    * Inicializa dragging en una capa
    */
-  const initializeDragging = useCallback((layer: L.Layer) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const initializeDragging = useCallback((layer: any) => {
     if (!L) return;
-    
-    const typedLayer = layer as L.Path & { 
-      dragging?: L.Handler;
-      editing?: L.Edit.Poly | L.Edit.Circle;
-    };
-    
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const typedLayer = layer as any;
+
     if (!typedLayer.dragging) {
       try {
-        const Handler = (L as unknown as { Handler: { PathDrag?: new (layer: L.Layer) => L.Handler } }).Handler;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const Handler = (L as any).Handler;
         if (Handler?.PathDrag) {
           typedLayer.dragging = new Handler.PathDrag(layer);
         }
@@ -232,13 +249,14 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
       });
     }
   }, [L]);
-  
+
   /**
-   * Obtiene geometría de una capa
+   * Obtiene geometria de una capa
    */
-  const getLayerGeometry = useCallback((layer: L.Layer): PolygonGeometry | CircleGeometry | null => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getLayerGeometry = useCallback((layer: any): PolygonGeometry | CircleGeometry | null => {
     if (!L) return null;
-    
+
     if (layer instanceof L.Circle) {
       const center = layer.getLatLng();
       const radius = layer.getRadius();
@@ -248,9 +266,10 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
         radius,
       };
     }
-    
+
     if (layer instanceof L.Polygon) {
-      const latlngs = layer.getLatLngs()[0] as L.LatLng[];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const latlngs = layer.getLatLngs()[0] as any[];
       const coordinates: GeoCoordinate[] = latlngs.map((ll) => ({
         lat: ll.lat,
         lng: ll.lng,
@@ -260,17 +279,18 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
         coordinates,
       };
     }
-    
+
     return null;
   }, [L]);
-  
+
   // Acciones de dibujo
   const startDrawPolygon = useCallback(() => {
     if (!map || !L || !drawnItems) return;
-    
+
     cancelDrawing();
-    
-    const handler = new L.Draw.Polygon(map, {
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = new (L as any).Draw.Polygon(map, {
       allowIntersection: false,
       shapeOptions: {
         color: currentStyle.color,
@@ -278,61 +298,64 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
         weight: currentStyle.weight,
       },
     });
-    
+
     drawHandlerRef.current = handler;
     handler.enable();
     setDrawingMode("polygon");
   }, [map, L, drawnItems, currentStyle]);
-  
+
   const startDrawCircle = useCallback(() => {
     if (!map || !L || !drawnItems) return;
-    
+
     cancelDrawing();
-    
-    const handler = new L.Draw.Circle(map, {
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = new (L as any).Draw.Circle(map, {
       shapeOptions: {
         color: currentStyle.color,
         fillOpacity: currentStyle.fillOpacity,
         weight: currentStyle.weight,
       },
     });
-    
+
     drawHandlerRef.current = handler;
     handler.enable();
     setDrawingMode("circle");
   }, [map, L, drawnItems, currentStyle]);
-  
+
   const startDrawRectangle = useCallback(() => {
     if (!map || !L || !drawnItems) return;
-    
+
     cancelDrawing();
-    
-    const handler = new L.Draw.Rectangle(map, {
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = new (L as any).Draw.Rectangle(map, {
       shapeOptions: {
         color: currentStyle.color,
         fillOpacity: currentStyle.fillOpacity,
         weight: currentStyle.weight,
       },
     });
-    
+
     drawHandlerRef.current = handler;
     handler.enable();
     setDrawingMode("rectangle");
   }, [map, L, drawnItems, currentStyle]);
-  
-  const createPentagon = useCallback((center?: GeoCoordinate): L.Polygon | null => {
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createPentagon = useCallback((center?: GeoCoordinate): any => {
     if (!map || !L || !drawnItems) return null;
-    
+
     const mapCenter = center || { 
       lat: map.getCenter().lat, 
       lng: map.getCenter().lng 
     };
     const zoom = map.getZoom();
-    
+
     // Calcular radio basado en zoom
     const radiusInDegrees = 0.5 / Math.pow(2, zoom - 8);
-    
-    // Crear 5 puntos para el pentágono
+
+    // Crear 5 puntos para el pentagono
     const pentagon: [number, number][] = [];
     for (let i = 0; i < 5; i++) {
       const angle = (i * 72 - 90) * (Math.PI / 180);
@@ -340,24 +363,26 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
       const lng = mapCenter.lng + radiusInDegrees * Math.sin(angle) / Math.cos(mapCenter.lat * Math.PI / 180);
       pentagon.push([lat, lng]);
     }
-    
-    // Crear polígono
+
+    // Crear poligono
     const polygonLayer = L.polygon(pentagon, {
       color: currentStyle.color,
       fillOpacity: currentStyle.fillOpacity,
       weight: currentStyle.weight,
     });
-    
+
     // Agregar a drawnItems
     drawnItems.addLayer(polygonLayer);
-    
-    // Inicializar dragging y edición
+
+    // Inicializar dragging y edicion
     initializeDragging(polygonLayer);
-    
-    // Inicializar edición
-    const typedPolygon = polygonLayer as L.Polygon & { editing?: L.Edit.Poly };
+
+    // Inicializar edicion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const typedPolygon = polygonLayer as any;
     if (!typedPolygon.editing) {
-      typedPolygon.editing = new (L.Edit as unknown as { Poly: new (layer: L.Polygon, options?: object) => L.Edit.Poly }).Poly(polygonLayer, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      typedPolygon.editing = new (L as any).Edit.Poly(polygonLayer, {
         icon: new L.DivIcon({
           iconSize: new L.Point(12, 12),
           className: "leaflet-div-icon leaflet-editing-icon",
@@ -365,11 +390,11 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
       });
     }
     typedPolygon.editing.enable();
-    
+
     activeLayerRef.current = polygonLayer;
     setIsEditing(true);
-    
-    // Notificar creación
+
+    // Notificar creacion
     const geometry = getLayerGeometry(polygonLayer);
     if (geometry && onGeometryCreated) {
       onGeometryCreated({
@@ -378,10 +403,10 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
         geometry,
       });
     }
-    
+
     return polygonLayer;
   }, [map, L, drawnItems, currentStyle, initializeDragging, getLayerGeometry, onGeometryCreated]);
-  
+
   const cancelDrawing = useCallback(() => {
     if (drawHandlerRef.current) {
       drawHandlerRef.current.disable();
@@ -389,96 +414,110 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
     }
     setDrawingMode("none");
   }, []);
-  
-  // Acciones de edición
-  const enableEditing = useCallback((layer: L.Layer) => {
+
+  // Acciones de edicion
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const enableEditing = useCallback((layer: any) => {
     if (!L) return;
-    
-    const typedLayer = layer as L.Path & { editing?: L.Edit.Poly | L.Edit.Circle };
-    
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const typedLayer = layer as any;
+
     if (layer instanceof L.Polygon && !typedLayer.editing) {
-      typedLayer.editing = new (L.Edit as unknown as { Poly: new (layer: L.Polygon, options?: object) => L.Edit.Poly }).Poly(layer as L.Polygon, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      typedLayer.editing = new (L as any).Edit.Poly(layer, {
         icon: new L.DivIcon({
           iconSize: new L.Point(12, 12),
           className: "leaflet-div-icon leaflet-editing-icon",
         }),
       });
     } else if (layer instanceof L.Circle && !typedLayer.editing) {
-      typedLayer.editing = new (L.Edit as unknown as { Circle: new (layer: L.Circle) => L.Edit.Circle }).Circle(layer as L.Circle);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      typedLayer.editing = new (L as any).Edit.Circle(layer);
     }
-    
+
     if (typedLayer.editing) {
       typedLayer.editing.enable();
       setIsEditing(true);
     }
   }, [L]);
-  
-  const disableEditing = useCallback((layer: L.Layer) => {
-    const typedLayer = layer as L.Path & { editing?: L.Edit.Poly | L.Edit.Circle };
-    
-    if (typedLayer.editing && (typedLayer.editing as { _enabled?: boolean })._enabled) {
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const disableEditing = useCallback((layer: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const typedLayer = layer as any;
+
+    if (typedLayer.editing && typedLayer.editing._enabled) {
       typedLayer.editing.disable();
       setIsEditing(false);
     }
   }, []);
-  
-  const enableDragging = useCallback((layer: L.Layer) => {
-    const typedLayer = layer as L.Path & { dragging?: L.Handler };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const enableDragging = useCallback((layer: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const typedLayer = layer as any;
     if (typedLayer.dragging) {
       typedLayer.dragging.enable();
     }
   }, []);
-  
-  const disableDragging = useCallback((layer: L.Layer) => {
-    const typedLayer = layer as L.Path & { dragging?: L.Handler };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const disableDragging = useCallback((layer: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const typedLayer = layer as any;
     if (typedLayer.dragging) {
       typedLayer.dragging.disable();
     }
   }, []);
-  
+
   // Acciones de capas
-  const addLayer = useCallback((layer: L.Layer) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const addLayer = useCallback((layer: any) => {
     if (!drawnItems) return;
     drawnItems.addLayer(layer);
   }, [drawnItems]);
-  
-  const removeLayer = useCallback((layer: L.Layer) => {
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const removeLayer = useCallback((layer: any) => {
     if (!drawnItems) return;
     drawnItems.removeLayer(layer);
   }, [drawnItems]);
-  
+
   const clearAllLayers = useCallback(() => {
     if (!drawnItems) return;
     drawnItems.clearLayers();
     activeLayerRef.current = null;
   }, [drawnItems]);
-  
-  // Crear capas desde geometría
+
+  // Crear capas desde geometria
   const createPolygonLayer = useCallback((
     coordinates: GeoCoordinate[], 
     style?: DrawingStyle
-  ): L.Polygon | null => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): any => {
     if (!L) return null;
-    
+
     const latlngs = coordinates.map((c) => [c.lat, c.lng] as [number, number]);
     const layerStyle = style || currentStyle;
-    
+
     return L.polygon(latlngs, {
       color: layerStyle.color,
       fillOpacity: layerStyle.fillOpacity,
       weight: layerStyle.weight,
     });
   }, [L, currentStyle]);
-  
+
   const createCircleLayer = useCallback((
     center: GeoCoordinate, 
     radius: number, 
     style?: DrawingStyle
-  ): L.Circle | null => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): any => {
     if (!L) return null;
-    
+
     const layerStyle = style || currentStyle;
-    
+
     return L.circle([center.lat, center.lng], {
       radius,
       color: layerStyle.color,
@@ -486,18 +525,20 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
       weight: layerStyle.weight,
     });
   }, [L, currentStyle]);
-  
-  const createLayerFromGeofence = useCallback((geofence: Geofence): L.Layer | null => {
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createLayerFromGeofence = useCallback((geofence: Geofence): any => {
     if (!L) return null;
-    
+
     const style: DrawingStyle = {
       color: geofence.color,
       fillOpacity: geofence.opacity,
       weight: 2,
     };
-    
-    let layer: L.Layer | null = null;
-    
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let layer: any = null;
+
     if (geofence.geometry.type === "polygon") {
       const polygonGeom = geofence.geometry as PolygonGeometry;
       layer = createPolygonLayer(polygonGeom.coordinates, style);
@@ -505,21 +546,22 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
       const circleGeom = geofence.geometry as CircleGeometry;
       layer = createCircleLayer(circleGeom.center, circleGeom.radius, style);
     }
-    
+
     if (layer) {
       // Agregar ID de geocerca
-      (layer as L.Layer & { geofenceId?: string }).geofenceId = geofence.id;
-      
+      layer.geofenceId = geofence.id;
+
       // Inicializar dragging
       initializeDragging(layer);
     }
-    
+
     return layer;
   }, [L, createPolygonLayer, createCircleLayer, initializeDragging]);
-  
+
   // Estilo
-  const setLayerStyle = useCallback((layer: L.Layer, style: DrawingStyle) => {
-    if (layer instanceof L.Path) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setLayerStyle = useCallback((layer: any, style: DrawingStyle) => {
+    if (layer && layer.setStyle) {
       layer.setStyle({
         color: style.color,
         fillOpacity: style.fillOpacity,
@@ -527,31 +569,33 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
       });
     }
   }, []);
-  
+
   // Utilidades
-  const zoomToLayer = useCallback((layer: L.Layer, padding = 50) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const zoomToLayer = useCallback((layer: any, padding = 50) => {
     if (!map) return;
-    
+
     if (layer instanceof L.Circle) {
       map.setView(layer.getLatLng(), 14);
-    } else if ("getBounds" in layer && typeof layer.getBounds === "function") {
+    } else if (layer.getBounds) {
       map.fitBounds(layer.getBounds(), { padding: [padding, padding] });
     }
-  }, [map]);
-  
-  const getLayerBounds = useCallback((layer: L.Layer): L.LatLngBounds | null => {
+  }, [map, L]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getLayerBounds = useCallback((layer: any): any => {
     if (!L) return null;
-    
+
     if (layer instanceof L.Circle) {
       const center = layer.getLatLng();
       const radius = layer.getRadius();
       return center.toBounds(radius * 2);
     }
-    
-    if ("getBounds" in layer && typeof layer.getBounds === "function") {
+
+    if (layer.getBounds) {
       return layer.getBounds();
     }
-    
+
     return null;
   }, [L]);
   

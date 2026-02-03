@@ -554,7 +554,7 @@ Leaflet no funciona en SSR. Siempre usar `dynamic` import:
 import dynamic from 'next/dynamic';
 
 const FleetMap = dynamic(
-  () => import('@/components/fleet/fleet-map').then(mod => mod.FleetMap),
+  () => import('@/components/shared/fleet/fleet-map').then(mod => mod.FleetMap),
   { 
     ssr: false,
     loading: () => <MapSkeleton />

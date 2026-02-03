@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FleetMap } from "@/components/fleet/fleet-map"; // Assuming this is reusable
+import { FleetMap } from "@/components/shared/fleet/fleet-map"; // Assuming this is reusable
 import { Vehicle } from "@/types/fleet";
 import { Maximize2 } from "lucide-react";
 import Link from "next/link";

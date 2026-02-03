@@ -49,8 +49,12 @@ class DriversService extends BulkService<Driver> {
         enabled,
         blocked,
         expiringSoon,
+        expired: 0,
         available,
         onRoute,
+        resting: 0,
+        onVacation: 0,
+        withOpenIncidents: 0,
       };
     }
 
@@ -105,7 +109,7 @@ class DriversService extends BulkService<Driver> {
         throw new Error(`Conductor con ID ${driverId} no encontrado`);
       }
       driver.isEnabled = false;
-      driver.status = "blocked";
+      driver.status = "suspended";
       driver.notes = reason;
       return driver;
     }
@@ -123,6 +127,42 @@ class DriversService extends BulkService<Driver> {
     }
 
     return this.request<Driver | null>("GET", `${this.endpoint}/by-document/${documentNumber}`);
+  }
+
+  /**
+   * Asigna un vehículo a un conductor
+   */
+  async assignVehicle(driverId: string, vehicleId: string): Promise<Driver> {
+    if (this.useMocks) {
+      await this.simulateDelay(400);
+      const driver = this.mockData.find((d) => d.id === driverId);
+      if (!driver) {
+        throw new Error(`Conductor con ID ${driverId} no encontrado`);
+      }
+      // Asignar en mock (usamos any para evitar problemas de tipos)
+      (driver as unknown as { assignedVehicleId: string }).assignedVehicleId = vehicleId;
+      return driver;
+    }
+
+    return this.request<Driver>("POST", `${this.endpoint}/${driverId}/assign-vehicle`, { vehicleId });
+  }
+
+  /**
+   * Desasigna un vehículo de un conductor
+   */
+  async unassignVehicle(driverId: string, _vehicleId: string): Promise<Driver> {
+    if (this.useMocks) {
+      await this.simulateDelay(400);
+      const driver = this.mockData.find((d) => d.id === driverId);
+      if (!driver) {
+        throw new Error(`Conductor con ID ${driverId} no encontrado`);
+      }
+      // Desasignar en mock
+      (driver as unknown as { assignedVehicleId: string | null }).assignedVehicleId = null;
+      return driver;
+    }
+
+    return this.request<Driver>("POST", `${this.endpoint}/${driverId}/unassign-vehicle`);
   }
 
   /**

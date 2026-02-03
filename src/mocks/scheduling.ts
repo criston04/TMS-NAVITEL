@@ -8,7 +8,7 @@
  */
 
 import type { Order, OrderPriority } from '@/types/order';
-import type { VehicleType } from '@/types/vehicle';
+import type { VehicleType } from '@/types/models/vehicle';
 import type { 
   SchedulingKPIs,
   SchedulingFeatureFlags,
@@ -49,7 +49,7 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     plateNumber: 'ABC-123',
     model: 'Freightliner Cascadia',
     status: 'available',
-    type: 'truck',
+    type: 'camion',
     capacityKg: 25000,
   },
   {
@@ -57,7 +57,7 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     plateNumber: 'XYZ-789',
     model: 'Kenworth T680',
     status: 'available',
-    type: 'truck',
+    type: 'tractocamion',
     capacityKg: 30000,
   },
   {
@@ -65,7 +65,7 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     plateNumber: 'DEF-456',
     model: 'Volvo VNL',
     status: 'available',
-    type: 'truck',
+    type: 'camion',
     capacityKg: 28000,
   },
   {
@@ -73,7 +73,7 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     plateNumber: 'GHI-321',
     model: 'Peterbilt 579',
     status: 'in_use',
-    type: 'truck',
+    type: 'tractocamion',
     capacityKg: 27000,
   },
   {
@@ -81,7 +81,7 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     plateNumber: 'JKL-654',
     model: 'Mack Anthem',
     status: 'maintenance',
-    type: 'truck',
+    type: 'camion',
     capacityKg: 26000,
   },
 ];
@@ -310,7 +310,7 @@ export function generateMockTimelines(): ResourceTimeline[] {
 /**
  * Genera sugerencias de recursos para una orden
  */
-export function generateMockSuggestions(orderId: string): ResourceSuggestion[] {
+export function generateMockSuggestions(_orderId: string): ResourceSuggestion[] {
   const vehicleSuggestions: ResourceSuggestion[] = MOCK_VEHICLES
     .filter(v => v.status === 'available')
     .slice(0, 2)

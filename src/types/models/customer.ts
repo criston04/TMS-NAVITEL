@@ -17,9 +17,21 @@ export type CustomerType = "empresa" | "persona";
 export type DocumentType = "RUC" | "DNI" | "CE" | "PASSPORT";
 
 /**
+ * Categoría de cliente para tarifas
+ */
+export type CustomerCategory = "standard" | "premium" | "vip" | "wholesale";
+
+/**
+ * Términos de pago
+ */
+export type PaymentTerms = "immediate" | "15_days" | "30_days" | "45_days" | "60_days";
+
+/**
  * Dirección de un cliente
  */
 export interface CustomerAddress {
+  id?: string;
+  label?: string;
   street: string;
   city: string;
   state: string;
@@ -27,6 +39,13 @@ export interface CustomerAddress {
   zipCode?: string;
   reference?: string;
   isDefault: boolean;
+  /** Coordenadas para geocercas */
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  /** ID de geocerca asociada */
+  geofenceId?: string;
 }
 
 /**
@@ -38,13 +57,58 @@ export interface CustomerContact {
   email: string;
   phone: string;
   position?: string;
+  department?: string;
   isPrimary: boolean;
+  /** Notificar sobre entregas */
+  notifyDeliveries?: boolean;
+  /** Notificar sobre incidentes */
+  notifyIncidents?: boolean;
+}
+
+/**
+ * Configuración de facturación
+ */
+export interface CustomerBillingConfig {
+  /** Términos de pago */
+  paymentTerms: PaymentTerms;
+  /** Moneda preferida */
+  currency: "PEN" | "USD";
+  /** Requiere orden de compra */
+  requiresPO: boolean;
+  /** Email para facturación */
+  billingEmail?: string;
+  /** Dirección de facturación */
+  billingAddress?: CustomerAddress;
+  /** Descuento por volumen (%) */
+  volumeDiscount?: number;
+}
+
+/**
+ * Estadísticas operativas del cliente
+ */
+export interface CustomerOperationalStats {
+  /** Total de órdenes */
+  totalOrders: number;
+  /** Órdenes completadas */
+  completedOrders: number;
+  /** Órdenes canceladas */
+  cancelledOrders: number;
+  /** Tasa de entrega a tiempo */
+  onTimeDeliveryRate: number;
+  /** Volumen total transportado (kg) */
+  totalVolumeKg: number;
+  /** Última orden */
+  lastOrderDate?: string;
+  /** Valor total facturado */
+  totalBilledAmount?: number;
 }
 
 /**
  * Entidad Cliente
  */
 export interface Customer extends BaseEntity {
+  /** Código único del cliente */
+  code?: string;
   /** Tipo de cliente */
   type: CustomerType;
   /** Tipo de documento */
@@ -59,16 +123,36 @@ export interface Customer extends BaseEntity {
   email: string;
   /** Teléfono principal */
   phone: string;
+  /** Teléfono secundario */
+  phone2?: string;
+  /** Sitio web */
+  website?: string;
   /** Estado del cliente */
   status: EntityStatus;
+  /** Categoría del cliente */
+  category?: CustomerCategory;
   /** Direcciones del cliente */
   addresses: CustomerAddress[];
   /** Contactos del cliente */
   contacts: CustomerContact[];
   /** Crédito disponible */
   creditLimit?: number;
+  /** Crédito utilizado */
+  creditUsed?: number;
+  /** Configuración de facturación */
+  billingConfig?: CustomerBillingConfig;
+  /** Estadísticas operativas */
+  operationalStats?: CustomerOperationalStats;
   /** Notas adicionales */
   notes?: string;
+  /** Etiquetas/tags */
+  tags?: string[];
+  /** Sector/industria */
+  industry?: string;
+  /** Fecha de primer pedido */
+  firstOrderDate?: string;
+  /** Workflow preferido */
+  preferredWorkflowId?: string;
 }
 
 /**
@@ -79,4 +163,51 @@ export interface CustomerStats {
   active: number;
   inactive: number;
   newThisMonth: number;
+  byCategory?: Record<CustomerCategory, number>;
+  totalCreditLimit?: number;
+  totalCreditUsed?: number;
+}
+
+/**
+ * Filtros para búsqueda de clientes
+ */
+export interface CustomerFilters {
+  search?: string;
+  status?: EntityStatus | "all";
+  type?: CustomerType | "all";
+  category?: CustomerCategory | "all";
+  city?: string;
+  hasOrders?: boolean;
+  sortBy?: "name" | "createdAt" | "totalOrders" | "code";
+  sortOrder?: "asc" | "desc";
+}
+
+/**
+ * DTO para crear cliente
+ */
+export interface CreateCustomerDTO {
+  type: CustomerType;
+  documentType: DocumentType;
+  documentNumber: string;
+  name: string;
+  tradeName?: string;
+  email: string;
+  phone: string;
+  phone2?: string;
+  website?: string;
+  category?: CustomerCategory;
+  addresses: Omit<CustomerAddress, "id">[];
+  contacts: Omit<CustomerContact, "id">[];
+  billingConfig?: Partial<CustomerBillingConfig>;
+  notes?: string;
+  tags?: string[];
+  industry?: string;
+}
+
+/**
+ * DTO para actualizar cliente
+ */
+export interface UpdateCustomerDTO extends Partial<CreateCustomerDTO> {
+  status?: EntityStatus;
+  creditLimit?: number;
 }
