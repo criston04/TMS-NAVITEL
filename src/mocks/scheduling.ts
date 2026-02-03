@@ -1,14 +1,13 @@
 /**
  * @fileoverview Datos mock para el módulo de programación
  * @module mocks/scheduling
- * @description Contiene todos los datos simulados para desarrollo
- * del módulo de programación.
+ * @description Funciones y datos específicos del módulo de programación
+ * que utilizan los datos compartidos centralizados.
  * @author TMS-NAVITEL
- * @version 1.0.0
+ * @version 2.0.0
  */
 
-import type { Order, OrderPriority } from '@/types/order';
-import type { VehicleType } from '@/types/models/vehicle';
+import type { Order } from '@/types/order';
 import type { 
   SchedulingKPIs,
   SchedulingFeatureFlags,
@@ -16,10 +15,22 @@ import type {
   ResourceSuggestion,
 } from '@/types/scheduling';
 
-// ============================================
-// TIPOS LOCALES
-// ============================================
+// Importar datos compartidos
+import {
+  SHARED_VEHICLES,
+  SHARED_DRIVERS,
+  SHARED_ORDERS,
+  findCustomerById,
+  findLocationById,
+  findVehicleById as findSharedVehicleById,
+  findDriverById as findSharedDriverById,
+  getOrderStats,
+  getFleetStats,
+} from './shared-data';
 
+import type { VehicleType } from '@/types/models/vehicle';
+
+// Tipos para el módulo de scheduling
 export interface MockVehicle {
   id: string;
   plateNumber: string;
@@ -40,118 +51,67 @@ export interface MockDriver {
 }
 
 // ============================================
-// DATOS DE VEHÍCULOS
+// DATOS DERIVADOS PARA SCHEDULING
 // ============================================
 
-export const MOCK_VEHICLES: MockVehicle[] = [
-  {
-    id: 'v1',
-    plateNumber: 'ABC-123',
-    model: 'Freightliner Cascadia',
-    status: 'available',
-    type: 'camion',
-    capacityKg: 25000,
-  },
-  {
-    id: 'v2',
-    plateNumber: 'XYZ-789',
-    model: 'Kenworth T680',
-    status: 'available',
-    type: 'tractocamion',
-    capacityKg: 30000,
-  },
-  {
-    id: 'v3',
-    plateNumber: 'DEF-456',
-    model: 'Volvo VNL',
-    status: 'available',
-    type: 'camion',
-    capacityKg: 28000,
-  },
-  {
-    id: 'v4',
-    plateNumber: 'GHI-321',
-    model: 'Peterbilt 579',
-    status: 'in_use',
-    type: 'tractocamion',
-    capacityKg: 27000,
-  },
-  {
-    id: 'v5',
-    plateNumber: 'JKL-654',
-    model: 'Mack Anthem',
-    status: 'maintenance',
-    type: 'camion',
-    capacityKg: 26000,
-  },
-];
+/**
+ * Vehículos disponibles para programación
+ */
+export const MOCK_VEHICLES = SHARED_VEHICLES.map(v => ({
+  id: v.id,
+  plateNumber: v.plate,
+  model: `${v.brand} ${v.model}`,
+  status: v.operationalStatus === 'available' ? 'available' as const : 
+          v.operationalStatus === 'on-route' ? 'in_use' as const : 
+          'maintenance' as const,
+  type: v.type,
+  capacityKg: v.capacityKg,
+}));
 
-// ============================================
-// DATOS DE CONDUCTORES
-// ============================================
-
-export const MOCK_DRIVERS: MockDriver[] = [
-  {
-    id: 'd1',
-    fullName: 'Juan Carlos Pérez Hernández',
-    name: 'Juan Pérez',
-    status: 'available',
-    phone: '+52 555 123 4567',
-    licenseExpiry: '2026-12-15',
-    hoursThisWeek: 32,
-  },
-  {
-    id: 'd2',
-    fullName: 'María Elena García López',
-    name: 'María García',
-    status: 'available',
-    phone: '+52 555 987 6543',
-    licenseExpiry: '2025-08-20',
-    hoursThisWeek: 28,
-  },
-  {
-    id: 'd3',
-    fullName: 'Carlos Alberto López Martínez',
-    name: 'Carlos López',
-    status: 'on_duty',
-    phone: '+52 555 456 7890',
-    licenseExpiry: '2027-03-10',
-    hoursThisWeek: 45,
-  },
-  {
-    id: 'd4',
-    fullName: 'Roberto González Díaz',
-    name: 'Roberto González',
-    status: 'available',
-    phone: '+52 555 111 2222',
-    licenseExpiry: '2026-06-25',
-    hoursThisWeek: 20,
-  },
-  {
-    id: 'd5',
-    fullName: 'Ana Patricia Rodríguez Torres',
-    name: 'Ana Rodríguez',
-    status: 'off_duty',
-    phone: '+52 555 333 4444',
-    licenseExpiry: '2025-11-30',
-    hoursThisWeek: 48,
-  },
-];
+/**
+ * Conductores disponibles para programación
+ */
+export const MOCK_DRIVERS = SHARED_DRIVERS.map(d => ({
+  id: d.id,
+  fullName: d.fullName,
+  name: d.shortName,
+  status: d.availability === 'available' ? 'available' as const :
+          d.availability === 'on-route' ? 'on_duty' as const :
+          'off_duty' as const,
+  phone: d.phone,
+  licenseExpiry: d.licenseExpiry,
+  hoursThisWeek: d.hoursThisWeek,
+}));
 
 // ============================================
 // KPIs POR DEFECTO
 // ============================================
 
-export const DEFAULT_KPIS: SchedulingKPIs = {
-  pendingOrders: 15,
-  scheduledToday: 8,
-  atRiskOrders: 2,
-  fleetUtilization: 75,
-  driverUtilization: 68,
-  onTimeDeliveryRate: 94,
-  averageLeadTime: 18,
-  weeklyTrend: 5,
-};
+export function getSchedulingKPIs(): SchedulingKPIs {
+  const orderStats = getOrderStats();
+  const fleetStats = getFleetStats();
+  
+  const fleetUtilization = fleetStats.totalVehicles > 0 
+    ? Math.round((fleetStats.onRouteVehicles / fleetStats.totalVehicles) * 100)
+    : 0;
+    
+  const driverUtilization = fleetStats.totalDrivers > 0
+    ? Math.round((fleetStats.onRouteDrivers / fleetStats.totalDrivers) * 100)
+    : 0;
+
+  return {
+    pendingOrders: orderStats.pending + orderStats.assigned,
+    scheduledToday: orderStats.inTransit,
+    atRiskOrders: orderStats.urgent,
+    fleetUtilization,
+    driverUtilization,
+    onTimeDeliveryRate: 94, // Mock
+    averageLeadTime: 18, // Mock hours
+    weeklyTrend: 5, // Mock %
+  };
+}
+
+export const DEFAULT_KPIS: SchedulingKPIs = getSchedulingKPIs();
 
 // ============================================
 // CONFIGURACIÓN POR DEFECTO
@@ -170,116 +130,95 @@ export const DEFAULT_SCHEDULING_CONFIG: SchedulingFeatureFlags = {
 // GENERADORES DE DATOS
 // ============================================
 
-const CITIES = [
-  'Ciudad de México',
-  'Guadalajara',
-  'Monterrey',
-  'Tijuana',
-  'Puebla',
-  'León',
-  'Querétaro',
-  'Mérida',
-];
-
-const CARGO_TYPES = [
-  'Electrónicos',
-  'Alimentos Perecederos',
-  'Materiales de Construcción',
-  'Productos Farmacéuticos',
-  'Textiles',
-  'Autopartes',
-  'Maquinaria Industrial',
-  'Productos Químicos',
-];
-
-const CUSTOMER_NAMES = [
-  'Distribuidora del Norte S.A.',
-  'Comercializadora Pacífico',
-  'Industrias Metalúrgicas MX',
-  'Grupo Logístico Central',
-  'Almacenes Regionales del Bajío',
-  'Transportes Internacionales SA',
-  'Cadena de Suministro Express',
-  'Operador Logístico Global',
-];
-
 /**
- * Genera órdenes pendientes mock
+ * Genera órdenes pendientes mock usando datos compartidos
  */
-export function generateMockPendingOrders(count: number = 12): Order[] {
-  const priorities: OrderPriority[] = ['low', 'normal', 'high', 'urgent'];
-  const baseDate = new Date();
+export function generateMockPendingOrders(count?: number): Order[] {
+  const pendingOrders = SHARED_ORDERS.filter(
+    o => o.status === 'pending' || o.status === 'assigned'
+  );
   
-  return Array.from({ length: count }, (_, i) => {
-    const priority = priorities[Math.floor(Math.random() * priorities.length)];
-    const customerIndex = i % CUSTOMER_NAMES.length;
-    const cityIndex = i % CITIES.length;
-    const cargoIndex = i % CARGO_TYPES.length;
-    
-    const orderId = `order-${i + 1}`;
+  const ordersToReturn = count ? pendingOrders.slice(0, count) : pendingOrders;
+  
+  return ordersToReturn.map(order => {
+    const customer = findCustomerById(order.customerId);
+    const vehicle = order.vehicleId ? findSharedVehicleById(order.vehicleId) : undefined;
+    const driver = order.driverId ? findSharedDriverById(order.driverId) : undefined;
+    const origin = findLocationById(order.originId);
+    const destination = findLocationById(order.destinationId);
     
     return {
-      id: orderId,
-      orderNumber: `ORD-${String(2024001 + i).padStart(7, '0')}`,
-      status: 'pending' as const,
-      priority,
-      customer: {
-        id: `customer-${customerIndex + 1}`,
-        name: CUSTOMER_NAMES[customerIndex],
-        code: `C${String(customerIndex + 1).padStart(4, '0')}`,
-        email: `contacto@${CUSTOMER_NAMES[customerIndex].toLowerCase().replace(/\s+/g, '').slice(0, 10)}.com`,
-      },
-      destination: {
-        city: CITIES[cityIndex],
-        country: 'México',
-      },
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      priority: order.priority,
+      customerId: order.customerId,
+      customer: customer ? {
+        id: customer.id,
+        name: customer.name,
+        code: customer.code,
+        email: customer.email,
+      } : undefined,
+      vehicleId: order.vehicleId,
+      vehicle: vehicle ? {
+        id: vehicle.id,
+        plate: vehicle.plate,
+        brand: vehicle.brand,
+        model: vehicle.model,
+        type: vehicle.type,
+      } : undefined,
+      driverId: order.driverId,
+      driver: driver ? {
+        id: driver.id,
+        fullName: driver.fullName,
+        phone: driver.phone,
+      } : undefined,
       cargo: {
-        description: CARGO_TYPES[cargoIndex],
-        type: 'general' as const,
-        weightKg: 1000 + Math.floor(Math.random() * 9000),
-        quantity: 10 + Math.floor(Math.random() * 50),
+        description: order.cargoDescription,
+        type: order.cargoType,
+        weightKg: order.weightKg,
+        quantity: 1,
       },
       milestones: [
         {
-          id: `milestone-origin-${i}`,
-          orderId: orderId,
-          geofenceId: `geo-origin-${i}`,
-          geofenceName: 'Centro de Distribución Principal',
+          id: `ms-${order.id}-origin`,
+          orderId: order.id,
+          geofenceId: order.originId,
+          geofenceName: order.originName,
           type: 'origin' as const,
           sequence: 1,
-          address: 'Av. Industrial 123, CDMX',
+          address: origin?.address || '',
           coordinates: {
-            lat: 19.4326 + (Math.random() * 0.1 - 0.05),
-            lng: -99.1332 + (Math.random() * 0.1 - 0.05),
+            lat: origin?.lat || -12.0464,
+            lng: origin?.lng || -77.0428,
           },
-          estimatedArrival: baseDate.toISOString(),
+          estimatedArrival: order.scheduledStartDate,
           status: 'pending' as const,
         },
         {
-          id: `milestone-dest-${i}`,
-          orderId: orderId,
-          geofenceId: `geo-dest-${i}`,
-          geofenceName: CITIES[cityIndex],
+          id: `ms-${order.id}-dest`,
+          orderId: order.id,
+          geofenceId: order.destinationId,
+          geofenceName: order.destinationName,
           type: 'destination' as const,
           sequence: 2,
-          address: `${CITIES[cityIndex]}, México`,
+          address: destination?.address || '',
           coordinates: {
-            lat: 20.6597 + (Math.random() * 2 - 1),
-            lng: -103.3496 + (Math.random() * 2 - 1),
+            lat: destination?.lat || -12.0464,
+            lng: destination?.lng || -77.0428,
           },
-          estimatedArrival: new Date(baseDate.getTime() + 8 * 60 * 60 * 1000).toISOString(),
+          estimatedArrival: order.scheduledEndDate,
           status: 'pending' as const,
         },
       ],
       completionPercentage: 0,
-      createdAt: new Date(baseDate.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: order.createdAt,
       createdBy: 'system',
-      updatedAt: new Date().toISOString(),
-      scheduledStartDate: new Date(baseDate.getTime() + (i + 1) * 24 * 60 * 60 * 1000).toISOString(),
-      scheduledEndDate: new Date(baseDate.getTime() + (i + 2) * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: order.createdAt,
+      scheduledStartDate: order.scheduledStartDate,
+      scheduledEndDate: order.scheduledEndDate,
       statusHistory: [],
       syncStatus: 'not_sent' as const,
-      customerId: `customer-${customerIndex + 1}`,
     };
   }) as Order[];
 }
@@ -288,19 +227,21 @@ export function generateMockPendingOrders(count: number = 12): Order[] {
  * Genera timelines de recursos mock
  */
 export function generateMockTimelines(): ResourceTimeline[] {
-  const vehicleTimelines: ResourceTimeline[] = MOCK_VEHICLES.slice(0, 3).map(vehicle => ({
+  const vehicleTimelines: ResourceTimeline[] = SHARED_VEHICLES.slice(0, 4).map(vehicle => ({
     resourceId: vehicle.id,
     type: 'vehicle' as const,
-    name: `${vehicle.plateNumber} - ${vehicle.model.split(' ')[0]}`,
-    utilization: Math.floor(Math.random() * 40) + 40,
+    name: `${vehicle.plate} - ${vehicle.brand}`,
+    utilization: vehicle.operationalStatus === 'on-route' ? 80 : 
+                 vehicle.operationalStatus === 'available' ? 30 : 0,
     assignments: [],
   }));
 
-  const driverTimelines: ResourceTimeline[] = MOCK_DRIVERS.slice(0, 3).map(driver => ({
+  const driverTimelines: ResourceTimeline[] = SHARED_DRIVERS.slice(0, 4).map(driver => ({
     resourceId: driver.id,
     type: 'driver' as const,
-    name: driver.name,
-    utilization: Math.floor(Math.random() * 40) + 30,
+    name: driver.shortName,
+    utilization: driver.availability === 'on-route' ? 85 :
+                 driver.availability === 'available' ? 25 : 0,
     assignments: [],
   }));
 
@@ -311,47 +252,43 @@ export function generateMockTimelines(): ResourceTimeline[] {
  * Genera sugerencias de recursos para una orden
  */
 export function generateMockSuggestions(_orderId: string): ResourceSuggestion[] {
-  const vehicleSuggestions: ResourceSuggestion[] = MOCK_VEHICLES
-    .filter(v => v.status === 'available')
+  const availableVehicles = SHARED_VEHICLES.filter(v => v.operationalStatus === 'available');
+  const availableDrivers = SHARED_DRIVERS.filter(d => d.availability === 'available');
+
+  const vehicleSuggestions: ResourceSuggestion[] = availableVehicles
     .slice(0, 2)
     .map((vehicle, index) => ({
       type: 'vehicle' as const,
       resourceId: vehicle.id,
-      name: `${vehicle.plateNumber} - ${vehicle.model}`,
-      score: 95 - (index * 13),
+      name: `${vehicle.plate} - ${vehicle.brand} ${vehicle.model}`,
+      score: 95 - (index * 10),
       reason: index === 0 
-        ? 'Mejor disponibilidad y cercanía al origen'
-        : 'Capacidad adecuada para la carga',
+        ? 'Mejor disponibilidad y capacidad adecuada'
+        : 'Vehículo alternativo con buena capacidad',
       isAvailable: true,
     }));
 
-  const driverSuggestions: ResourceSuggestion[] = MOCK_DRIVERS
-    .filter(d => d.status === 'available')
+  const driverSuggestions: ResourceSuggestion[] = availableDrivers
     .slice(0, 2)
     .map((driver, index) => ({
       type: 'driver' as const,
       resourceId: driver.id,
-      name: driver.name,
-      score: 90 - (index * 12),
+      name: driver.fullName,
+      score: 90 - (index * 8),
       reason: index === 0 
-        ? 'Experiencia en la ruta y horas disponibles'
-        : 'Buena puntuación de entregas a tiempo',
+        ? `Horas disponibles: ${48 - driver.hoursThisWeek}h esta semana`
+        : 'Conductor con experiencia en rutas similares',
       isAvailable: true,
     }));
 
   return [...vehicleSuggestions, ...driverSuggestions];
 }
 
-/**
- * Busca un vehículo por ID
- */
-export function findVehicleById(vehicleId: string): MockVehicle | undefined {
-  return MOCK_VEHICLES.find(v => v.id === vehicleId);
+// Funciones de búsqueda para compatibilidad
+export function findVehicleById(id: string): MockVehicle | undefined {
+  return MOCK_VEHICLES.find(v => v.id === id);
 }
 
-/**
- * Busca un conductor por ID
- */
-export function findDriverById(driverId: string): MockDriver | undefined {
-  return MOCK_DRIVERS.find(d => d.id === driverId);
+export function findDriverById(id: string): MockDriver | undefined {
+  return MOCK_DRIVERS.find(d => d.id === id);
 }
