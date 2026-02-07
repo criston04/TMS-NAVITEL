@@ -542,7 +542,7 @@ export function GeofencesMap({
       (window as any).__importKML = async (file: File) => {
         try {
           const text = await file.text();
-          const togeojson = (await import("togeojson")).default;
+          const togeojson = (await import("@mapbox/togeojson")).default;
           const parser = new DOMParser();
           const kml = parser.parseFromString(text, "text/xml");
           const geojson = togeojson.kml(kml);

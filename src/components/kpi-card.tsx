@@ -67,8 +67,8 @@ const variantStyles = {
     border: "border-l-destructive",
   },
   info: {
-    icon: "bg-sky-500/10 text-sky-500",
-    border: "border-l-sky-500",
+    icon: "bg-[#34b7ff]/10 text-[#34b7ff]",
+    border: "border-l-[#34b7ff]",
   },
 } as const;
 

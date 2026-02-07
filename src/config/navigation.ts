@@ -17,6 +17,8 @@ import {
   Building2,
   MapPinned,
   Route,
+  Navigation,
+  Wrench,
 } from "lucide-react";
 import { NavGroup } from "@/types/navigation";
 
@@ -27,6 +29,14 @@ export const navigationConfig: NavGroup[] = [
       { title: "Control Tower", href: "/", icon: Radio },
       { title: "Órdenes", href: "/orders", icon: Package },
       { title: "Programación", href: "/scheduling", icon: CalendarDays },
+      { title: "Planificador de Rutas", href: "/route-planner", icon: Navigation },
+    ],
+  },
+  {
+    groupTitle: "FLOTA",
+    items: [
+      { title: "Mantenimiento", href: "/maintenance", icon: Wrench },
+      { title: "Vehículos", href: "/fleet", icon: Car },
     ],
   },
   {

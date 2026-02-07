@@ -129,7 +129,7 @@ const PRIORITY_CONFIG: Record<Order['priority'], {
   className: string;
 }> = {
   low: { label: 'Baja', className: 'text-gray-500' },
-  normal: { label: 'Normal', className: 'text-blue-500' },
+  normal: { label: 'Normal', className: 'text-[#34b7ff]' },
   high: { label: 'Alta', className: 'text-orange-500' },
   urgent: { label: 'Urgente', className: 'text-red-500 font-semibold' },
 };

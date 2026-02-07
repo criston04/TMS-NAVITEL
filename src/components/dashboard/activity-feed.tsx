@@ -12,8 +12,8 @@ const activities = [
     message: "Vehículo V-001 inició ruta R-105",
     time: "hace 5 min",
     icon: Truck,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10 border-blue-200 dark:border-blue-900",
+    color: "text-[#34b7ff]",
+    bg: "bg-[#34b7ff]/10 border-[#34b7ff]/30 dark:border-[#34b7ff]/20",
   },
   {
     id: 2,
@@ -57,8 +57,8 @@ const activities = [
     message: "Vehículo V-004 inició ruta R-109",
     time: "hace 1.5 horas",
     icon: Truck,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10 border-blue-200 dark:border-blue-900",
+    color: "text-[#34b7ff]",
+    bg: "bg-[#34b7ff]/10 border-[#34b7ff]/30 dark:border-[#34b7ff]/20",
   },
 ];
 

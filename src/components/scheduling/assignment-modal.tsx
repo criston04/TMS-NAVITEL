@@ -154,7 +154,7 @@ const SuggestionChip: FC<Readonly<SuggestionChipProps>> = memo(function Suggesti
     >
       <div className={cn(
         'p-1.5 rounded-md shrink-0 self-start mt-0.5',
-        isVehicle ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'
+        isVehicle ? 'bg-[#34b7ff]/10 text-[#34b7ff] dark:bg-[#34b7ff]/20 dark:text-[#34b7ff]' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'
       )}>
         <Icon className="h-3.5 w-3.5" />
       </div>
@@ -212,7 +212,7 @@ const ConflictAlert: FC<Readonly<ConflictAlertProps>> = memo(function ConflictAl
   const severityStyles = {
     high: 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/30 dark:border-red-900 dark:text-red-300',
     medium: 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/30 dark:border-amber-900 dark:text-amber-300',
-    low: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/30 dark:border-blue-900 dark:text-blue-300',
+    low: 'bg-[#34b7ff]/10 border-[#34b7ff]/30 text-[#34b7ff] dark:bg-[#34b7ff]/20 dark:border-[#34b7ff]/20 dark:text-[#34b7ff]',
   };
 
   return (

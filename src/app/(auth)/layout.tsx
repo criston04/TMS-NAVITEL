@@ -44,7 +44,7 @@ export default function AuthLayout({
   const { t } = useLocale();
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-hidden bg-[#0a0f1c] font-sans selection:bg-cyan-500/30">
+    <div className="flex flex-col min-h-screen relative overflow-hidden bg-[#0a0f1c] font-sans selection:bg-[#34b7ff]/30">
         
       {/* 
         ------------------------------------------------
@@ -160,13 +160,13 @@ export default function AuthLayout({
           {/* LEFT SIDE: Hero Text (Visible on LG screens) */}
           <div className="hidden lg:flex lg:col-span-7 flex-col justify-center space-y-8 select-none pointer-events-none">
              <div className="space-y-4 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/30 backdrop-blur-md w-fit">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                  <span className="text-xs font-medium text-cyan-300 tracking-wide uppercase">Live Fleet Tracking</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#34b7ff]/30 bg-[#34b7ff]/10 backdrop-blur-md w-fit">
+                  <span className="w-2 h-2 rounded-full bg-[#34b7ff] animate-pulse" />
+                  <span className="text-xs font-medium text-[#34b7ff] tracking-wide uppercase">Live Fleet Tracking</span>
                 </div>
                 
                 <h1 className="text-7xl font-bold tracking-tight text-white drop-shadow-2xl">
-                  Navitel <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500">TMS</span>
+                  Navitel <span className="text-transparent bg-clip-text bg-linear-to-r from-[#34b7ff] to-[#34b7ff]">TMS</span>
                 </h1>
                 
                 <p className="text-xl text-slate-300 font-light max-w-lg leading-relaxed drop-shadow-lg">
@@ -199,7 +199,7 @@ export default function AuthLayout({
                 {/* Mobile Heading (Visible only on small screens) */}
                 <div className="lg:hidden flex items-center justify-between mb-8">
                    <div className="flex items-center gap-2">
-                      <NavitelIcon className="text-cyan-600 dark:text-cyan-400" size={32} />
+                      <NavitelIcon className="text-[#34b7ff] dark:text-[#34b7ff]" size={32} />
                       <span className="text-xl font-bold text-slate-900 dark:text-white">Navitel</span>
                    </div>
                    <ThemeToggle />
@@ -219,14 +219,14 @@ export default function AuthLayout({
                   {isLogin ? (
                     <p className="text-sm text-slate-400">
                       {t("auth.noAccount")}{" "}
-                      <Link href="/register" className="text-cyan-400 hover:text-cyan-300 font-medium hover:underline transition-colors">
+                      <Link href="/register" className="text-[#34b7ff] hover:text-[#34b7ff]/80 font-medium hover:underline transition-colors">
                         {t("auth.createAccount")}
                       </Link>
                     </p>
                   ) : (
                     <p className="text-sm text-slate-400">
                       {t("auth.hasAccount")}{" "}
-                      <Link href="/login" className="text-cyan-400 hover:text-cyan-300 font-medium hover:underline transition-colors">
+                      <Link href="/login" className="text-[#34b7ff] hover:text-[#34b7ff]/80 font-medium hover:underline transition-colors">
                         {t("auth.login")}
                       </Link>
                     </p>

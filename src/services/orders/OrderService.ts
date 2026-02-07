@@ -115,11 +115,19 @@ class OrderService {
     await simulateDelay();
 
     if (this.config.useMock) {
+      // Cargar órdenes generadas desde el route planner
+      const routePlannerOrders = typeof window !== 'undefined' 
+        ? JSON.parse(localStorage.getItem('tms-generated-orders') || '[]')
+        : [];
+      
+      // Combinar órdenes mock con las generadas desde el route planner
+      const allOrders = [...this.orders, ...routePlannerOrders];
+      
       const result = filterOrders({
         ...filters,
         page: filters.page ?? 1,
         pageSize: filters.pageSize ?? 10,
-      });
+      }, allOrders);
 
       return {
         data: result.data,

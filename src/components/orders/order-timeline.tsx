@@ -81,13 +81,13 @@ const MILESTONE_STATUS_CONFIG: Readonly<Record<MilestoneStatus, {
   },
   approaching: {
     icon: Truck,
-    className: 'bg-cyan-500 text-white',
-    lineClass: 'bg-cyan-200 dark:bg-cyan-900',
+    className: 'bg-[#34b7ff] text-white',
+    lineClass: 'bg-[#34b7ff]/30 dark:bg-[#34b7ff]/20',
     label: 'Aproximándose',
   },
   in_progress: {
     icon: Truck,
-    className: 'bg-blue-500 text-white animate-pulse',
+    className: 'bg-[#34b7ff] text-white animate-pulse',
     lineClass: 'bg-blue-200 dark:bg-blue-900',
     label: 'En camino',
   },

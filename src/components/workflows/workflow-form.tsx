@@ -356,7 +356,7 @@ export const WorkflowForm: FC<WorkflowFormProps> = ({
                     {/* Por defecto */}
                     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <Info className="h-5 w-5 text-blue-500" />
+                        <Info className="h-5 w-5 text-[#34b7ff]" />
                         <div>
                           <p className="font-medium text-sm">Workflow por Defecto</p>
                           <p className="text-xs text-muted-foreground">

@@ -101,7 +101,7 @@ interface WorkflowAssignmentInfo {
 
 const PRIORITIES: { value: OrderPriority; label: string; color: string }[] = [
   { value: 'low', label: 'Baja', color: 'bg-slate-500' },
-  { value: 'normal', label: 'Normal', color: 'bg-blue-500' },
+  { value: 'normal', label: 'Normal', color: 'bg-[#34b7ff]' },
   { value: 'high', label: 'Alta', color: 'bg-orange-500' },
   { value: 'urgent', label: 'Urgente', color: 'bg-red-500' },
 ];

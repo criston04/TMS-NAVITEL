@@ -421,8 +421,8 @@ export const filterOrders = (filters: {
   pageSize?: number;
   sortBy?: keyof Order;
   sortOrder?: 'asc' | 'desc';
-}): { data: Order[]; total: number; statusCounts: Record<OrderStatus, number> } => {
-  let filtered = [...mockOrders];
+}, ordersToFilter?: Order[]): { data: Order[]; total: number; statusCounts: Record<OrderStatus, number> } => {
+  let filtered = [...(ordersToFilter || mockOrders)];
   
   // Búsqueda por número de orden
   if (filters.search) {

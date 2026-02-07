@@ -104,7 +104,7 @@ const TimelineOrderBar = memo(function TimelineOrderBar({
   const priorityColors = {
     urgent: 'bg-red-500 border-red-600',
     high: 'bg-orange-500 border-orange-600',
-    normal: 'bg-blue-500 border-blue-600',
+    normal: 'bg-[#34b7ff] border-[#34b7ff]',
     low: 'bg-gray-400 border-gray-500',
   };
 

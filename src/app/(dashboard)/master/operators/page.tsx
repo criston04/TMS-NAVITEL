@@ -78,7 +78,7 @@ export default function OperatorsPage() {
       </div>
 
       {/* Checklist Info */}
-      <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 p-3">
+      <Card className="border-[#34b7ff]/30 bg-[#34b7ff]/5 dark:bg-[#34b7ff]/10 dark:border-[#34b7ff]/20 p-3">
         <div className="flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
           <div>

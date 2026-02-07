@@ -64,7 +64,7 @@ const PRIORITY_CONFIG: Record<OrderPriority, {
   normal: {
     label: 'Normal',
     className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    dotColor: 'bg-blue-500',
+    dotColor: 'bg-[#34b7ff]',
   },
   high: {
     label: 'Alta',

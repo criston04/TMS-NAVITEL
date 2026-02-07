@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 const vehicles = [
   { id: "VOL-468031", start: "Cagnes-sur-Mer, France", end: "Catania, Italy", warning: "No Warnings", progress: 49 },
   { id: "VOL-302781", start: "Köln, Germany", end: "Laspezia, Italy", warning: "Ecu Not Responding", progress: 24, warningColor: "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400" },
-  { id: "VOL-715822", start: "Chambray-lès-Tours, France", end: "Hamm, Germany", warning: "Oil Leakage", progress: 7, warningColor: "bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400" },
+  { id: "VOL-715822", start: "Chambray-lès-Tours, France", end: "Hamm, Germany", warning: "Oil Leakage", progress: 7, warningColor: "bg-[#34b7ff]/10 text-[#34b7ff] dark:bg-[#34b7ff]/20 dark:text-[#34b7ff]" },
   { id: "VOL-451430", start: "Berlin, Germany", end: "Gelsenkirchen, Germany", warning: "No Warnings", progress: 95 },
   { id: "VOL-921577", start: "Cergy-Pontoise, France", end: "Berlin, Germany", warning: "No Warnings", progress: 65 },
 ];

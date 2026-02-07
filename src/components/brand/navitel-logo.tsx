@@ -124,50 +124,50 @@ function LogoIconTruck({ size = 36, className }: Readonly<{ size?: number; class
   );
 }
 
-// Modern minimalist icon
+// Modern minimalist icon - Navitel Official Logo
 function LogoIconModern({ size = 36, className }: Readonly<{ size?: number; className?: string }>) {
   return (
     <svg 
       width={size} 
       height={size} 
-      viewBox="0 0 48 48" 
+      viewBox="0 0 200 200" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <defs>
-        <linearGradient id="logoGradientModern" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00c9ff" />
-          <stop offset="50%" stopColor="#00a8e8" />
-          <stop offset="100%" stopColor="#0077ff" />
-        </linearGradient>
-      </defs>
+      {/* Circular background */}
+      <circle cx="100" cy="100" r="98" fill="#3DBAFF" />
       
-      {/* Background */}
-      <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#logoGradientModern)" />
-      
-      {/* Abstract route/path design */}
+      {/* WiFi/Signal waves */}
+      {/* Outer wave */}
       <path 
-        d="M12 36 L12 16 L24 30 L24 16" 
+        d="M 40 120 Q 100 40, 160 120" 
         stroke="white" 
-        strokeWidth="3.5" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
+        strokeWidth="16" 
+        strokeLinecap="round"
         fill="none"
       />
+      
+      {/* Middle wave */}
       <path 
-        d="M24 30 L36 16 L36 36" 
+        d="M 55 130 Q 100 70, 145 130" 
         stroke="white" 
-        strokeWidth="3.5" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
+        strokeWidth="16" 
+        strokeLinecap="round"
         fill="none"
-        opacity="0.8"
       />
       
-      {/* Location marker */}
-      <circle cx="24" cy="12" r="4" fill="white" />
-      <circle cx="24" cy="12" r="2" fill="#00c9ff" />
+      {/* Inner wave */}
+      <path 
+        d="M 70 140 Q 100 100, 130 140" 
+        stroke="white" 
+        strokeWidth="16" 
+        strokeLinecap="round"
+        fill="none"
+      />
+      
+      {/* Center dot */}
+      <circle cx="100" cy="155" r="14" fill="white" />
     </svg>
   );
 }
@@ -187,8 +187,9 @@ export function NavitelLogo({
   if (variant === "text") {
     return (
       <div className={cn("flex items-center gap-1", className)}>
-        <span className={cn("font-bold text-foreground", textSize)}>Navitel</span>
-        <span className={cn("font-light text-primary", textSize)}>TMS</span>
+        <span className={cn("font-bold", textSize)} style={{ color: '#2C3E50' }}>nav</span>
+        <span className={cn("font-bold", textSize)} style={{ color: '#3DBAFF' }}>it</span>
+        <span className={cn("font-bold", textSize)} style={{ color: '#2C3E50' }}>el</span>
       </div>
     );
   }
@@ -197,9 +198,10 @@ export function NavitelLogo({
     <div className={cn("flex items-center gap-2.5", className)}>
       <LogoIconModern size={iconSize} />
       {showText && (
-        <div className="flex items-center gap-1">
-          <span className={cn("font-bold text-foreground", textSize)}>Navitel</span>
-          <span className={cn("font-light text-primary", textSize)}>TMS</span>
+        <div className="flex items-center">
+          <span className={cn("font-bold", textSize)} style={{ color: '#2C3E50' }}>nav</span>
+          <span className={cn("font-bold", textSize)} style={{ color: '#3DBAFF' }}>it</span>
+          <span className={cn("font-bold", textSize)} style={{ color: '#2C3E50' }}>el</span>
         </div>
       )}
     </div>

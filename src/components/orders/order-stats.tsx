@@ -92,8 +92,8 @@ const STATUS_CARD_CONFIG: Record<OrderStatus, {
   assigned: {
     title: 'Asignadas',
     icon: Package,
-    iconClassName: 'text-blue-500',
-    bgClassName: 'bg-blue-50 dark:bg-blue-900/20',
+    iconClassName: 'text-[#34b7ff]',
+    bgClassName: 'bg-[#34b7ff]/10 dark:bg-[#34b7ff]/20',
   },
   in_transit: {
     title: 'En tránsito',

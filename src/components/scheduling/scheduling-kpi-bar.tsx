@@ -86,7 +86,7 @@ const KPI_CONFIGS: KPIConfig[] = [
     label: 'Programadas Hoy',
     icon: Calendar,
     format: (v) => v.toString(),
-    color: () => 'text-blue-500',
+    color: () => 'text-[#34b7ff]',
     tooltip: 'Órdenes programadas para hoy',
   },
   {

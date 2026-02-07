@@ -1,0 +1,274 @@
+"use client";
+
+/* ============================================
+   COMPONENT: Order List
+   Panel de selección de órdenes
+   ============================================ */
+
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Filter, Package2, MapPin, Weight, Box, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { TransportOrder, OrderFilters } from "@/types/route-planner";
+import { useRoutePlanner } from "@/contexts/route-planner-context";
+import { cn } from "@/lib/utils";
+
+interface OrderListProps {
+  orders: TransportOrder[];
+}
+
+export function OrderList({ orders }: OrderListProps) {
+  const { selectedOrders, addOrder, removeOrder, clearOrders } = useRoutePlanner();
+  const [filters, setFilters] = useState<OrderFilters>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  /* ============================================
+     FILTERED ORDERS
+     ============================================ */
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      // Search
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        if (
+          !order.orderNumber.toLowerCase().includes(term) &&
+          !order.client.name.toLowerCase().includes(term) &&
+          !order.pickup.city.toLowerCase().includes(term) &&
+          !order.delivery.city.toLowerCase().includes(term)
+        ) {
+          return false;
+        }
+      }
+
+      // Zone filter
+      if (filters.zone && order.zone !== filters.zone) return false;
+
+      // Priority filter
+      if (filters.priority && filters.priority.length > 0 && !filters.priority.includes(order.priority)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [orders, searchTerm, filters]);
+
+  /* ============================================
+     ZONE OPTIONS
+     ============================================ */
+  const zones = useMemo(() => {
+    const uniqueZones = Array.from(new Set(orders.map((o) => o.zone)));
+    return uniqueZones.sort();
+  }, [orders]);
+
+  /* ============================================
+     TOGGLE ORDER SELECTION
+     ============================================ */
+  const toggleOrder = (order: TransportOrder) => {
+    const isSelected = selectedOrders.find((o) => o.id === order.id);
+    if (isSelected) {
+      removeOrder(order.id);
+    } else {
+      addOrder(order);
+    }
+  };
+
+  return (
+    <div className="flex h-full flex-col bg-card border-r border-border">
+      {/* Header */}
+      <div className="border-b border-border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Órdenes Disponibles</h2>
+          <Badge variant="secondary" className="text-xs">
+            {filteredOrders.length} órdenes
+          </Badge>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por orden, cliente, ciudad..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Filter Toggle */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex-1"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filtros
+          </Button>
+          {selectedOrders.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearOrders}>
+              Limpiar ({selectedOrders.length})
+            </Button>
+          )}
+        </div>
+
+        {/* Filters Panel */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="space-y-2 overflow-hidden"
+            >
+              {/* Zone Filter */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Zona</label>
+                <select
+                  value={filters.zone || ""}
+                  onChange={(e) => setFilters({ ...filters, zone: e.target.value || undefined })}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Todas las zonas</option>
+                  {zones.map((zone) => (
+                    <option key={zone} value={zone}>
+                      {zone}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Priority Filter */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Prioridad</label>
+                <div className="flex gap-2">
+                  {(["high", "medium", "low"] as const).map((priority) => (
+                    <Button
+                      key={priority}
+                      variant={filters.priority?.includes(priority) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        const current = filters.priority || [];
+                        const updated = current.includes(priority)
+                          ? current.filter((p) => p !== priority)
+                          : [...current, priority];
+                        setFilters({ ...filters, priority: updated.length > 0 ? updated : undefined });
+                      }}
+                      className="flex-1 text-xs"
+                    >
+                      {priority === "high" ? "Alta" : priority === "medium" ? "Media" : "Baja"}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Order List */}
+      <ScrollArea className="flex-1">
+        <div className="p-3 space-y-2">
+          <AnimatePresence>
+            {filteredOrders.map((order) => {
+              const isSelected = selectedOrders.find((o) => o.id === order.id);
+              return (
+                <motion.div
+                  key={order.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  onClick={() => toggleOrder(order)}
+                  className={cn(
+                    "relative p-3 rounded-lg border border-border bg-card cursor-pointer transition-all hover:shadow-md",
+                    isSelected && "border-[#3DBAFF] bg-[#3DBAFF]/5 ring-1 ring-[#3DBAFF]/20"
+                  )}
+                >
+                  {/* Checkbox */}
+                  <div className="absolute top-3 right-3">
+                    <Checkbox checked={!!isSelected} />
+                  </div>
+
+                  {/* Order Number & Priority */}
+                  <div className="flex items-start gap-2 mb-2 pr-8">
+                    <Package2 className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <div className="font-semibold text-sm">{order.orderNumber}</div>
+                      <div className="text-xs text-muted-foreground">{order.client.name}</div>
+                    </div>
+                    <Badge
+                      variant={
+                        order.priority === "high"
+                          ? "destructive"
+                          : order.priority === "medium"
+                            ? "default"
+                            : "secondary"
+                      }
+                      className="text-xs"
+                    >
+                      {order.priority === "high" ? "Alta" : order.priority === "medium" ? "Media" : "Baja"}
+                    </Badge>
+                  </div>
+
+                  {/* Locations */}
+                  <div className="space-y-1 mb-2">
+                    <div className="flex items-start gap-2 text-xs">
+                      <MapPin className="h-3 w-3 text-green-500 mt-0.5" />
+                      <div className="flex-1">
+                        <div className="text-muted-foreground">Origen</div>
+                        <div>{order.pickup.city}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs">
+                      <MapPin className="h-3 w-3 text-[#3DBAFF] mt-0.5" />
+                      <div className="flex-1">
+                        <div className="text-muted-foreground">Destino</div>
+                        <div>{order.delivery.city}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cargo Info */}
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Weight className="h-3 w-3" />
+                      <span>{order.cargo.weight}kg</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Box className="h-3 w-3" />
+                      <span>{order.cargo.volume}m³</span>
+                    </div>
+                  </div>
+
+                  {/* Special Requirements */}
+                  {(order.cargo.requiresRefrigeration || order.cargo.fragile) && (
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
+                      <AlertCircle className="h-3 w-3 text-yellow-500" />
+                      <div className="text-xs text-muted-foreground">
+                        {order.cargo.requiresRefrigeration && "Refrigerado"}
+                        {order.cargo.requiresRefrigeration && order.cargo.fragile && " • "}
+                        {order.cargo.fragile && "Frágil"}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+
+          {filteredOrders.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Package2 className="h-12 w-12 text-muted-foreground mb-3 opacity-50" />
+              <p className="text-sm text-muted-foreground">No se encontraron órdenes</p>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}

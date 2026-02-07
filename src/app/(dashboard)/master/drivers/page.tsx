@@ -52,7 +52,7 @@ function StatCard({
     success: "bg-green-500/10 text-green-600",
     warning: "bg-yellow-500/10 text-yellow-600",
     danger: "bg-red-500/10 text-red-600",
-    info: "bg-blue-500/10 text-blue-600",
+    info: "bg-[#34b7ff]/10 text-[#34b7ff]",
   };
 
   return (
