@@ -6,14 +6,14 @@
  * @module services/master
  * 
  * @example
- * import { customersService, driversService } from "@/services/master";
+ * import { customersService, driversService, operatorsService, productsService } from "@/services/master";
  */
 
 export { customersService } from "./customers.service";
 export { driversService } from "./drivers.service";
 export { vehiclesService } from "./vehicles.service";
 export { geofencesService } from "./geofences.service";
-
-// TODO: Agregar cuando se implementen
-// export { operatorsService } from "./operators.service";
-// export { productsService } from "./products.service";
+export { operatorsService, OperatorsService } from "./operators.service";
+export type { OperatorFilters, CreateOperatorDTO, UpdateOperatorDTO, OperatorsResponse } from "./operators.service";
+export { productsService, ProductsService } from "./products.service";
+export type { ProductFilters, CreateProductDTO, UpdateProductDTO, ProductsResponse } from "./products.service";

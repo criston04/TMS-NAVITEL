@@ -18,7 +18,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import type { Order } from '@/types/order';
-import type { ScheduledOrder, CalendarViewType } from '@/types/scheduling';
+import type { ScheduledOrder } from '@/types/scheduling';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {

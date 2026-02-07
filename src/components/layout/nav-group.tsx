@@ -16,10 +16,10 @@ export const NavGroup: FC<Readonly<NavGroupProps>> = ({
   isActive,
 }) => {
   return (
-    <div className="mb-4">
+    <div className="mb-3">
       {/* Título del grupo - oculto cuando está colapsado */}
       {!isCollapsed && (
-        <h3 className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <h3 className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
           {group.groupTitle}
         </h3>
       )}

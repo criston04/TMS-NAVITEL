@@ -12,6 +12,9 @@
 // Servicios del módulo MAESTRO
 export * from "./master";
 
+// Servicios de Órdenes
+export * from "./orders";
+
 // Servicio unificado de Workflows (conectado con geocercas, órdenes, programación)
 export { 
   unifiedWorkflowService, 
@@ -22,6 +25,12 @@ export {
   type ApplyWorkflowResult,
   type OrderWorkflowProgress,
 } from "./workflow.service";
+
+// Servicios de Monitoreo
+export * from "./monitoring";
+
+// Servicios de Integración
+export * from "./integration";
 
 // Base service para extensión
 export { BaseService, BulkService } from "./base.service";

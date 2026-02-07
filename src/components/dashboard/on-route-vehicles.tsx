@@ -1,11 +1,9 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Truck, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 
 const vehicles = [
   { id: "VOL-468031", start: "Cagnes-sur-Mer, France", end: "Catania, Italy", warning: "No Warnings", progress: 49 },

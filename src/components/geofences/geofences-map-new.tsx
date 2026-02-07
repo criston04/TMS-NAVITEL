@@ -73,9 +73,11 @@ export const GeofencesMapNew = forwardRef<GeofencesMapNewRef, GeofencesMapNewPro
     },
     ref
   ) {
-    const geofenceLayersRef = useRef<Map<string, L.Layer>>(new Map());
-    const currentEditingLayerRef = useRef<L.Layer | null>(null);
-    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const geofenceLayersRef = useRef<Map<string, any>>(new Map());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const currentEditingLayerRef = useRef<any>(null);
+
     // Hook de mapa
     const {
       mapRef,
@@ -86,7 +88,7 @@ export const GeofencesMapNew = forwardRef<GeofencesMapNewRef, GeofencesMapNewPro
       drawnItems,
     } = useLeafletMap({
       layerType: initialLayer,
-      center: [23.6345, -102.5528], // México
+      center: [23.6345, -102.5528], // Mexico
       zoom: 5,
     });
     
@@ -238,21 +240,24 @@ export const GeofencesMapNew = forwardRef<GeofencesMapNewRef, GeofencesMapNewPro
       }
       return null;
     }, [getGeometryFromLayerFn]);
-    
-    // Crear pentágono
+
+    // Crear pentagono
     const drawPentagon = useCallback(() => {
       if (!leafletMap) return;
-      
+
       // Usar el centro del mapa
       const center = leafletMap.getCenter();
       const layer = createPentagon({ lat: center.lat, lng: center.lng });
-      
+
       if (layer) {
         currentEditingLayerRef.current = layer;
-        leafletMap.addLayer(layer);
-        enableEditing(layer);
-        
-        const geometry = getGeometryFromLayerFn(layer);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        leafletMap.addLayer(layer as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        enableEditing(layer as any);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const geometry = getGeometryFromLayerFn(layer as any);
         if (geometry && onGeometryCreated) {
           onGeometryCreated({ type: "polygon", geometry });
         }

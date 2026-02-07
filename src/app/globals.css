@@ -358,14 +358,22 @@
   animation: scaleIn 0.2s ease-out;
 }
 
-/* Leaflet map styles */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+/* ============================================
+   LEAFLET MAP STYLES
+   ============================================ */
+.vehicle-marker-icon {
+  background: transparent !important;
+  border: none !important;
 }
 
-.custom-marker {
+.vehicle-mini-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.start-marker,
+.end-marker,
+.current-point-marker {
   background: transparent !important;
   border: none !important;
 }
@@ -375,5 +383,40 @@
 }
 
 .leaflet-popup-content {
-  margin: 0;
+  margin: 8px;
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR STYLES
+   ============================================ */
+/* Tailwind scrollbar utilities */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-muted-foreground\/20::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+
+.scrollbar-thumb-muted-foreground\/40:hover::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.4);
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Firefox scrollbar colors */
+.scrollbar-thin {
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+.scrollbar-thin:hover {
+  scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
 }

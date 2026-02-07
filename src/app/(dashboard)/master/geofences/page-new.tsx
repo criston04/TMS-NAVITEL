@@ -56,26 +56,13 @@ import {
   Filter
 } from "lucide-react";
 import GeofenceForm, { type GeofenceFormData } from "@/components/geofences/geofence-form";
+import { type GeofencesMapNewRef } from "@/components/geofences/geofences-map-new";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import { useGeofences } from "@/hooks/useGeofences";
 import { type MapLayerType } from "@/hooks/useLeafletMap";
 import { Geofence, GeofenceCategory } from "@/types/models/geofence";
 import { geofenceCategories, geofenceColors } from "@/mocks/master/geofences.mock";
 import { cn } from "@/lib/utils";
-
-/**
- * Ref del mapa
- */
-interface MapRef {
-  drawPolygon: () => void;
-  drawCircle: () => void;
-  zoomToGeofence: (id: string) => void;
-  editGeofence: (id: string) => void;
-  cancelEditing: () => void;
-  deleteGeofenceLayer: (id: string) => void;
-  setMapLayer: (layer: MapLayerType) => void;
-  getLayerGeometry: () => unknown;
-}
 
 // Importar mapa dinámicamente (SSR disabled) - usando forwardRef pattern
 const GeofencesMapNew = dynamic(
@@ -177,7 +164,7 @@ function GeofencesPageContent() {
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const mapRef = useRef<MapRef | null>(null);
+  const mapRef = useRef<GeofencesMapNewRef | null>(null);
   
   // Marcar como montado (usando startTransition para evitar cascading renders)
   useEffect(() => {

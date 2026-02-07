@@ -17,7 +17,7 @@ export default function DashboardLayout({
         <Navbar />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto min-h-0">{children}</main>
       </div>
     </div>
   );

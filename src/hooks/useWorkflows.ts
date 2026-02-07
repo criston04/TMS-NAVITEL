@@ -284,16 +284,18 @@ export function useWorkflowEscalation(order: Order | null): UseWorkflowEscalatio
     }
 
     try {
-      // Obtener progreso que incluye información de escalaciones
+      // Obtener progreso que incluye informacion de escalaciones
       const progress = await unifiedWorkflowService.getOrderWorkflowProgress(order.id);
-      
-      if (progress?.currentStep && progress.startTime) {
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const progressAny = progress as any;
+      if (progressAny?.currentStep && progressAny.startTime) {
         // Verificar si el paso actual ha excedido su tiempo estimado
-        const stepStartTime = new Date(progress.startTime);
-        const currentStep = progress.currentStep;
+        const stepStartTime = new Date(progressAny.startTime);
+        const currentStep = progressAny.currentStep;
         const elapsed = (Date.now() - stepStartTime.getTime()) / 1000 / 60; // minutos
-        
-        // Si el tiempo estimado ha sido excedido, crear escalación
+
+        // Si el tiempo estimado ha sido excedido, crear escalacion
         if (currentStep.estimatedDuration && elapsed > currentStep.estimatedDuration) {
           setActiveEscalations([{
             ruleId: `escalation-${currentStep.id}`,
@@ -304,7 +306,7 @@ export function useWorkflowEscalation(order: Order | null): UseWorkflowEscalatio
           return;
         }
       }
-      
+
       setActiveEscalations([]);
     } catch {
       setActiveEscalations([]);

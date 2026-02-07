@@ -172,7 +172,7 @@ const ResourceRow = memo(function ResourceRow({
   onOrderDrop?: (order: Order, hour: number) => void;
   onOrderClick?: (order: ScheduledOrder) => void;
 }>) {
-  const handleDragOver = (e: React.DragEvent, hour: number) => {
+  const handleDragOver = (e: React.DragEvent, _hour: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };

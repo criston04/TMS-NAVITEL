@@ -8,7 +8,7 @@
 
 'use client';
 
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback, useRef } from 'react';
 import {
   GitBranch,
   Edit2,
@@ -16,7 +16,6 @@ import {
   Trash2,
   Play,
   Pause,
-  Save,
   X,
   MapPin,
   Clock,
@@ -25,7 +24,6 @@ import {
   GripVertical,
   Plus,
   Settings,
-  ChevronRight,
   ChevronLeft,
   MoreVertical,
   FileText
@@ -49,7 +47,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -115,7 +112,7 @@ const StepCard = memo(function StepCard({
   return (
     <div className="relative pl-6 pb-6 last:pb-0 group">
       {/* Timeline Line */}
-      <div className="absolute left-[11px] top-8 bottom-0 w-px bg-border group-last:hidden" />
+      <div className="absolute left-2.75 top-8 bottom-0 w-px bg-border group-last:hidden" />
       
       {/* Step Node */}
       <div 
@@ -299,7 +296,7 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
   isEditing,
   isSaving = false,
   availableGeofences = [],
-  availableCustomers = [],
+  availableCustomers: _availableCustomers = [],
   onEdit,
   onSave,
   onCancel, // Usado como "Back" cuando no se está editando, o "Cancelar edición"
@@ -310,13 +307,9 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
 }: Readonly<WorkflowDetailPanelProps>) {
   
   // Estado local para edición
-  const [editData, setEditData] = useState<Partial<CreateWorkflowDTO>>({});
-  const [activeTab, setActiveTab] = useState<'design' | 'settings'>('design');
-
-  // Inicializar datos
-  useEffect(() => {
+  const [editData, setEditData] = useState<Partial<CreateWorkflowDTO>>(() => {
     if (workflow) {
-      setEditData({
+      return {
         name: workflow.name,
         description: workflow.description,
         code: workflow.code,
@@ -324,18 +317,39 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
         isDefault: workflow.isDefault,
         applicableCargoTypes: workflow.applicableCargoTypes,
         applicableCustomerIds: workflow.applicableCustomerIds,
-        status: workflow.status,
-      });
-    } else if (isEditing && !workflow) {
-      // Create mode initialization
-       setEditData({
-        steps: [],
-        name: '',
-        code: '',
-        isDefault: false
-       });
+      };
     }
-  }, [workflow, isEditing]);
+    return {
+      steps: [],
+      name: '',
+      code: '',
+      isDefault: false
+    };
+  });
+  const [activeTab, setActiveTab] = useState<'design' | 'settings'>('design');
+
+  // Sincronizar editData cuando cambia workflow usando el patrón recomendado
+  // de "storing previous props" para detectar cambios y resetear estado
+  const prevWorkflowIdRef = useRef(workflow?.id);
+  if (workflow?.id !== prevWorkflowIdRef.current) {
+    prevWorkflowIdRef.current = workflow?.id;
+    // Reset editData cuando el workflow cambia (durante render, no en effect)
+    const newData = workflow ? {
+      name: workflow.name,
+      description: workflow.description,
+      code: workflow.code,
+      steps: workflow.steps,
+      isDefault: workflow.isDefault,
+      applicableCargoTypes: workflow.applicableCargoTypes,
+      applicableCustomerIds: workflow.applicableCustomerIds,
+    } : {
+      steps: [],
+      name: '',
+      code: '',
+      isDefault: false
+    };
+    setEditData(newData);
+  }
 
   const handleSave = () => {
     if (!editData.name || !editData.code) return; // Simple validation
@@ -486,7 +500,7 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
       {/* Tabs Layout */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'design' | 'settings')} className="flex-1 flex flex-col min-h-0">
         <div className="border-b px-6 bg-muted/10">
-           <TabsList className="bg-transparent h-10 p-0 transform translate-y-[1px]">
+           <TabsList className="bg-transparent h-10 p-0 transform translate-y-px">
               <TabsTrigger 
                 value="design" 
                 className="rounded-t-lg rounded-b-none border border-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-none px-4 h-10"
@@ -521,7 +535,7 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
                <div className="space-y-1 pb-10">
                  {/* Start Node */}
                  <div className="flex items-center gap-4 mb-4 opacity-50 text-sm">
-                    <div className="w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center ml-[1px]">
+                    <div className="w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center ml-px">
                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
                     </div>
                     <span>Inicio del Workflow</span>
@@ -549,7 +563,7 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
 
                  {/* End Node */}
                  <div className="flex items-center gap-4 mt-8 opacity-50 text-sm">
-                    <div className="w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center ml-[1px]">
+                    <div className="w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center ml-px">
                        <div className="w-2 h-2 rounded-full bg-red-500" />
                     </div>
                     <span>Fin del Workflow</span>

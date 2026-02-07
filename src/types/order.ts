@@ -7,9 +7,9 @@
  * @version 1.0.0
  */
 
-import type { Customer } from './customer';
-import type { Driver } from './driver';
-import type { Vehicle } from './vehicle';
+import type { Customer } from './models/customer';
+import type { Driver } from './models/driver';
+import type { Vehicle, VehicleType } from './models/vehicle';
 
 /**
  * Estados posibles de una orden en el sistema
@@ -280,8 +280,14 @@ export interface Order {
   carrierName?: string;
   /** ID del vehículo asignado */
   vehicleId?: string;
-  /** Datos del vehículo (populated) */
-  vehicle?: Pick<Vehicle, 'id' | 'plate' | 'brand' | 'model' | 'type'>;
+  /** Datos del vehículo (populated) - usa campos aplanados para compatibilidad */
+  vehicle?: {
+    id: string;
+    plate: string;
+    brand: string;
+    model: string;
+    type: VehicleType;
+  };
   /** ID del conductor asignado */
   driverId?: string;
   /** Datos del conductor (populated) */
