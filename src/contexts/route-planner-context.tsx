@@ -16,11 +16,11 @@ import type {
   RouteAlert,
 } from "@/types/route-planner";
 import {
+  generateRoutePolyline,
   calculateTotalDistance,
   estimateDuration,
   estimateCost,
 } from "@/lib/mock-data/route-planner";
-import { routingService } from "@/services/routing.service";
 
 /* ============================================
    CONTEXT TYPES
@@ -96,7 +96,7 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
   /* ============================================
      GENERATE ROUTE FROM SELECTED ORDERS
      ============================================ */
-  const generateRoute = useCallback(async () => {
+  const generateRoute = useCallback(() => {
     if (selectedOrders.length === 0) return;
 
     // Crear paradas desde las órdenes seleccionadas
@@ -133,20 +133,15 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
       });
     });
 
-    // Calcular ruta real usando OSRM
-    const coordinates = stops.map(stop => stop.coordinates);
-    const routingResult = await routingService.calculateRoute(coordinates);
+    // Calcular métricas
+    const totalDistance = calculateTotalDistance(stops);
+    const estimatedDurationValue = estimateDuration(totalDistance, stops.length);
+    const fuelConsumption = selectedVehicle?.fuelConsumption || 10;
+    const costs = estimateCost(totalDistance, fuelConsumption, !configuration.avoidTolls);
 
     // Calcular peso y volumen total
     const totalWeight = selectedOrders.reduce((sum, o) => sum + o.cargo.weight, 0);
     const totalVolume = selectedOrders.reduce((sum, o) => sum + o.cargo.volume, 0);
-
-    // Calcular costos
-    const fuelConsumption = selectedVehicle?.fuelConsumption || 10;
-    const costs = estimateCost(routingResult.totalDistance, fuelConsumption, !configuration.avoidTolls);
-
-    // Agregar tiempo de paradas a la duración
-    const totalDuration = routingResult.totalDuration + (stops.length * 15);
 
     // Generar alertas
     const alerts: RouteAlert[] = [];
@@ -172,7 +167,7 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    if (totalDuration > 480) {
+    if (estimatedDurationValue > 480) {
       alerts.push({
         id: "alert-duration",
         type: "warning",
@@ -191,8 +186,8 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
       vehicle: selectedVehicle || undefined,
       driver: selectedDriver || undefined,
       metrics: {
-        totalDistance: routingResult.totalDistance,
-        estimatedDuration: totalDuration,
+        totalDistance,
+        estimatedDuration: estimatedDurationValue,
         estimatedCost: costs.total,
         fuelCost: costs.fuel,
         tollsCost: costs.tolls,
@@ -200,7 +195,7 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
         totalVolume,
       },
       configuration,
-      polyline: routingResult.polyline,
+      polyline: generateRoutePolyline(stops),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       alerts: alerts.length > 0 ? alerts : undefined,
@@ -212,7 +207,7 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
   /* ============================================
      REORDER STOPS
      ============================================ */
-  const reorderStops = useCallback(async (stops: RouteStop[]) => {
+  const reorderStops = useCallback((stops: RouteStop[]) => {
     if (!currentRoute) return;
 
     // Actualizar secuencia
@@ -221,29 +216,24 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
       sequence: index + 1,
     }));
 
-    // Recalcular ruta con nuevo orden usando OSRM
-    const coordinates = reorderedStops.map(stop => stop.coordinates);
-    const routingResult = await routingService.calculateRoute(coordinates);
-
-    // Calcular costos con nueva distancia
+    // Recalcular métricas
+    const totalDistance = calculateTotalDistance(reorderedStops);
+    const estimatedDurationValue = estimateDuration(totalDistance, reorderedStops.length);
     const fuelConsumption = selectedVehicle?.fuelConsumption || 10;
-    const costs = estimateCost(routingResult.totalDistance, fuelConsumption, !configuration.avoidTolls);
-
-    // Agregar tiempo de paradas
-    const totalDuration = routingResult.totalDuration + (stops.length * 15);
+    const costs = estimateCost(totalDistance, fuelConsumption, !configuration.avoidTolls);
 
     setCurrentRoute({
       ...currentRoute,
       stops: reorderedStops,
       metrics: {
         ...currentRoute.metrics,
-        totalDistance: routingResult.totalDistance,
-        estimatedDuration: totalDuration,
+        totalDistance,
+        estimatedDuration: estimatedDurationValue,
         estimatedCost: costs.total,
         fuelCost: costs.fuel,
         tollsCost: costs.tolls,
       },
-      polyline: routingResult.polyline,
+      polyline: generateRoutePolyline(reorderedStops),
       updatedAt: new Date().toISOString(),
     });
   }, [currentRoute, selectedVehicle, configuration]);

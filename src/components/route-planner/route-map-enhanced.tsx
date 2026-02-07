@@ -6,6 +6,7 @@
    ============================================ */
 
 import { useEffect, useState, useRef, useMemo, Fragment } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Navigation,
@@ -13,12 +14,39 @@ import {
   Maximize2,
   Minimize2,
   Layers,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Route, RouteStop, TransportOrder } from "@/types/route-planner";
 import { cn } from "@/lib/utils";
+
+// Dynamic imports for Leaflet components
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Polyline = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Polyline),
+  { ssr: false }
+);
+const Popup = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Popup),
+  { ssr: false }
+);
+const useMap = dynamic(
+  () => import("react-leaflet").then((mod) => mod.useMap),
+  { ssr: false }
+) as any;
 
 interface RouteMapProps {
   route: Route | null;
@@ -28,67 +56,17 @@ interface RouteMapProps {
 }
 
 /* ============================================
-   MAP INVALIDATOR - Hook to force map resize
+   MAP CONTROLLER COMPONENT
    ============================================ */
-function useMapInvalidator(trigger: any) {
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const invalidateAllMaps = () => {
-      const containers = document.querySelectorAll('.leaflet-container');
-      containers.forEach((container: any) => {
-        if (container._leaflet_map) {
-          try {
-            const map = container._leaflet_map;
-            // Forzar redimensionamiento completo
-            map.invalidateSize({ 
-              debounceMoveend: true,
-              animate: false,
-              pan: false 
-            });
-            // Forzar recarga de tiles
-            map.eachLayer((layer: any) => {
-              if (layer._url) {
-                layer.redraw();
-              }
-            });
-          } catch (e) {
-            console.error('Error invalidating map:', e);
-          }
-        }
-      });
-    };
-
-    // Múltiples intentos escalonados
-    const timers = [
-      setTimeout(invalidateAllMaps, 0),
-      setTimeout(invalidateAllMaps, 50),
-      setTimeout(invalidateAllMaps, 150),
-      setTimeout(invalidateAllMaps, 300),
-      setTimeout(invalidateAllMaps, 500),
-      setTimeout(invalidateAllMaps, 800),
-      setTimeout(invalidateAllMaps, 1200),
-      setTimeout(invalidateAllMaps, 2000),
-    ];
-
-    return () => {
-      timers.forEach(clearTimeout);
-    };
-  }, [trigger]);
-}
-
-    const mapContainers = document.querySelectorAll('.leaflet-container');
-    mapContainers.forEach(container => {
-      observer.observe(container);
-    });
-
-    return () => {
-      timers.forEach(clearTimeout);
-      window.removeEventListener('resize', handleResize);
-      observer.disconnect();
-    };
-  }, []);
-
+function MapController({
+  center,
+  zoom,
+}: {
+  center: [number, number];
+  zoom: number;
+}) {
+  // This component would use useMap hook from react-leaflet
+  // to programmatically control the map
   return null;
 }
 
@@ -209,7 +187,6 @@ function EmptyMapState() {
 export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false }: RouteMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapStyle, setMapStyle] = useState<"street" | "satellite">("street");
-  const [mapKey, setMapKey] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Calculate map center
@@ -222,45 +199,6 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
     }
     return [-12.0464, -77.0428]; // Lima default
   }, [route, selectedOrders]);
-
-  // Force map re-render when route or orders change
-  useEffect(() => {
-    // Incrementar key para forzar re-render del mapa
-    setMapKey(prev => prev + 1);
-  }, [route?.id, selectedOrders.length]);
-
-  // Force invalidate all maps on mount and when content changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const invalidateAllMaps = () => {
-      const containers = document.querySelectorAll('.leaflet-container');
-      containers.forEach((container: any) => {
-        if (container._leaflet_map) {
-          try {
-            container._leaflet_map.invalidateSize({ 
-              debounceMoveend: true,
-              animate: false,
-              pan: false 
-            });
-          } catch (e) {}
-        }
-      });
-    };
-
-    // Múltiples intentos para asegurar renderizado
-    const timers = [
-      setTimeout(invalidateAllMaps, 0),
-      setTimeout(invalidateAllMaps, 100),
-      setTimeout(invalidateAllMaps, 300),
-      setTimeout(invalidateAllMaps, 500),
-      setTimeout(invalidateAllMaps, 1000),
-    ];
-
-    return () => {
-      timers.forEach(clearTimeout);
-    };
-  }, [mapKey, route, selectedOrders]);
 
   // Toggle fullscreen
   const toggleFullscreen = () => {
@@ -293,77 +231,15 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
       )}
     >
       {/* Map Container */}
-      <div 
-        style={{ 
-          height: "100%", 
-          width: "100%",
-          minHeight: "400px",
-          position: "relative"
-        }}
-      >
+      <div style={{ height: "100%", width: "100%" }}>
         <MapContainer
-          key={`map-${mapKey}`}
           //@ts-ignore
           center={center}
           zoom={13}
-          style={{ 
-            height: "100%", 
-            width: "100%",
-            minHeight: "400px",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-          }}
+          style={{ height: "100%", width: "100%" }}
           zoomControl={true}
-          preferCanvas={true}
-          whenCreated={(map: any) => {
-            // Forzar invalidateSize cuando el mapa se crea
-            const invalidate = () => {
-              if (map && map.invalidateSize) {
-                map.invalidateSize({ 
-                  debounceMoveend: true,
-                  animate: false,
-                  pan: false 
-                });
-              }
-            };
-            
-            setTimeout(invalidate, 0);
-            setTimeout(invalidate, 100);
-            setTimeout(invalidate, 300);
-            setTimeout(invalidate, 500);
-          }}
-          whenReady={(map: any) => {
-            // Forzar invalidateSize cuando el mapa esté listo
-            const mapInstance = map.target;
-            if (mapInstance) {
-              const invalidate = () => {
-                mapInstance.invalidateSize({ 
-                  debounceMoveend: true,
-                  animate: false,
-                  pan: false 
-                });
-              };
-              
-              setTimeout(invalidate, 0);
-              setTimeout(invalidate, 100);
-              setTimeout(invalidate, 300);
-              setTimeout(invalidate, 500);
-              setTimeout(invalidate, 1000);
-            }
-          }}
         >
-          {/* Componente para forzar redimensionamiento correcto */}
-          <MapResizeController />
-          
-          <TileLayer 
-            url={tileUrls[mapStyle]}
-            updateWhenIdle={true}
-            updateWhenZooming={false}
-            keepBuffer={2}
-          />
+          <TileLayer url={tileUrls[mapStyle]} />
 
           {/* Route Polyline */}
           {route?.polyline && <AnimatedPath positions={route.polyline} />}

@@ -6,57 +6,31 @@
 .leaflet-container {
   width: 100% !important;
   height: 100% !important;
-  min-height: 400px !important;
   z-index: 1;
   font-family: inherit;
   background: #f8fafc;
-  position: relative !important;
 }
 
-/* Forzar renderizado correcto de tiles */
+/* Asegurar que las tiles se posicionen correctamente */
 .leaflet-tile-container {
   pointer-events: none;
-  width: 100% !important;
-  height: 100% !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
 }
 
 .leaflet-tile {
-  filter: none !important;
+  filter: none;
   visibility: visible !important;
-  opacity: 1 !important;
-  image-rendering: auto !important;
-  -ms-interpolation-mode: bicubic;
-  max-width: none !important;
-  max-height: none !important;
-  display: block !important;
 }
 
 .leaflet-fade-anim .leaflet-tile {
   will-change: opacity;
 }
 
-.leaflet-tile-loaded {
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: block !important;
-}
-
-/* Asegurar que todas las capas se rendericen */
 .leaflet-pane {
   z-index: 400;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
 }
 
 .leaflet-tile-pane {
   z-index: 200;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
 }
 
 .leaflet-overlay-pane {
@@ -69,27 +43,6 @@
 
 .leaflet-popup-pane {
   z-index: 700;
-}
-
-/* Fix para renderizado en contenedores dinámicos */
-.leaflet-container.leaflet-touch-zoom {
-  -ms-touch-action: pan-x pan-y;
-  touch-action: pan-x pan-y;
-}
-
-.leaflet-container.leaflet-touch-drag {
-  -ms-touch-action: pinch-zoom;
-  touch-action: none;
-  touch-action: pinch-zoom;
-}
-
-/* Forzar que el mapa ocupe todo el espacio */
-.leaflet-container .leaflet-map-pane {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
 }
 
 /* Estilos para marcadores personalizados */

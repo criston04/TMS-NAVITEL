@@ -2,6 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { X, Save } from "lucide-react";
+import ColorPicker from "@/components/geofences/color-picker";
 import { 
   Geofence, 
   CircleGeometry, 
@@ -34,15 +40,14 @@ export function GeofencesMap({
   geofences = [],
   selectedGeofenceIds = new Set(),
   sidebarWidth = 240,
-  isEditingMode: _isEditingMode = false,
+  isEditingMode = false,
   editingGeofenceId = null
 }: GeofencesMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletMapRef = useRef<L.Map | null>(null);
-  const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const leafletMapRef = useRef<any>(null);
+  const drawnItemsRef = useRef<any>(null);
   const drawControlRef = useRef<any>(null);
-  const drawnLayerRef = useRef<L.Layer | null>(null);
+  const drawnLayerRef = useRef<any>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [editingGeofence, setEditingGeofence] = useState<Geofence | null>(null);
   const eventsRegisteredRef = useRef(false);
@@ -512,9 +517,9 @@ export function GeofencesMap({
           if (!hasBeenSaved) {
             // Si no ha sido guardado, remover completamente
             drawnItems.removeLayer(drawnLayer);
-          } else if ((drawnLayer as any).editing && (drawnLayer as any).editing._enabled) {
+          } else if (drawnLayer.editing && drawnLayer.editing._enabled) {
             // Si está siendo editado, solo deshabilitar edición
-            (drawnLayer as any).editing.disable();
+            drawnLayer.editing.disable();
           }
         }
         drawnLayerRef.current = null;
@@ -708,9 +713,8 @@ export function GeofencesMap({
             leafletMapRef.current.off(L.Draw.Event.DELETED);
             
             // Limpiar todas las capas
-            const mapInstance = leafletMapRef.current;
-            mapInstance.eachLayer((layer: any) => {
-              mapInstance.removeLayer(layer);
+            leafletMapRef.current.eachLayer((layer: any) => {
+              leafletMapRef.current.removeLayer(layer);
             });
           }
           
@@ -758,8 +762,7 @@ export function GeofencesMap({
         layersToRemove.push(layer);
       }
     });
-    const drawnItems = drawnItemsRef.current;
-    layersToRemove.forEach(layer => drawnItems.removeLayer(layer));
+    layersToRemove.forEach(layer => drawnItemsRef.current.removeLayer(layer));
 
     // Renderizar solo las geocercas seleccionadas
     geofences.forEach(geofence => {
@@ -810,7 +813,7 @@ export function GeofencesMap({
         }
         
         // Agregar layer al FeatureGroup
-        drawnItems.addLayer(layer);
+        drawnItemsRef.current.addLayer(layer);
         
         // Bind popup
         layer.bindPopup(`
@@ -826,10 +829,9 @@ export function GeofencesMap({
 
   // Invalidar tamaño del mapa cuando cambie el ancho del sidebar
   useEffect(() => {
-    const mapInstance = leafletMapRef.current;
-    if (mapInstance && isMapReady) {
+    if (leafletMapRef.current && isMapReady) {
       setTimeout(() => {
-        mapInstance.invalidateSize();
+        leafletMapRef.current.invalidateSize();
       }, 350); // Esperar a que termine la transición CSS
     }
   }, [sidebarWidth, isMapReady]);
@@ -910,9 +912,8 @@ export function GeofencesMap({
     if (existingGeofence) {
       // Obtener la geometría actualizada del layer
       if (drawnLayer instanceof L.Circle) {
-        const circleLayer = drawnLayer as L.Circle;
-        const center = circleLayer.getLatLng();
-        const radius = circleLayer.getRadius();
+        const center = drawnLayer.getLatLng();
+        const radius = drawnLayer.getRadius();
         
         geofence = {
           ...existingGeofence,
@@ -934,9 +935,8 @@ export function GeofencesMap({
           updatedAt: new Date().toISOString()
         };
       } else {
-        const polygonLayer = drawnLayer as L.Polygon;
-        const latlngs = polygonLayer.getLatLngs()[0];
-        const coordinates = (latlngs as L.LatLng[]).map((ll) => ({ lat: ll.lat, lng: ll.lng }));
+        const latlngs = drawnLayer.getLatLngs()[0];
+        const coordinates = latlngs.map((ll: any) => ({ lat: ll.lat, lng: ll.lng }));
         
         geofence = {
           ...existingGeofence,
@@ -960,9 +960,8 @@ export function GeofencesMap({
     } else {
       // Crear nueva geocerca
       if (drawnLayer instanceof L.Circle) {
-        const circleLayer = drawnLayer as L.Circle;
-        const center = circleLayer.getLatLng();
-        const radius = circleLayer.getRadius();
+        const center = drawnLayer.getLatLng();
+        const radius = drawnLayer.getRadius();
         
         geofence = {
           id: `geo-${Date.now()}`,
@@ -995,9 +994,8 @@ export function GeofencesMap({
           updatedAt: new Date().toISOString()
         };
       } else {
-        const polygonLayer = drawnLayer as L.Polygon;
-        const latlngs = polygonLayer.getLatLngs()[0];
-        const coordinates = (latlngs as L.LatLng[]).map((ll) => ({ lat: ll.lat, lng: ll.lng }));
+        const latlngs = drawnLayer.getLatLngs()[0];
+        const coordinates = latlngs.map((ll: any) => ({ lat: ll.lat, lng: ll.lng }));
         
         geofence = {
           id: `geo-${Date.now()}`,
@@ -1032,7 +1030,7 @@ export function GeofencesMap({
     }
 
     // Actualizar el color de la capa
-    (drawnLayer as L.Path).setStyle({
+    drawnLayer.setStyle({
       color: formDataParam.color,
       fillOpacity: 0.2
     });
@@ -1041,8 +1039,8 @@ export function GeofencesMap({
     (drawnLayer as any).geofenceId = geofence.id;
 
     // Deshabilitar edición
-    if ((drawnLayer as any).editing) {
-      (drawnLayer as any).editing.disable();
+    if (drawnLayer.editing) {
+      drawnLayer.editing.disable();
     }
 
     // Agregar popup
