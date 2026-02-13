@@ -19,12 +19,13 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Truck, ArrowLeft, Save } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
 
 export default function NewVehiclePage() {
   const router = useRouter();
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     plate: '',
@@ -61,7 +62,7 @@ export default function NewVehiclePage() {
       };
 
       // En producción, esto llamaría a la API
-      await maintenanceService.createVehicle(newVehicle);
+      await maintenance.createVehicle(newVehicle);
 
       // Redirigir a la lista de vehículos
       router.push('/maintenance/vehicles');

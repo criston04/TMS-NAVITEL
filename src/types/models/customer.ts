@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modelos del módulo MAESTRO - Clientes
- * 
- * @module types/models/customer
- */
-
 import { BaseEntity, EntityStatus } from "@/types/common";
 
 /**
@@ -17,9 +11,11 @@ export type CustomerType = "empresa" | "persona";
 export type DocumentType = "RUC" | "DNI" | "CE" | "PASSPORT";
 
 /**
- * Categoría de cliente para tarifas
+ * Categoría de cliente para tarifas.
+ * Los valores base se mantienen para compatibilidad.
+ * Categorías adicionales se definen en config/customer-categories.config.ts
  */
-export type CustomerCategory = "standard" | "premium" | "vip" | "wholesale";
+export type CustomerCategory = "standard" | "premium" | "vip" | "wholesale" | "corporate" | "government" | (string & {});
 
 /**
  * Términos de pago
@@ -109,9 +105,9 @@ export interface CustomerOperationalStats {
 export interface Customer extends BaseEntity {
   /** Código único del cliente */
   code?: string;
-  /** Tipo de cliente */
+  
   type: CustomerType;
-  /** Tipo de documento */
+  
   documentType: DocumentType;
   /** Número de documento (RUC, DNI, etc.) */
   documentNumber: string;
@@ -127,7 +123,7 @@ export interface Customer extends BaseEntity {
   phone2?: string;
   /** Sitio web */
   website?: string;
-  /** Estado del cliente */
+  
   status: EntityStatus;
   /** Categoría del cliente */
   category?: CustomerCategory;

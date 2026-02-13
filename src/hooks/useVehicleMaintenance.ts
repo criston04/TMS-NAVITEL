@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestionar el mantenimiento de vehículos
- * @module hooks/useVehicleMaintenance
- * @description Conecta la información del vehículo con su historial y programación
- * de mantenimiento, proporcionando alertas y estadísticas.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { maintenanceService } from "@/services/master/maintenance.service";
 import type {
@@ -16,9 +7,6 @@ import type {
   MaintenanceStatus,
 } from "@/types/models/vehicle";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 /**
  * Alerta de mantenimiento
@@ -42,7 +30,7 @@ export interface MaintenanceAlert {
  * Estadísticas de mantenimiento del vehículo
  */
 export interface VehicleMaintenanceStats {
-  /** Total de mantenimientos */
+  
   totalMaintenances: number;
   /** Completados */
   completed: number;
@@ -94,7 +82,7 @@ interface UseVehicleMaintenanceReturn extends UseVehicleMaintenanceState {
   refresh: () => Promise<void>;
   /** Aplicar filtros */
   applyFilters: (filters: MaintenanceHistoryFilters) => void;
-  /** Filtros actuales */
+  
   filters: MaintenanceHistoryFilters;
   /** Crear mantenimiento */
   createMaintenance: (data: Omit<MaintenanceRecord, "id" | "createdAt" | "updatedAt">) => Promise<MaintenanceRecord>;
@@ -144,9 +132,6 @@ const defaultStats: VehicleMaintenanceStats = {
   nextScheduledDate: null,
 };
 
-/* ============================================
-   HOOK
-   ============================================ */
 
 /**
  * Hook para gestionar el mantenimiento de un vehículo
@@ -155,32 +140,6 @@ const defaultStats: VehicleMaintenanceStats = {
  * @param currentOdometer - Odómetro actual del vehículo (para calcular alertas)
  * @returns Estado y funciones para gestionar mantenimiento
  * 
- * @example
- * ```tsx
- * function VehicleMaintenance({ vehicleId, odometer }: Props) {
- *   const {
- *     records,
- *     schedules,
- *     stats,
- *     alerts,
- *     isLoading,
- *     hasActiveMaintenance,
- *     hasCriticalAlerts,
- *     createMaintenance,
- *     completeMaintenance
- *   } = useVehicleMaintenance(vehicleId, odometer);
- * 
- *   if (isLoading) return <Spinner />;
- * 
- *   return (
- *     <div>
- *       {hasCriticalAlerts && <AlertBanner alerts={alerts} />}
- *       <MaintenanceStats stats={stats} />
- *       <MaintenanceList records={records} />
- *     </div>
- *   );
- * }
- * ```
  */
 export function useVehicleMaintenance(
   vehicleId: string | undefined,
@@ -473,12 +432,10 @@ export function useVehicleMaintenance(
     return result;
   }, [loadMaintenanceData]);
 
-  // Mantenimientos activos
   const activeMaintenances = useMemo(() => {
     return state.records.filter(r => r.status === "in_progress");
   }, [state.records]);
 
-  // Mantenimientos pendientes
   const pendingMaintenances = useMemo(() => {
     return state.records.filter(r => r.status === "scheduled");
   }, [state.records]);

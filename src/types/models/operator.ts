@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modelos del módulo MAESTRO - Operadores Logísticos
- * 
- * @module types/models/operator
- */
-
 import { BaseEntity } from "@/types/common";
 
 /**
@@ -72,7 +66,7 @@ export interface Operator extends BaseEntity {
   businessName: string;
   /** Nombre comercial */
   tradeName?: string;
-  /** Tipo de operador */
+  
   type: OperatorType;
   /** Email */
   email: string;
@@ -96,7 +90,7 @@ export interface Operator extends BaseEntity {
   contractEndDate?: string;
   /** Notas */
   notes?: string;
-  /** Estado del operador */
+  
   status: OperatorStatus;
 }
 

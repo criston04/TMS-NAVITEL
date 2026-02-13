@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente de Checklist Viewer/Editor
- * 
- * Componente reutilizable para visualizar y editar checklists
- * de inspección de vehículos y conductores.
- * 
- * @module components/ui/checklist-viewer
- */
-
 "use client";
 
 import * as React from "react";
@@ -40,9 +31,6 @@ import {
   MessageSquare,
 } from "lucide-react";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 /**
  * Estado de un ítem del checklist
@@ -119,9 +107,6 @@ export interface ChecklistViewerProps {
   className?: string;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 const STATUS_CONFIG: Record<ChecklistItemStatus, { 
   label: string; 
@@ -155,9 +140,6 @@ const STATUS_CONFIG: Record<ChecklistItemStatus, {
   },
 };
 
-/* ============================================
-   COMPONENTES AUXILIARES
-   ============================================ */
 
 interface ChecklistItemRowProps {
   item: ChecklistItem;
@@ -305,9 +287,6 @@ function ChecklistItemRow({
   );
 }
 
-/* ============================================
-   COMPONENTE PRINCIPAL
-   ============================================ */
 
 export function ChecklistViewer({
   checklist,
@@ -568,9 +547,6 @@ export function ChecklistViewer({
   );
 }
 
-/* ============================================
-   CHECKLISTS PREDEFINIDOS
-   ============================================ */
 
 /**
  * Checklist de inspección pre-viaje para vehículos de carga

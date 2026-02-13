@@ -1,9 +1,3 @@
-/**
- * @fileoverview Panel de estadísticas de retransmisión
- * 
- * @module components/monitoring/retransmission/retransmission-stats
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -18,7 +12,7 @@ import type { RetransmissionStats } from "@/types/monitoring";
 interface RetransmissionStatsProps {
   /** Estadísticas */
   stats: RetransmissionStats;
-  /** Estado de carga */
+  
   isLoading?: boolean;
   /** Clase adicional */
   className?: string;

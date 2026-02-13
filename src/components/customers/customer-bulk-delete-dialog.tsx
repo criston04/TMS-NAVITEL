@@ -1,9 +1,3 @@
-/**
- * @fileoverview Diálogo de confirmación para eliminación masiva de clientes
- * 
- * @module components/customers/customer-bulk-delete-dialog
- */
-
 "use client";
 
 import {

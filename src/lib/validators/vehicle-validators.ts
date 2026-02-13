@@ -1,12 +1,3 @@
-/**
- * @fileoverview Validadores para Vehículos
- * 
- * Incluye validación de documentación vehicular, seguros, inspecciones
- * técnicas y mantenimiento según normativa peruana MTC/SUTRAN.
- * 
- * @module lib/validators/vehicle-validators
- */
-
 import { z } from "zod";
 import type {
   VehicleType,
@@ -20,9 +11,6 @@ import type {
 } from "@/types/models/vehicle";
 import type { LicenseCategory } from "@/types/models/driver";
 
-/* ============================================
-   CONSTANTES DE VALIDACIÓN
-   ============================================ */
 
 /** Tipos de vehículo válidos */
 export const VEHICLE_TYPES: VehicleType[] = [
@@ -144,9 +132,6 @@ export const MAINTENANCE_INTERVALS: Record<string, { km: number; days: number; d
   cooling_system: { km: 40000, days: 365, description: "Sistema de enfriamiento" },
 };
 
-/* ============================================
-   SCHEMAS ZOD - ESPECIFICACIONES
-   ============================================ */
 
 /**
  * Schema para especificaciones técnicas
@@ -207,9 +192,6 @@ export const vehicleCapacitySchema = z.object({
   }
 );
 
-/* ============================================
-   SCHEMAS ZOD - DOCUMENTACIÓN
-   ============================================ */
 
 /**
  * Schema para tarjeta de propiedad
@@ -294,9 +276,6 @@ export const operatingCertificateSchema = z.object({
   verificationStatus: z.enum(["pending", "verified", "rejected"] as const).default("pending"),
 });
 
-/* ============================================
-   SCHEMAS ZOD - GPS
-   ============================================ */
 
 /**
  * Schema para dispositivo GPS
@@ -318,9 +297,6 @@ export const gpsDeviceSchema = z.object({
   fileUrl: z.string().url().optional(),
 });
 
-/* ============================================
-   SCHEMAS ZOD - MANTENIMIENTO
-   ============================================ */
 
 /**
  * Schema para item de trabajo de mantenimiento
@@ -399,9 +375,6 @@ export const fuelRecordSchema = z.object({
   calculatedEfficiency: z.number().positive().optional(),
 });
 
-/* ============================================
-   SCHEMA PRINCIPAL - VEHÍCULO
-   ============================================ */
 
 /**
  * Schema para validar placa peruana
@@ -434,7 +407,6 @@ export const vehicleSchema = z.object({
   // Documentación
   registration: vehicleRegistrationSchema,
 
-  // Estado
   operationalStatus: z.enum(VEHICLE_OPERATIONAL_STATUSES as [VehicleOperationalStatus, ...VehicleOperationalStatus[]]).default("available"),
   unavailabilityReason: z.string().optional(),
   expectedAvailableDate: z.string().optional(),
@@ -457,9 +429,6 @@ export const vehicleSchema = z.object({
  */
 export const updateVehicleSchema = vehicleSchema.partial();
 
-/* ============================================
-   FUNCIONES DE VALIDACIÓN
-   ============================================ */
 
 /**
  * Valida si un documento está vigente
@@ -588,7 +557,6 @@ export function validateDriverVehicleCompatibility(
     "A-IIIc": 999999, // Sin límite (materiales peligrosos)
   };
 
-  // Tipos de vehículo que requieren categorías específicas
   const vehicleRequirements: Partial<Record<VehicleType, LicenseCategory[]>> = {
     tractocamion: ["A-IIIa", "A-IIIb", "A-IIIc"],
     remolque: ["A-IIIb", "A-IIIc"],

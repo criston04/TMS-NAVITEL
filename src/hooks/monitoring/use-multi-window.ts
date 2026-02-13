@@ -1,10 +1,3 @@
-/**
- * @fileoverview Hook para gestión de multiventana
- * 
- * @module hooks/monitoring/use-multi-window
- * @description Maneja paneles de vehículos y persistencia en localStorage
- */
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -103,19 +96,6 @@ function calculatePanelPosition(index: number, columns: number): PanelPosition {
 /**
  * Hook para gestión de multiventana
  * 
- * @example
- * ```tsx
- * const { 
- *   panels, 
- *   gridConfig, 
- *   addPanel, 
- *   removePanel,
- *   isAtLimit 
- * } = useMultiWindow({
- *   maxPanels: 20,
- *   persist: true,
- * });
- * ```
  */
 export function useMultiWindow(
   options: UseMultiWindowOptions = {}
@@ -125,7 +105,6 @@ export function useMultiWindow(
     persist = true,
   } = options;
 
-  // Estado
   const [panels, setPanels] = useState<VehiclePanel[]>([]);
   const [manualLayout, setManualLayout] = useState<MultiWindowGridConfig["layout"] | null>(null);
 
@@ -311,12 +290,10 @@ export function useMultiWindow(
   const isAtLimit = panelCount >= maxPanels;
 
   return useMemo(() => ({
-    // Estado
     panels,
     gridConfig,
     panelCount,
     isAtLimit,
-    // Acciones
     addPanel,
     addPanels,
     removePanel,

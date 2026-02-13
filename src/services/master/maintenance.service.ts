@@ -1,12 +1,3 @@
-/**
- * @fileoverview Servicio de Mantenimiento de Vehículos
- * 
- * Gestiona el ciclo completo de mantenimientos: preventivos,
- * correctivos, programación y seguimiento de costos.
- * 
- * @module services/master/maintenance.service
- */
-
 import {
   MaintenanceRecord,
   MaintenanceSchedule,
@@ -14,9 +5,9 @@ import {
   MaintenanceStatus,
 } from "@/types/models/vehicle";
 
-/* ============================================
-   TIPOS Y CONSTANTES
-   ============================================ */
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
+
 
 /**
  * Estadísticas de mantenimiento
@@ -101,9 +92,6 @@ export const COMMON_PREVENTIVE_WORKS: PreventiveWorkCatalogItem[] = [
   { id: "pw-010", description: "Revisión del sistema eléctrico", category: "electrical", estimatedCost: 200, estimatedHours: 1 },
 ];
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
 
 const maintenanceRecordsMock: MaintenanceRecord[] = [
   {
@@ -201,13 +189,15 @@ const maintenanceSchedulesMock: MaintenanceSchedule[] = [
   },
 ];
 
-/* ============================================
-   SERVICIO DE MANTENIMIENTO
-   ============================================ */
 
 class MaintenanceService {
+  private readonly useMocks: boolean;
   private maintenanceRecords = [...maintenanceRecordsMock];
   private maintenanceSchedules = [...maintenanceSchedulesMock];
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Simula delay de red
@@ -229,6 +219,10 @@ class MaintenanceService {
    * Obtiene todos los mantenimientos de un vehículo
    */
   async getMaintenanceByVehicle(vehicleId: string): Promise<MaintenanceRecord[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MaintenanceRecord[]>(`${API_ENDPOINTS.master.maintenance}/by-vehicle/${vehicleId}`);
+    }
+
     await this.simulateDelay();
     return this.maintenanceRecords.filter(m => m.vehicleId === vehicleId);
   }
@@ -237,6 +231,10 @@ class MaintenanceService {
    * Obtiene todos los mantenimientos con filtros
    */
   async getAllMaintenances(filters?: MaintenanceFilters): Promise<MaintenanceRecord[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MaintenanceRecord[]>(API_ENDPOINTS.master.maintenance, { params: filters as unknown as Record<string, string> });
+    }
+
     await this.simulateDelay();
     
     let results = [...this.maintenanceRecords];
@@ -266,6 +264,10 @@ class MaintenanceService {
    * Obtiene un mantenimiento por ID
    */
   async getMaintenanceById(id: string): Promise<MaintenanceRecord | null> {
+    if (!this.useMocks) {
+      return apiClient.get<MaintenanceRecord>(`${API_ENDPOINTS.master.maintenance}/${id}`);
+    }
+
     await this.simulateDelay();
     return this.maintenanceRecords.find(m => m.id === id) || null;
   }
@@ -276,6 +278,10 @@ class MaintenanceService {
   async createMaintenance(
     data: Omit<MaintenanceRecord, "id" | "createdAt" | "updatedAt">
   ): Promise<MaintenanceRecord> {
+    if (!this.useMocks) {
+      return apiClient.post<MaintenanceRecord>(API_ENDPOINTS.master.maintenance, data);
+    }
+
     await this.simulateDelay(500);
     
     const newMaintenance: MaintenanceRecord = {
@@ -296,6 +302,10 @@ class MaintenanceService {
     id: string,
     data: Partial<MaintenanceRecord>
   ): Promise<MaintenanceRecord> {
+    if (!this.useMocks) {
+      return apiClient.put<MaintenanceRecord>(`${API_ENDPOINTS.master.maintenance}/${id}`, data);
+    }
+
     await this.simulateDelay(400);
     
     const index = this.maintenanceRecords.findIndex(m => m.id === id);
@@ -327,6 +337,10 @@ class MaintenanceService {
       nextMaintenanceOdometer?: number;
     }
   ): Promise<MaintenanceRecord> {
+    if (!this.useMocks) {
+      return apiClient.post<MaintenanceRecord>(`${API_ENDPOINTS.master.maintenance}/${id}/complete`, completionData);
+    }
+
     await this.simulateDelay(500);
     
     const index = this.maintenanceRecords.findIndex(m => m.id === id);
@@ -363,6 +377,10 @@ class MaintenanceService {
    * Cancela un mantenimiento
    */
   async cancelMaintenance(id: string, reason: string): Promise<MaintenanceRecord> {
+    if (!this.useMocks) {
+      return apiClient.post<MaintenanceRecord>(`${API_ENDPOINTS.master.maintenance}/${id}/cancel`, { reason });
+    }
+
     await this.simulateDelay(400);
     
     const index = this.maintenanceRecords.findIndex(m => m.id === id);
@@ -384,6 +402,11 @@ class MaintenanceService {
    * Elimina un mantenimiento
    */
   async deleteMaintenance(id: string): Promise<void> {
+    if (!this.useMocks) {
+      await apiClient.delete(`${API_ENDPOINTS.master.maintenance}/${id}`);
+      return;
+    }
+
     await this.simulateDelay(300);
     
     const index = this.maintenanceRecords.findIndex(m => m.id === id);
@@ -400,6 +423,10 @@ class MaintenanceService {
    * Obtiene programaciones de mantenimiento de un vehículo
    */
   async getSchedulesByVehicle(vehicleId: string): Promise<MaintenanceSchedule[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MaintenanceSchedule[]>(`${API_ENDPOINTS.master.maintenance}/schedules/by-vehicle/${vehicleId}`);
+    }
+
     await this.simulateDelay();
     return this.maintenanceSchedules.filter(s => s.vehicleId === vehicleId);
   }
@@ -410,6 +437,10 @@ class MaintenanceService {
   async createSchedule(
     data: Omit<MaintenanceSchedule, "id">
   ): Promise<MaintenanceSchedule> {
+    if (!this.useMocks) {
+      return apiClient.post<MaintenanceSchedule>(`${API_ENDPOINTS.master.maintenance}/schedules`, data);
+    }
+
     await this.simulateDelay(500);
     
     const newSchedule: MaintenanceSchedule = {
@@ -428,6 +459,10 @@ class MaintenanceService {
     id: string,
     data: Partial<MaintenanceSchedule>
   ): Promise<MaintenanceSchedule> {
+    if (!this.useMocks) {
+      return apiClient.put<MaintenanceSchedule>(`${API_ENDPOINTS.master.maintenance}/schedules/${id}`, data);
+    }
+
     await this.simulateDelay(400);
     
     const index = this.maintenanceSchedules.findIndex(s => s.id === id);
@@ -443,6 +478,11 @@ class MaintenanceService {
    * Elimina una programación
    */
   async deleteSchedule(id: string): Promise<void> {
+    if (!this.useMocks) {
+      await apiClient.delete(`${API_ENDPOINTS.master.maintenance}/schedules/${id}`);
+      return;
+    }
+
     await this.simulateDelay(300);
     
     const index = this.maintenanceSchedules.findIndex(s => s.id === id);
@@ -459,6 +499,10 @@ class MaintenanceService {
    * Obtiene estadísticas de mantenimiento
    */
   async getMaintenanceStats(): Promise<MaintenanceStats> {
+    if (!this.useMocks) {
+      return apiClient.get<MaintenanceStats>(`${API_ENDPOINTS.master.maintenance}/stats`);
+    }
+
     await this.simulateDelay();
     
     const today = new Date();
@@ -523,6 +567,10 @@ class MaintenanceService {
    * Obtiene mantenimientos próximos
    */
   async getUpcomingMaintenances(daysAhead: number = 30): Promise<MaintenanceSchedule[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MaintenanceSchedule[]>(`${API_ENDPOINTS.master.maintenance}/upcoming`, { params: daysAhead ? { daysAhead } : undefined });
+    }
+
     await this.simulateDelay();
     
     const today = new Date();
@@ -540,6 +588,10 @@ class MaintenanceService {
    * Obtiene mantenimientos vencidos
    */
   async getOverdueMaintenances(): Promise<MaintenanceSchedule[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MaintenanceSchedule[]>(`${API_ENDPOINTS.master.maintenance}/overdue`);
+    }
+
     await this.simulateDelay();
     
     const today = new Date();
@@ -558,6 +610,10 @@ class MaintenanceService {
     byMonth: { month: string; cost: number }[];
     byType: { type: MaintenanceType; cost: number }[];
   }> {
+    if (!this.useMocks) {
+      return apiClient.get<{ total: number; byMonth: { month: string; cost: number }[]; byType: { type: MaintenanceType; cost: number }[] }>(`${API_ENDPOINTS.master.maintenance}/costs/by-vehicle/${vehicleId}`, { params: year ? { year } : undefined });
+    }
+
     await this.simulateDelay();
     
     const targetYear = year || new Date().getFullYear();

@@ -1,17 +1,3 @@
-/**
- * @fileoverview Hook genérico para consumir servicios
- * 
- * Principio DRY: Manejo de estados async centralizado.
- * Principio SRP: Solo maneja el ciclo de vida de operaciones async.
- * 
- * @module hooks/use-service
- * 
- * @example
- * const { data, loading, error, execute } = useService(
- *   () => customersService.getAll()
- * );
- */
-
 "use client";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
@@ -65,19 +51,6 @@ export interface UseServiceReturn<T> extends ServiceState<T> {
  * @param options - Opciones de configuración
  * @returns Estado y métodos para controlar la operación
  * 
- * @example
- * // Carga inmediata simple
- * const { data: customers, loading } = useService(
- *   () => customersService.getAll(),
- *   { immediate: true }
- * );
- * 
- * @example
- * // Con dependencias (re-fetch cuando cambian)
- * const { data, loading } = useService(
- *   () => customersService.getAll({ search }),
- *   { immediate: true, deps: [search] }
- * );
  */
 export function useService<T>(
   serviceFn: () => Promise<T>,
@@ -199,11 +172,6 @@ export function useService<T>(
 /**
  * Hook para operaciones de listado con paginación
  * 
- * @example
- * const { data, loading, page, setPage, totalPages } = useServiceList(
- *   (params) => customersService.getAll(params),
- *   { immediate: true, initialPageSize: 10 }
- * );
  */
 export interface UseServiceListOptions extends UseServiceOptions {
   initialPage?: number;
@@ -294,11 +262,6 @@ export function useServiceList<T>(
 /**
  * Hook para operaciones de mutación (create, update, delete)
  * 
- * @example
- * const { mutate, loading } = useMutation(
- *   (data) => customersService.create(data)
- * );
- * // Luego: await mutate(formData);
  */
 export interface UseMutationReturn<TData, TResult> {
   mutate: (data: TData) => Promise<TResult | null>;

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Diálogo de confirmación para eliminación masiva
- * 
- * @module components/shared/bulk-delete-dialog
- */
-
 "use client";
 
 import {

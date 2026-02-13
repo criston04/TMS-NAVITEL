@@ -7,9 +7,6 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-/* ============================================
-   BASE SKELETON COMPONENTS (Building Blocks)
-   ============================================ */
 
 interface SkeletonTextProps {
   lines?: number;
@@ -66,9 +63,6 @@ export function SkeletonButton({ size = "md", className }: Readonly<SkeletonButt
   );
 }
 
-/* ============================================
-   COMPOSITE SKELETON COMPONENTS
-   ============================================ */
 
 /** Skeleton para KPI Card */
 export function SkeletonKPICard() {

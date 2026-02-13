@@ -1,8 +1,3 @@
-/**
- * @fileoverview Card de factura individual
- * @module components/finance/invoice-card
- */
-
 "use client";
 
 import { FileText, Calendar, Building2, MoreVertical } from "lucide-react";

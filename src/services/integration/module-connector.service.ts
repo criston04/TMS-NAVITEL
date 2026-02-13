@@ -1,20 +1,8 @@
-/**
- * @fileoverview Servicio de conexión entre módulos del TMS
- * @module services/integration/module-connector
- * @description Centraliza la lógica de conexión entre Órdenes, Workflows, 
- * Programación y Geocercas, siguiendo el principio de alta cohesión.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type { Order, CreateOrderDTO, OrderMilestone } from '@/types/order';
 import type { Workflow, WorkflowStep } from '@/types/workflow';
 import type { ScheduledOrder, ScheduleConflict } from '@/types/scheduling';
 import { unifiedWorkflowService } from '@/services/workflow.service';
-
-// ============================================
-// TIPOS DE CONEXIÓN
-// ============================================
+import { apiConfig } from '@/config/api.config';
 
 /**
  * Resultado de la asignación automática de workflow
@@ -52,15 +40,19 @@ export interface GeneratedMilestone {
   notes?: string;
 }
 
-// ============================================
 // SERVICIO DE CONEXIÓN
-// ============================================
 
 /**
  * Servicio que conecta los módulos del TMS
  * Implementa el patrón Mediator para desacoplar módulos
  */
 class ModuleConnectorService {
+  private readonly useMocks: boolean;
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
+
   // ------------------------------------------------
   // ORDERS <-> WORKFLOWS
   // ------------------------------------------------
@@ -308,7 +300,6 @@ class ModuleConnectorService {
   }
 
   // ------------------------------------------------
-  // WORKFLOWS <-> GEOFENCES
   // ------------------------------------------------
 
   /**
@@ -329,7 +320,6 @@ class ModuleConnectorService {
   }
 
   // ------------------------------------------------
-  // ÓRDENES COMPLETAS CON CONEXIONES
   // ------------------------------------------------
 
   /**

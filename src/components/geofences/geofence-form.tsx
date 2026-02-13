@@ -1,9 +1,3 @@
-/**
- * @fileoverview Formulario completo de geocerca con categorías y alertas
- * 
- * @module components/geofences/geofence-form
- */
-
 "use client";
 
 import { useState, useCallback } from "react";

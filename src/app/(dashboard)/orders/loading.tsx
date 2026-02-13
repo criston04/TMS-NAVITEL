@@ -1,11 +1,3 @@
-/**
- * @fileoverview Loading state para la página de órdenes
- * @module app/(dashboard)/orders/loading
- * @description Skeleton de carga para la página de órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageWrapper } from '@/components/page-wrapper';

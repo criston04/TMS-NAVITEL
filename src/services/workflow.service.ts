@@ -1,12 +1,3 @@
-/**
- * @fileoverview Servicio unificado de Workflows conectado con otros módulos
- * @module services/workflows
- * @description Proporciona operaciones CRUD para workflows y sus conexiones
- * con geocercas, órdenes y programación.
- * @author TMS-NAVITEL
- * @version 2.0.0
- */
-
 import type {
   Workflow,
   WorkflowStep,
@@ -20,11 +11,12 @@ import type { Order } from '@/types/order';
 import type { ScheduledOrder } from '@/types/scheduling';
 import { geofencesMock } from '@/mocks/master/geofences.mock';
 import { mockWorkflows as masterWorkflows, mockCustomersForWorkflow } from '@/mocks/master/workflows.mock';
+import { apiConfig, API_ENDPOINTS } from '@/config/api.config';
+import { apiClient } from '@/lib/api';
 
 // Simulamos delay de red
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Estado local para persistir cambios durante la sesión
 let workflowsState = [...masterWorkflows];
 
 /**
@@ -82,14 +74,20 @@ export interface OrderWorkflowProgress extends WorkflowProgress {
  * Conecta workflows con geocercas, órdenes y programación
  */
 class UnifiedWorkflowService {
-  // ================================================
-  // OPERACIONES CRUD DE WORKFLOWS
-  // ================================================
+  private readonly useMocks: boolean;
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Obtener todos los workflows
    */
   async getAll(filters?: WorkflowFilters): Promise<Workflow[]> {
+    if (!this.useMocks) {
+      return apiClient.get<Workflow[]>(API_ENDPOINTS.master.workflows, { params: filters as unknown as Record<string, string> });
+    }
+
     await delay(300);
     
     let result = [...workflowsState];
@@ -126,6 +124,10 @@ class UnifiedWorkflowService {
    * Obtener workflow por ID
    */
   async getById(id: string): Promise<Workflow | null> {
+    if (!this.useMocks) {
+      return apiClient.get<Workflow | null>(`${API_ENDPOINTS.master.workflows}/${id}`);
+    }
+
     await delay(200);
     return workflowsState.find(w => w.id === id) || null;
   }
@@ -134,6 +136,10 @@ class UnifiedWorkflowService {
    * Obtener workflow por defecto
    */
   async getDefault(): Promise<Workflow | null> {
+    if (!this.useMocks) {
+      return apiClient.get<Workflow | null>(`${API_ENDPOINTS.master.workflows}/default`);
+    }
+
     await delay(200);
     return workflowsState.find(w => w.isDefault && w.status === 'active') || null;
   }
@@ -142,6 +148,10 @@ class UnifiedWorkflowService {
    * Obtener workflows activos
    */
   async getActive(): Promise<Workflow[]> {
+    if (!this.useMocks) {
+      return apiClient.get<Workflow[]>(`${API_ENDPOINTS.master.workflows}/active`);
+    }
+
     await delay(200);
     return workflowsState.filter(w => w.status === 'active');
   }
@@ -150,6 +160,10 @@ class UnifiedWorkflowService {
    * Crear nuevo workflow
    */
   async create(data: CreateWorkflowDTO): Promise<Workflow> {
+    if (!this.useMocks) {
+      return apiClient.post<Workflow>(API_ENDPOINTS.master.workflows, data);
+    }
+
     await delay(400);
     
     // Si es default, desactivar el default anterior
@@ -185,6 +199,10 @@ class UnifiedWorkflowService {
    * Actualizar workflow existente
    */
   async update(id: string, data: UpdateWorkflowDTO): Promise<Workflow> {
+    if (!this.useMocks) {
+      return apiClient.put<Workflow>(`${API_ENDPOINTS.master.workflows}/${id}`, data);
+    }
+
     await delay(400);
     
     const index = workflowsState.findIndex(w => w.id === id);
@@ -233,6 +251,10 @@ class UnifiedWorkflowService {
    * Eliminar workflow
    */
   async delete(id: string): Promise<void> {
+    if (!this.useMocks) {
+      return apiClient.delete<void>(`${API_ENDPOINTS.master.workflows}/${id}`);
+    }
+
     await delay(300);
     
     const workflow = workflowsState.find(w => w.id === id);
@@ -253,6 +275,10 @@ class UnifiedWorkflowService {
    * Duplicar workflow como plantilla
    */
   async duplicate(id: string, newName: string): Promise<Workflow> {
+    if (!this.useMocks) {
+      return apiClient.post<Workflow>(`${API_ENDPOINTS.master.workflows}/${id}/duplicate`, { newName });
+    }
+
     await delay(400);
     
     const original = workflowsState.find(w => w.id === id);
@@ -286,6 +312,10 @@ class UnifiedWorkflowService {
    * Cambiar estado del workflow
    */
   async changeStatus(id: string, status: WorkflowStatus): Promise<Workflow> {
+    if (!this.useMocks) {
+      return apiClient.patch<Workflow>(`${API_ENDPOINTS.master.workflows}/${id}/status`, { status });
+    }
+
     await delay(300);
     
     const index = workflowsState.findIndex(w => w.id === id);
@@ -310,15 +340,17 @@ class UnifiedWorkflowService {
     return updatedWorkflow;
   }
 
-  // ================================================
   // CONEXIÓN CON GEOCERCAS
-  // ================================================
 
   /**
    * Obtener geocercas disponibles para usar en hitos de workflows
    * Conecta con el módulo de geocercas
    */
   async getAvailableGeofences(): Promise<WorkflowGeofence[]> {
+    if (!this.useMocks) {
+      return apiClient.get<WorkflowGeofence[]>(`${API_ENDPOINTS.master.workflows}/available-geofences`);
+    }
+
     await delay(200);
     
     return geofencesMock
@@ -351,6 +383,10 @@ class UnifiedWorkflowService {
    * Obtener geocercas filtradas por categoría
    */
   async getGeofencesByCategory(category: string): Promise<WorkflowGeofence[]> {
+    if (!this.useMocks) {
+      return apiClient.get<WorkflowGeofence[]>(`${API_ENDPOINTS.master.workflows}/geofences-by-category/${category}`);
+    }
+
     await delay(200);
     
     return geofencesMock
@@ -386,6 +422,10 @@ class UnifiedWorkflowService {
     valid: boolean;
     issues: Array<{ stepId: string; stepName: string; issue: string }>;
   }> {
+    if (!this.useMocks) {
+      return apiClient.get<{ valid: boolean; issues: Array<{ stepId: string; stepName: string; issue: string }> }>(`${API_ENDPOINTS.master.workflows}/${workflowId}/validate-geofences`);
+    }
+
     await delay(200);
 
     const workflow = workflowsState.find(w => w.id === workflowId);
@@ -417,14 +457,16 @@ class UnifiedWorkflowService {
     return { valid: issues.length === 0, issues };
   }
 
-  // ================================================
   // CONEXIÓN CON CLIENTES
-  // ================================================
 
   /**
    * Obtener clientes disponibles para asignar workflows
    */
   async getAvailableCustomers(): Promise<WorkflowCustomer[]> {
+    if (!this.useMocks) {
+      return apiClient.get<WorkflowCustomer[]>(`${API_ENDPOINTS.master.workflows}/available-customers`);
+    }
+
     await delay(200);
     return mockCustomersForWorkflow;
   }
@@ -433,6 +475,10 @@ class UnifiedWorkflowService {
    * Obtener workflows aplicables a un cliente específico
    */
   async getWorkflowsForCustomer(customerId: string): Promise<Workflow[]> {
+    if (!this.useMocks) {
+      return apiClient.get<Workflow[]>(API_ENDPOINTS.master.workflows, { params: { customerId } });
+    }
+
     await delay(200);
     
     return workflowsState.filter(w => 
@@ -444,9 +490,7 @@ class UnifiedWorkflowService {
     );
   }
 
-  // ================================================
   // CONEXIÓN CON ÓRDENES
-  // ================================================
 
   /**
    * Aplicar un workflow a una orden
@@ -456,6 +500,10 @@ class UnifiedWorkflowService {
     order: Order, 
     workflowId: string
   ): Promise<ApplyWorkflowResult> {
+    if (!this.useMocks) {
+      return apiClient.post<ApplyWorkflowResult>(`${API_ENDPOINTS.master.workflows}/${workflowId}/apply`, { orderId: order.id });
+    }
+
     await delay(300);
 
     const workflow = workflowsState.find(w => w.id === workflowId);
@@ -499,6 +547,10 @@ class UnifiedWorkflowService {
    * Obtener el progreso de una orden en su workflow
    */
   async getOrderWorkflowProgress(orderId: string): Promise<OrderWorkflowProgress | null> {
+    if (!this.useMocks) {
+      return apiClient.get<OrderWorkflowProgress | null>(`${API_ENDPOINTS.operations.orders}/${orderId}/workflow-progress`);
+    }
+
     await delay(200);
     
     // Mock: Simular que tenemos una orden con workflow
@@ -546,9 +598,7 @@ class UnifiedWorkflowService {
     };
   }
 
-  // ================================================
   // CONEXIÓN CON PROGRAMACIÓN (SCHEDULING)
-  // ================================================
 
   /**
    * Calcular duración estimada para una programación basada en workflow
@@ -558,6 +608,10 @@ class UnifiedWorkflowService {
     totalHours: number;
     breakdown: Array<{ stepName: string; minutes: number }>;
   }> {
+    if (!this.useMocks) {
+      return apiClient.get<{ totalMinutes: number; totalHours: number; breakdown: Array<{ stepName: string; minutes: number }> }>(`${API_ENDPOINTS.master.workflows}/${workflowId}/schedule-duration`);
+    }
+
     await delay(200);
 
     const workflow = workflowsState.find(w => w.id === workflowId);
@@ -586,6 +640,10 @@ class UnifiedWorkflowService {
     customerId: string,
     cargoType?: string
   ): Promise<Workflow | null> {
+    if (!this.useMocks) {
+      return apiClient.get<Workflow | null>(`${API_ENDPOINTS.master.workflows}/suggest`, { params: { customerId, cargoType } });
+    }
+
     await delay(200);
 
     // Prioridad: workflow específico del cliente y tipo de carga
@@ -632,6 +690,10 @@ class UnifiedWorkflowService {
     warnings: string[];
     errors: string[];
   }> {
+    if (!this.useMocks) {
+      return apiClient.post<{ compatible: boolean; warnings: string[]; errors: string[] }>(`${API_ENDPOINTS.master.workflows}/${workflowId}/validate-for-schedule`, scheduledOrder);
+    }
+
     await delay(200);
 
     const workflow = workflowsState.find(w => w.id === workflowId);

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modelos del módulo MAESTRO - Geocercas
- * 
- * @module types/models/geofence
- */
-
 import { BaseEntity, EntityStatus } from "@/types/common";
 
 /**
@@ -93,7 +87,7 @@ export interface Geofence extends BaseEntity {
   name: string;
   /** Descripción */
   description?: string;
-  /** Tipo de geocerca */
+  
   type: GeofenceType;
   /** Categoría */
   category: GeofenceCategory;

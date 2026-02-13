@@ -1,8 +1,3 @@
-/**
- * @fileoverview Tarjeta de workflow
- * @module components/workflows/workflow-card
- */
-
 'use client';
 
 import { type FC, useCallback } from 'react';

@@ -1,20 +1,8 @@
-/**
- * @fileoverview Hooks para importación y exportación de órdenes
- * @module hooks/useOrderImportExport
- * @description Hooks para operaciones de importación/exportación masiva.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useCallback, useRef, useMemo } from 'react';
 import type { Order, OrderImportResult } from '@/types/order';
 import { orderImportService, orderExportService } from '@/services/orders';
-
-// ============================================
-// TIPOS
-// ============================================
 
 /**
  * Estado de importación
@@ -33,7 +21,7 @@ interface UseOrderImportResult {
   preview: OrderImportResult | null;
   /** Órdenes creadas */
   createdOrders: Order[];
-  /** Error si lo hay */
+  
   error: string | null;
   /** Progreso (0-100) */
   progress: number;
@@ -65,7 +53,7 @@ interface ExportColumnDefinition {
 interface UseOrderExportResult {
   /** Está exportando */
   isExporting: boolean;
-  /** Error si lo hay */
+  
   error: string | null;
   /** Progreso (0-100) */
   progress: number;
@@ -84,10 +72,6 @@ interface UseOrderExportResult {
   /** Exporta IDs de órdenes */
   exportOrderIds: (orderIds: string[]) => Promise<void>;
 }
-
-// ============================================
-// HOOK: useOrderImport
-// ============================================
 
 /**
  * Hook para gestionar la importación de órdenes desde Excel
@@ -236,10 +220,6 @@ export function useOrderImport(): UseOrderImportResult {
   };
 }
 
-// ============================================
-// HOOK: useOrderExport
-// ============================================
-
 /**
  * Hook para gestionar la exportación de órdenes a Excel
  * @returns Estado y métodos para exportación
@@ -368,10 +348,6 @@ export function useOrderExport(): UseOrderExportResult {
     exportOrderIds,
   };
 }
-
-// ============================================
-// HOOK: useBulkActions
-// ============================================
 
 /**
  * Acciones masivas disponibles

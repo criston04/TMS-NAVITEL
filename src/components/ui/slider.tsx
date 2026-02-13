@@ -1,8 +1,3 @@
-/**
- * @fileoverview Componente Slider básico
- * @module components/ui/slider
- */
-
 "use client";
 
 import * as React from "react";

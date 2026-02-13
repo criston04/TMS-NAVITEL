@@ -1,10 +1,3 @@
-/**
- * @fileoverview Servicio de Tracking en Tiempo Real
- * 
- * @module services/monitoring/tracking.service
- * @description Maneja el seguimiento de vehículos y órdenes en tiempo real
- */
-
 import type { 
   TrackedVehicle, 
   VehiclePosition, 
@@ -17,7 +10,8 @@ import {
   getTrackedVehicleById,
   getVehiclesWithActiveOrders
 } from "@/mocks/monitoring/vehicle-positions.mock";
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
 /**
  * Genera hitos de ejemplo para una orden rastreada
@@ -147,7 +141,14 @@ export class TrackingService {
       return vehicles;
     }
 
-    throw new Error("API not implemented");
+    const params: Record<string, string> = {};
+    if (filters?.unitSearch) params.unitSearch = filters.unitSearch;
+    if (filters?.carrierId) params.carrierId = filters.carrierId;
+    if (filters?.orderNumber) params.orderNumber = filters.orderNumber;
+    if (filters?.customerId) params.customerId = filters.customerId;
+    if (filters?.activeOrdersOnly) params.activeOrdersOnly = "true";
+    if (filters?.connectionStatus) params.connectionStatus = filters.connectionStatus;
+    return apiClient.get<TrackedVehicle[]>(API_ENDPOINTS.monitoring.tracking, { params });
   }
 
   /**
@@ -160,7 +161,7 @@ export class TrackingService {
       return vehicle?.position || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<VehiclePosition | null>(`${API_ENDPOINTS.monitoring.tracking}/${vehicleId}/position`);
   }
 
   /**
@@ -172,7 +173,7 @@ export class TrackingService {
       return getTrackedVehicleById(vehicleId) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<TrackedVehicle | null>(`${API_ENDPOINTS.monitoring.tracking}/${vehicleId}`);
   }
 
   /**
@@ -206,7 +207,7 @@ export class TrackingService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<TrackedOrder | null>(`${API_ENDPOINTS.monitoring.tracking}/${vehicleId}/order`);
   }
 
   /**
@@ -218,7 +219,7 @@ export class TrackingService {
       return generateMockMilestones(orderId);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<TrackedMilestone[]>(`${API_ENDPOINTS.operations.orders}/${orderId}/milestones`);
   }
 
   /**
@@ -230,7 +231,7 @@ export class TrackingService {
       return getVehiclesWithActiveOrders();
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<TrackedVehicle[]>(`${API_ENDPOINTS.monitoring.tracking}/with-orders`);
   }
 
   /**
@@ -245,7 +246,7 @@ export class TrackingService {
       return Array.from(carriers).sort();
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<string[]>(`${API_ENDPOINTS.monitoring.tracking}/carriers`);
   }
 
   /**

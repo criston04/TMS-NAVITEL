@@ -85,7 +85,6 @@ export function GeofencesMap({
       initializingRef.current = true;
       
       try {
-        // Importar Leaflet dinámicamente
         L = (await import("leaflet")).default;
         
         // Verificar que el componente sigue montado
@@ -104,11 +103,9 @@ export function GeofencesMap({
         await import("leaflet/dist/leaflet.css");
         await import("@/styles/leaflet-custom.css");
         
-        // Importar Leaflet.draw
         const LeafletDraw = await import("leaflet-draw");
         await import("leaflet-draw/dist/leaflet.draw.css");
       
-        // Importar leaflet-path-drag para hacer draggable los polígonos
         await import("leaflet-path-drag");
 
         // Verificar nuevamente que el componente sigue montado
@@ -163,7 +160,6 @@ export function GeofencesMap({
       map.addLayer(drawnItems);
       drawnItemsRef.current = drawnItems;
 
-      // Configurar controles de dibujo
       const drawControl = new L.Control.Draw({
         position: 'topright',
         draw: {
@@ -463,7 +459,6 @@ export function GeofencesMap({
             targetLayer.editing = new (L.Edit as any).Circle(targetLayer);
           }
           
-          // Configurar eventos de drag para círculos
           if (targetLayer.dragging) {
             targetLayer.dragging.enable();
             
@@ -1070,7 +1065,6 @@ export function GeofencesMap({
       onEditingComplete();
     }
   };
-
 
   return (
     <>

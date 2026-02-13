@@ -1,8 +1,3 @@
-/**
- * @fileoverview Lista de workflows con filtros
- * @module components/workflows/workflow-list
- */
-
 'use client';
 
 import { type FC, useMemo, useState } from 'react';

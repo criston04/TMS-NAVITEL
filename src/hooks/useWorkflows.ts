@@ -1,22 +1,9 @@
-/**
- * @fileoverview Hooks para gestión de workflows
- * @module hooks/useWorkflows
- * @description Hooks para selección y seguimiento de workflows.
- * Conecta con el servicio unificado de workflows.
- * @author TMS-NAVITEL
- * @version 2.0.0
- */
-
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { Workflow, WorkflowProgress } from '@/types/workflow';
 import type { Order } from '@/types/order';
 import { unifiedWorkflowService } from '@/services/workflow.service';
-
-// ============================================
-// TIPOS
-// ============================================
 
 /**
  * Resultado del hook useWorkflows
@@ -28,9 +15,9 @@ interface UseWorkflowsResult {
   activeWorkflows: Workflow[];
   /** Workflow por defecto */
   defaultWorkflow: Workflow | null;
-  /** Está cargando */
+  
   isLoading: boolean;
-  /** Error si lo hay */
+  
   error: string | null;
   /** Obtiene workflows para un cliente específico */
   getWorkflowsForCustomer: (customerId: string) => Promise<Workflow[]>;
@@ -50,30 +37,19 @@ interface UseWorkflowProgressResult {
   nextStep: Workflow['steps'][0] | null;
   /** Porcentaje completado (0-100) */
   percentComplete: number;
-  /** Está cargando */
+  
   isLoading: boolean;
-  /** Error si lo hay */
+  
   error: string | null;
   /** Recarga el progreso */
   refresh: () => Promise<void>;
 }
-
-// ============================================
-// HOOK: useWorkflows
-// ============================================
 
 /**
  * Hook para obtener la lista de workflows disponibles
  * Usa el servicio unificado que conecta con geocercas, órdenes y programación
  * @param options - Opciones del hook
  * @returns Lista de workflows y métodos
- * @example
- * ```tsx
- * const { workflows, defaultWorkflow, suggestWorkflow } = useWorkflows();
- * 
- * // Sugerir workflow para un cliente
- * const suggested = await suggestWorkflow('cust-001', 'refrigerated');
- * ```
  */
 export function useWorkflows(
   options: { autoFetch?: boolean } = {}
@@ -158,24 +134,11 @@ export function useWorkflows(
   };
 }
 
-// ============================================
-// HOOK: useWorkflowProgress
-// ============================================
-
 /**
  * Hook para obtener y seguir el progreso de un workflow en una orden
  * Usa el servicio unificado para tracking de progreso
  * @param order - Orden para calcular progreso
  * @returns Progreso del workflow
- * @example
- * ```tsx
- * const { progress, percentComplete, nextStep } = useWorkflowProgress(order);
- * 
- * return (
- *   <ProgressBar value={percentComplete} />
- *   <span>Siguiente: {nextStep?.name}</span>
- * );
- * ```
  */
 export function useWorkflowProgress(order: Order | null): UseWorkflowProgressResult {
   const [progress, setProgress] = useState<WorkflowProgress | null>(null);
@@ -240,10 +203,6 @@ export function useWorkflowProgress(order: Order | null): UseWorkflowProgressRes
     refresh,
   };
 }
-
-// ============================================
-// HOOK: useWorkflowEscalation
-// ============================================
 
 /**
  * Resultado del hook useWorkflowEscalation
@@ -345,10 +304,6 @@ export function useWorkflowEscalation(order: Order | null): UseWorkflowEscalatio
   };
 }
 
-// ============================================
-// HOOK: useWorkflowSelector
-// ============================================
-
 /**
  * Resultado del hook useWorkflowSelector
  */
@@ -363,7 +318,7 @@ interface UseWorkflowSelectorResult {
   selectWorkflow: (workflowId: string) => void;
   /** Limpia la selección */
   clearSelection: () => void;
-  /** Está cargando */
+  
   isLoading: boolean;
 }
 

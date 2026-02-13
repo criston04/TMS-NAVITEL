@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modal de formulario para crear/editar clientes
- * 
- * @module components/customers/customer-form-modal
- */
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -74,6 +68,10 @@ import {
   getDocumentLength,
 } from "@/lib/validators/document-validators";
 import { AddressGeocoder } from "./address-geocoder";
+import { 
+  CUSTOMER_CATEGORIES, 
+  CATEGORY_VALUES 
+} from "@/config/customer-categories.config";
 
 // Schema de validación con validación personalizada de documentos
 const addressSchema = z.object({
@@ -123,7 +121,9 @@ const customerSchema = z.object({
   phone: z.string().min(6, "Teléfono muy corto"),
   phone2: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
-  category: z.enum(["standard", "premium", "vip", "wholesale"]).optional(),
+  category: z.string().refine((val) => CATEGORY_VALUES.includes(val), {
+    message: "Categoría inválida",
+  }).optional(),
   notes: z.string().optional(),
   industry: z.string().optional(),
   tags: z.string().optional(), // Comma separated
@@ -155,12 +155,8 @@ const CUSTOMER_TYPES: { value: CustomerType; label: string; icon: typeof Buildin
   { value: "persona", label: "Persona Natural", icon: User },
 ];
 
-const CATEGORIES: { value: CustomerCategory; label: string; color: string; bgColor: string }[] = [
-  { value: "standard", label: "Estándar", color: "bg-slate-500", bgColor: "bg-slate-50 dark:bg-slate-900/50" },
-  { value: "premium", label: "Premium", color: "bg-blue-500", bgColor: "bg-blue-50 dark:bg-blue-900/50" },
-  { value: "vip", label: "VIP", color: "bg-amber-500", bgColor: "bg-amber-50 dark:bg-amber-900/50" },
-  { value: "wholesale", label: "Mayorista", color: "bg-purple-500", bgColor: "bg-purple-50 dark:bg-purple-900/50" },
-];
+// Categorías se importan desde config centralizada
+const CATEGORIES = CUSTOMER_CATEGORIES;
 
 const PAYMENT_TERMS: { value: PaymentTerms; label: string; days: number }[] = [
   { value: "immediate", label: "Contado", days: 0 },
@@ -332,6 +328,15 @@ export function CustomerFormModal({
           notifyDeliveries: c.notifyDeliveries ?? true,
           notifyIncidents: c.notifyIncidents ?? true,
         })),
+        billing: customer.billingConfig ? {
+          paymentTerms: customer.billingConfig.paymentTerms || "30_days",
+          currency: customer.billingConfig.currency || "PEN",
+          requiresPO: customer.billingConfig.requiresPO || false,
+          billingEmail: customer.billingConfig.billingEmail || "",
+          volumeDiscount: customer.billingConfig.volumeDiscount || 0,
+          creditLimit: customer.creditLimit || 0,
+          taxExempt: false,
+        } : undefined,
       });
       // Validar documento existente
       setTimeout(() => validateDocumentRealTime(), 100);
@@ -368,9 +373,21 @@ export function CustomerFormModal({
       tags: data.tags ? data.tags.split(",").map(t => t.trim()).filter(Boolean) : undefined,
       addresses: data.addresses,
       contacts: data.contacts,
+      billingConfig: data.billing ? {
+        paymentTerms: data.billing.paymentTerms,
+        currency: data.billing.currency,
+        requiresPO: data.billing.requiresPO,
+        billingEmail: data.billing.billingEmail || undefined,
+        volumeDiscount: data.billing.volumeDiscount,
+      } : undefined,
     };
 
-    await onSubmit(payload);
+    // creditLimit va a nivel raíz del DTO de actualización
+    const finalPayload = isEditing && data.billing?.creditLimit
+      ? { ...payload, creditLimit: data.billing.creditLimit }
+      : payload;
+
+    await onSubmit(finalPayload);
   };
 
   // Agregar/remover direcciones
@@ -435,59 +452,72 @@ export function CustomerFormModal({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
-              {/* Tabs elegantes */}
+              {/* Tabs elegantes con indicadores de error */}
+              {(() => {
+                const errors = form.formState.errors;
+                const hasGeneralErrors = !!(errors.type || errors.category || errors.documentType || errors.documentNumber || errors.name || errors.tradeName || errors.email || errors.phone || errors.phone2 || errors.industry || errors.website || errors.notes || errors.tags);
+                const hasAddressErrors = !!errors.addresses;
+                const hasContactErrors = !!errors.contacts;
+                const hasBillingErrors = !!errors.billing;
+                return (
               <div className="px-8 pt-3 pb-2 bg-background/50 backdrop-blur-sm border-b">
                 <TabsList className="grid w-full max-w-lg grid-cols-4 h-10 p-1 bg-muted/50 rounded-lg">
                   <TabsTrigger 
                     value="general" 
-                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm"
+                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm relative"
                   >
                     <Building2 className="h-4 w-4" />
                     <span>General</span>
+                    {hasGeneralErrors && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="addresses" 
-                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm"
+                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm relative"
                   >
                     <MapPin className="h-4 w-4" />
                     <span>Direcciones</span>
                     <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-medium">
                       {addresses.length}
                     </Badge>
+                    {hasAddressErrors && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="contacts" 
-                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm"
+                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm relative"
                   >
                     <Users className="h-4 w-4" />
                     <span>Contactos</span>
                     <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-medium">
                       {contacts.length}
                     </Badge>
+                    {hasContactErrors && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="billing" 
-                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm"
+                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm relative"
                   >
                     <CreditCard className="h-4 w-4" />
                     <span>Facturación</span>
+                    {hasBillingErrors && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />}
                   </TabsTrigger>
                 </TabsList>
               </div>
+                );
+              })()}
 
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 min-h-0">
                 <div className="px-8 py-6">
                   {/* Tab General */}
                   <TabsContent value="general" className="mt-0 space-y-5">
                     {/* Fila 1: Tipo, Categoría, Documento */}
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <FormField
                           control={form.control}
                           name="type"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs font-medium">Tipo de Cliente</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger className="h-10 rounded-lg border-muted-foreground/20 hover:border-primary/50 transition-colors">
                                     <SelectValue placeholder="Seleccionar tipo" />
@@ -515,7 +545,7 @@ export function CustomerFormModal({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs font-medium">Categoría</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger className="h-10 rounded-lg border-muted-foreground/20 hover:border-primary/50 transition-colors">
                                     <SelectValue placeholder="Seleccionar categoría" />
@@ -543,7 +573,7 @@ export function CustomerFormModal({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs font-medium">Tipo Documento</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger className="h-10 rounded-lg border-muted-foreground/20 hover:border-primary/50 transition-colors">
                                     <SelectValue />
@@ -683,7 +713,7 @@ export function CustomerFormModal({
                       </div>
 
                     {/* Fila 3: Email, Teléfono, Industria, Web */}
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <FormField
                           control={form.control}
                           name="email"
@@ -845,7 +875,8 @@ export function CustomerFormModal({
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => removeAddress(index)}
-                                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all"
+                                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                                  aria-label={`Eliminar dirección ${index + 1}`}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -995,14 +1026,15 @@ export function CustomerFormModal({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => removeContact(index)}
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all"
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                                aria-label={`Eliminar contacto ${index + 1}`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             )}
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
                               name={`contacts.${index}.name`}

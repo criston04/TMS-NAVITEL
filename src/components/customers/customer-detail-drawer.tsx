@@ -1,9 +1,3 @@
-/**
- * @fileoverview Drawer para ver detalle completo de un cliente
- * 
- * @module components/customers/customer-detail-drawer
- */
-
 "use client";
 
 import {
@@ -37,8 +31,9 @@ import {
   Copy,
   ExternalLink,
 } from "lucide-react";
-import { Customer, CustomerCategory } from "@/types/models";
+import { Customer } from "@/types/models";
 import { cn } from "@/lib/utils";
+import { CATEGORY_COLOR_MAP, CATEGORY_LABEL_MAP } from "@/config/customer-categories.config";
 import { CustomerOperationalStatsCard } from "./customer-operational-stats";
 import { CustomerAuditHistory } from "./customer-audit-history";
 
@@ -51,19 +46,9 @@ interface CustomerDetailDrawerProps {
   onDelete?: (customer: Customer) => void;
 }
 
-const CATEGORY_COLORS: Record<CustomerCategory, string> = {
-  standard: "bg-slate-500",
-  premium: "bg-blue-500",
-  vip: "bg-amber-500",
-  wholesale: "bg-purple-500",
-};
+const CATEGORY_COLORS: Record<string, string> = CATEGORY_COLOR_MAP;
 
-const CATEGORY_LABELS: Record<CustomerCategory, string> = {
-  standard: "Estándar",
-  premium: "Premium",
-  vip: "VIP",
-  wholesale: "Mayorista",
-};
+const CATEGORY_LABELS: Record<string, string> = CATEGORY_LABEL_MAP;
 
 function formatDate(date: string | undefined): string {
   if (!date) return "N/A";
@@ -124,8 +109,8 @@ export function CustomerDetailDrawer({
               <Badge variant={customer.status === "active" ? "default" : "secondary"}>
                 {customer.status === "active" ? "Activo" : "Inactivo"}
               </Badge>
-              <Badge className={cn("text-white", CATEGORY_COLORS[category])}>
-                {CATEGORY_LABELS[category]}
+              <Badge className={cn("text-white", CATEGORY_COLORS[category] || "bg-slate-500")}>
+                {CATEGORY_LABELS[category] || category}
               </Badge>
             </div>
           </div>

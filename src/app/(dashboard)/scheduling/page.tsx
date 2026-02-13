@@ -1,12 +1,3 @@
-/**
- * @fileoverview Página principal del módulo de Programación
- * @module app/(dashboard)/scheduling/page
- * @description Vista principal que integra calendario, sidebar
- * y timeline para programar órdenes de transporte.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { Metadata } from 'next';
 import { SchedulingLayout } from '@/components/scheduling';
 import { PageWrapper } from '@/components/page-wrapper';

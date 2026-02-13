@@ -1,13 +1,3 @@
-/**
- * @fileoverview Servicio base abstracto para operaciones CRUD
- * 
- * Principio DRY: Lógica CRUD común definida una sola vez.
- * Principio OCP: Extensible sin modificar (heredar y extender).
- * Principio LSP: Todos los servicios hijos son intercambiables.
- * 
- * @module services/base.service
- */
-
 import { apiClient } from "@/lib/api";
 import { apiConfig } from "@/config/api.config";
 import {
@@ -22,7 +12,6 @@ import {
 
 /**
  * Interfaz que deben implementar todos los servicios
- * Principio ISP: Interfaz mínima para operaciones CRUD
  */
 export interface IBaseService<T extends BaseEntity> {
   getAll(params?: SearchParams): Promise<PaginatedResponse<T>>;
@@ -47,12 +36,6 @@ export interface IBulkService<T extends BaseEntity> extends IBaseService<T> {
  * @template T - Tipo de la entidad
  * @template TMock - Tipo del servicio mock
  * 
- * @example
- * class CustomersService extends BaseService<Customer> {
- *   constructor() {
- *     super("/master/customers", customersMock);
- *   }
- * }
  */
 export abstract class BaseService<T extends BaseEntity> implements IBaseService<T> {
   /** Endpoint de la API */

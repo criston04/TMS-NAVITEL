@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestión de geocercas
- * 
- * Principio SRP: Solo maneja estado y operaciones de geocercas.
- * Principio DRY: Centraliza toda la lógica de geocercas.
- * 
- * @module hooks/useGeofences
- */
-
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { geofencesService } from "@/services/master";
 import { 
@@ -54,7 +45,6 @@ interface UseGeofencesOptions {
  * Retorno del hook useGeofences
  */
 interface UseGeofencesReturn {
-  // Estado
   geofences: Geofence[];
   filteredGeofences: Geofence[];
   selectedIds: Set<string>;
@@ -66,7 +56,6 @@ interface UseGeofencesReturn {
   stats: GeofenceStats | null;
   filters: GeofenceFilters;
   
-  // Acciones CRUD
   loadGeofences: () => Promise<void>;
   createGeofence: (geofence: Omit<Geofence, "id" | "createdAt" | "updatedAt">) => Promise<Geofence>;
   updateGeofence: (id: string, data: Partial<Geofence>) => Promise<Geofence>;
@@ -74,7 +63,6 @@ interface UseGeofencesReturn {
   deleteMany: (ids: string[]) => Promise<void>;
   duplicateGeofence: (id: string, newName?: string) => Promise<Geofence>;
   
-  // Acciones de selección
   selectGeofence: (id: string) => void;
   deselectGeofence: (id: string) => void;
   toggleSelection: (id: string) => void;
@@ -82,18 +70,14 @@ interface UseGeofencesReturn {
   deselectAll: () => void;
   selectByCategory: (category: GeofenceCategory) => void;
   
-  // Acciones de edición
   startEditing: (id: string) => void;
   stopEditing: () => void;
   
-  // Acciones de filtrado
   setFilters: (filters: GeofenceFilters) => void;
   clearFilters: () => void;
   
-  // Acciones de alertas
   updateAlerts: (id: string, alerts: GeofenceAlerts) => Promise<Geofence>;
   
-  // Acciones en lote
   updateColorBatch: (ids: string[], color: string) => Promise<void>;
   updateCategoryBatch: (ids: string[], category: GeofenceCategory) => Promise<void>;
   toggleStatusBatch: (ids: string[]) => Promise<void>;
@@ -102,7 +86,6 @@ interface UseGeofencesReturn {
   exportToKML: (selectedOnly?: boolean) => Promise<string>;
   importFromKML: (content: string) => Promise<{ imported: number; errors: number }>;
   
-  // Utilidades
   getGeofenceById: (id: string) => Geofence | undefined;
   isGeofenceSelected: (id: string) => boolean;
   calculateArea: (geofence: Geofence) => number;
@@ -117,18 +100,10 @@ interface UseGeofencesReturn {
  * @param options - Opciones de configuración
  * @returns Estado y acciones para geocercas
  * 
- * @example
- * const { 
- *   geofences, 
- *   createGeofence, 
- *   selectedGeofences,
- *   toggleSelection 
- * } = useGeofences({ autoLoad: true });
  */
 export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesReturn {
   const { autoLoad = true, initialFilters = {} } = options;
   
-  // Estado principal
   const [state, setState] = useState<UseGeofencesState>({
     geofences: [],
     selectedIds: new Set(),
@@ -138,7 +113,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     stats: null,
   });
   
-  // Filtros
   const [filters, setFiltersState] = useState<GeofenceFilters>(initialFilters);
   
   // Cargar geocercas
@@ -171,7 +145,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     }
   }, [autoLoad, loadGeofences]);
   
-  // Geocercas filtradas
   const filteredGeofences = useMemo(() => {
     let result = [...state.geofences];
     
@@ -209,7 +182,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     return result;
   }, [state.geofences, filters]);
   
-  // Geocercas seleccionadas
   const selectedGeofences = useMemo(() =>
     state.geofences.filter((g) => state.selectedIds.has(g.id)),
     [state.geofences, state.selectedIds]
@@ -221,7 +193,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     [state.geofences, state.editingId]
   );
   
-  // CRUD Operations
   const createGeofence = useCallback(async (
     geofence: Omit<Geofence, "id" | "createdAt" | "updatedAt">
   ): Promise<Geofence> => {
@@ -431,7 +402,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
   }, []);
   
   return {
-    // Estado
     geofences: state.geofences,
     filteredGeofences,
     selectedIds: state.selectedIds,
@@ -443,7 +413,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     stats: state.stats,
     filters,
     
-    // Acciones CRUD
     loadGeofences,
     createGeofence,
     updateGeofence,
@@ -451,7 +420,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     deleteMany,
     duplicateGeofence,
     
-    // Acciones de selección
     selectGeofence,
     deselectGeofence,
     toggleSelection,
@@ -459,18 +427,14 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     deselectAll,
     selectByCategory,
     
-    // Acciones de edición
     startEditing,
     stopEditing,
     
-    // Acciones de filtrado
     setFilters,
     clearFilters,
     
-    // Acciones de alertas
     updateAlerts,
     
-    // Acciones en lote
     updateColorBatch,
     updateCategoryBatch,
     toggleStatusBatch,
@@ -479,7 +443,6 @@ export function useGeofences(options: UseGeofencesOptions = {}): UseGeofencesRet
     exportToKML,
     importFromKML,
     
-    // Utilidades
     getGeofenceById,
     isGeofenceSelected,
     calculateArea,

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Skeleton para tabla de retransmisión
- * 
- * @module components/monitoring/common/skeletons/retransmission-skeleton
- */
-
 import { cn } from "@/lib/utils";
 
 interface RetransmissionSkeletonProps {

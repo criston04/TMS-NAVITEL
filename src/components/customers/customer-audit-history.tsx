@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de historial de auditoría del cliente
- * 
- * Muestra el registro de cambios y actividad del cliente
- * 
- * @module components/customers/customer-audit-history
- */
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -32,7 +24,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Customer } from "@/types/models";
 
-// Tipos de eventos de auditoría
 export type AuditEventType = 
   | "created"
   | "updated"
@@ -66,7 +57,6 @@ interface CustomerAuditHistoryProps {
   className?: string;
 }
 
-// Configuración de iconos y colores por tipo de evento
 const EVENT_CONFIG: Record<AuditEventType, {
   icon: typeof History;
   color: string;

@@ -1,12 +1,3 @@
-/**
- * @fileoverview Panel lateral con órdenes pendientes de programar
- * @module components/scheduling/SchedulingSidebar
- * @description Muestra lista de órdenes pendientes arrastrables
- * con búsqueda y filtros.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState, useMemo } from 'react';
@@ -26,16 +17,12 @@ import { Separator } from '@/components/ui/separator';
 import { SchedulingOrderCard } from './scheduling-order-card';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface SchedulingSidebarProps {
   /** Órdenes pendientes de programar */
   orders: Order[];
-  /** Está cargando */
+  
   isLoading?: boolean;
-  /** Filtros actuales */
+  
   filters: PendingOrdersFilters;
   /** Actualizar filtros */
   onFiltersChange: (filters: PendingOrdersFilters) => void;
@@ -55,10 +42,6 @@ interface SchedulingSidebarProps {
   className?: string;
 }
 
-// ============================================
-// FILTROS RÁPIDOS
-// ============================================
-
 const PRIORITY_FILTERS: { value: OrderPriority | 'all'; label: string }[] = [
   { value: 'all', label: 'Todas' },
   { value: 'urgent', label: 'Urgentes' },
@@ -67,9 +50,7 @@ const PRIORITY_FILTERS: { value: OrderPriority | 'all'; label: string }[] = [
   { value: 'low', label: 'Baja' },
 ];
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 export const SchedulingSidebar = memo(function SchedulingSidebar({
   orders,
@@ -112,7 +93,6 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
   }, [orders, searchValue, selectedPriority]);
 
   // ----------------------------------------
-  // ESTADÍSTICAS
   // ----------------------------------------
   const stats = useMemo(() => {
     return {
@@ -290,7 +270,6 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
               />
             ))
           ) : filteredOrders.length === 0 ? (
-            // Estado vacío
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Package className="h-8 w-8 mb-2 text-muted-foreground/50" />
               <p className="text-xs font-medium text-muted-foreground">

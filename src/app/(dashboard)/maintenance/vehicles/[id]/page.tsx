@@ -25,7 +25,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import Link from 'next/link';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle } from '@/types/maintenance';
 
 const statusConfig = {
@@ -62,6 +62,7 @@ const vehicleTypeLabels = {
 export default function VehicleDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const maintenance = useMaintenance();
   const vehicleId = params?.id as string;
   
   const [loading, setLoading] = useState(true);
@@ -76,7 +77,7 @@ export default function VehicleDetailPage() {
   const loadVehicle = async () => {
     try {
       setLoading(true);
-      const vehicles = await maintenanceService.getVehicles();
+      const vehicles = await maintenance.getVehicles();
       const found = vehicles.find((v) => v.id === vehicleId);
       setVehicle(found || null);
     } catch (error) {
@@ -197,7 +198,7 @@ export default function VehicleDetailPage() {
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Color</label>
-                <p className="font-semibold capitalize">{vehicle.color || 'N/A'}</p>
+                <p className="font-semibold capitalize">{'N/A'}</p>
               </div>
             </div>
           </CardContent>
@@ -217,21 +218,21 @@ export default function VehicleDetailPage() {
                 {vehicle.currentMileage.toLocaleString()} km
               </p>
             </div>
-            {vehicle.purchaseDate && (
+            {vehicle.acquisitionDate && (
               <div>
                 <label className="text-sm text-muted-foreground">Fecha de Adquisición</label>
                 <p className="font-semibold flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {new Date(vehicle.purchaseDate).toLocaleDateString()}
+                  {new Date(vehicle.acquisitionDate).toLocaleDateString()}
                 </p>
               </div>
             )}
-            {vehicle.assignedDriver && (
+            {vehicle.assignedDriverId && (
               <div>
                 <label className="text-sm text-muted-foreground">Conductor Asignado</label>
                 <p className="font-semibold flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  {vehicle.assignedDriver}
+                  {vehicle.assignedDriverId}
                 </p>
               </div>
             )}
@@ -280,11 +281,11 @@ export default function VehicleDetailPage() {
                 )}
               </div>
             )}
-            {vehicle.maintenanceIntervalKm && (
+            {vehicle.maintenanceKmInterval > 0 && (
               <div>
                 <label className="text-sm text-muted-foreground">Intervalo de Mantenimiento</label>
                 <p className="font-semibold text-lg">
-                  {vehicle.maintenanceIntervalKm.toLocaleString()} km
+                  {vehicle.maintenanceKmInterval.toLocaleString()} km
                 </p>
               </div>
             )}
@@ -293,7 +294,7 @@ export default function VehicleDetailPage() {
       </Card>
 
       {/* Capacidad */}
-      {(vehicle.capacity || vehicle.loadCapacity) && (
+      {(vehicle.capacityKg > 0 || vehicle.capacityM3) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -303,16 +304,16 @@ export default function VehicleDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {vehicle.capacity && (
-                <div>
-                  <label className="text-sm text-muted-foreground">Capacidad de Pasajeros</label>
-                  <p className="font-semibold text-lg">{vehicle.capacity} personas</p>
-                </div>
-              )}
-              {vehicle.loadCapacity && (
+              {vehicle.capacityKg > 0 && (
                 <div>
                   <label className="text-sm text-muted-foreground">Capacidad de Carga</label>
-                  <p className="font-semibold text-lg">{vehicle.loadCapacity} kg</p>
+                  <p className="font-semibold text-lg">{vehicle.capacityKg} kg</p>
+                </div>
+              )}
+              {vehicle.capacityM3 && (
+                <div>
+                  <label className="text-sm text-muted-foreground">Capacidad Volumétrica</label>
+                  <p className="font-semibold text-lg">{vehicle.capacityM3} m³</p>
                 </div>
               )}
             </div>
@@ -321,7 +322,7 @@ export default function VehicleDetailPage() {
       )}
 
       {/* Ubicación */}
-      {vehicle.location && (
+      {vehicle.currentLocation && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -330,25 +331,13 @@ export default function VehicleDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="font-semibold">{vehicle.location}</p>
+            <p className="font-semibold">{vehicle.currentLocation}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Notas */}
-      {vehicle.notes && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Notas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground whitespace-pre-wrap">{vehicle.notes}</p>
-          </CardContent>
-        </Card>
-      )}
+
     </div>
   );
 }

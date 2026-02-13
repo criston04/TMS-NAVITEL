@@ -1,9 +1,3 @@
-/**
- * @fileoverview Datos mock para Clientes
- * 
- * @module mocks/master/customers.mock
- */
-
 import { Customer } from "@/types/models";
 
 export const customersMock: Customer[] = [

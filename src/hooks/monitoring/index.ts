@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel exports para hooks de Monitoreo
- * @module hooks/monitoring
- */
-
 export { useRetransmission } from "./use-retransmission";
 export { useVehicleTracking } from "./use-vehicle-tracking";
 export { useTrackedOrder } from "./use-tracked-order";

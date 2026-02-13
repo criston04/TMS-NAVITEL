@@ -1,12 +1,3 @@
-/**
- * @fileoverview Celda de día en el calendario de programación
- * @module components/scheduling/SchedulingDayCell
- * @description Representa un día en el calendario, muestra órdenes
- * programadas y acepta drops de órdenes pendientes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState, useCallback } from 'react';
@@ -18,10 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { SchedulingOrderCard } from './scheduling-order-card';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 interface SchedulingDayCellProps {
   /** Datos del día */
@@ -48,15 +35,9 @@ interface SchedulingDayCellProps {
   className?: string;
 }
 
-// ============================================
-// CONSTANTES
-// ============================================
-
 const MAX_VISIBLE_ORDERS = 3;
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 export const SchedulingDayCell = memo(function SchedulingDayCell({
   dayData,
@@ -122,10 +103,8 @@ export const SchedulingDayCell = memo(function SchedulingDayCell({
       className={cn(
         'relative flex flex-col min-h-30 border-r border-b',
         'transition-all duration-200',
-        // Estados base
         isOutsideMonth && 'bg-muted/30',
         !isOutsideMonth && 'bg-card',
-        // Estados interactivos
         isToday && 'ring-2 ring-primary ring-inset',
         isSelected && 'bg-primary/5',
         (isDragOver || isDraggingOver) && 'bg-primary/10 ring-2 ring-primary ring-dashed',

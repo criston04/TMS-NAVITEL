@@ -1,9 +1,3 @@
-/**
- * @fileoverview Controles de reproducción de ruta histórica
- * 
- * @module components/monitoring/historical/playback-controls
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Contenedor principal del módulo Multiventana
- * 
- * @module components/monitoring/multi-window/multi-window-container
- */
-
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
@@ -26,10 +20,8 @@ interface MultiWindowContainerProps {
 export function MultiWindowContainer({
   className,
 }: MultiWindowContainerProps) {
-  // Estado del modal
   const [selectorOpen, setSelectorOpen] = useState(false);
 
-  // Hook de multiventana
   const {
     panels,
     gridConfig,
@@ -46,7 +38,6 @@ export function MultiWindowContainer({
   // IDs de vehículos en paneles para suscripción
   const vehicleIds = useMemo(() => panels.map((p) => p.vehicleId), [panels]);
 
-  // Hook de tracking
   const {
     vehicles,
     vehiclesList,

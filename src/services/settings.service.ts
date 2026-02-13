@@ -1,13 +1,11 @@
-/**
- * @fileoverview Servicio de Configuración del Sistema
- * @module services/settings.service
- * @description Gestiona la configuración del TMS, incluyendo ajustes
- * generales, roles, permisos, integraciones y auditoría.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
+import {
+  mockSettings,
+  mockRoles,
+  mockIntegrations,
+  mockAuditLog,
+} from "@/mocks/settings";
 import type {
   SystemSettings,
   SettingCategory,
@@ -22,350 +20,6 @@ import type {
   AuditLogFilters,
 } from "@/types/settings";
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
-
-const mockSettings: SystemSettings = {
-  general: {
-    companyName: "TMS NAVITEL",
-    companyLogo: "/logo/navitel.png",
-    companyAddress: "Av. Javier Prado Este 1234, Lima, Perú",
-    companyPhone: "+51 1 234 5678",
-    companyEmail: "info@tms-navitel.com",
-    companyWebsite: "https://tms-navitel.com",
-    companyTaxId: "20123456789",
-    timezone: "America/Lima",
-    dateFormat: "DD/MM/YYYY",
-    timeFormat: "24h",
-    defaultLanguage: "es",
-    supportedLanguages: ["es", "en", "pt"],
-  },
-  operations: {
-    defaultOrderStatus: "pending",
-    autoAssignOrders: true,
-    autoAssignRules: {
-      byZone: true,
-      byCapacity: true,
-      byDistance: true,
-      byWorkload: false,
-    },
-    maxOrdersPerVehicle: 20,
-    maxOrdersPerDriver: 15,
-    deliveryTimeWindowMinutes: 60,
-    allowPartialDelivery: true,
-    requireSignature: true,
-    requirePhoto: true,
-    requireGeolocation: true,
-    enableRouteOptimization: true,
-    routeOptimizationAlgorithm: "genetic",
-    workingHours: { start: "06:00", end: "22:00" },
-    workingDays: [1, 2, 3, 4, 5, 6],  // Lunes a Sábado
-  },
-  fleet: {
-    enableSpeedAlerts: true,
-    maxSpeedKmh: 90,
-    enableIdleAlerts: true,
-    maxIdleMinutes: 15,
-    enableFuelAlerts: true,
-    minFuelLevel: 20,
-    enableMaintenanceAlerts: true,
-    maintenanceIntervalKm: 10000,
-    maintenanceIntervalDays: 90,
-    enableDocumentExpiryAlerts: true,
-    documentExpiryWarningDays: 30,
-    trackingIntervalSeconds: 30,
-    historyRetentionDays: 365,
-    enableGeofenceAlerts: true,
-    defaultSpeedLimit: 80,
-    idleTimeThresholdMinutes: 15,
-    maxDrivingHoursPerDay: 8,
-    restBreakMinutes: 30,
-    distanceUnit: "km",
-    fuelCostPerKm: 0.5,
-    defaultFuelType: "diesel",
-    defaultFuelCapacity: 200,
-  },
-  finance: {
-    defaultCurrency: "PEN",
-    supportedCurrencies: ["PEN", "USD"],
-    defaultTaxRate: 18,
-    taxName: "IGV",
-    taxIncludedByDefault: false,
-    invoicePrefix: "INV",
-    invoiceNumberDigits: 8,
-    paymentTermsDays: 30,
-    enableLateFees: true,
-    lateFeePercentage: 2,
-    enableDiscounts: true,
-    maxDiscountPercentage: 15,
-    requireApprovalAbove: 10000,
-    bankAccounts: [
-      {
-        name: "Cuenta Principal",
-        bank: "BCP",
-        accountNumber: "193-1234567-0-12",
-        currency: "PEN",
-        isDefault: true,
-      },
-      {
-        name: "Cuenta USD",
-        bank: "BBVA",
-        accountNumber: "0011-0123-0200123456",
-        currency: "USD",
-        isDefault: false,
-      },
-    ],
-  },
-  notifications: {
-    enableEmailNotifications: true,
-    enableSmsNotifications: true,
-    enablePushNotifications: true,
-    enableInAppNotifications: true,
-    emailProvider: "smtp",
-    smtpHost: "smtp.empresa.com",
-    smtpPort: 587,
-    smtpUser: "noreply@empresa.com",
-    fromEmail: "noreply@tms-navitel.com",
-    fromName: "TMS NAVITEL",
-    smsProvider: "twilio",
-    notifyOnNewOrder: true,
-    notifyOnOrderStatusChange: true,
-    notifyOnDeliveryCompleted: true,
-    notifyOnIncident: true,
-    notifyOnMaintenance: true,
-    notifyOnDocumentExpiry: true,
-    notifyOnGeofenceEvent: true,
-    notifyOnPaymentReceived: true,
-    notifyOnInvoiceOverdue: true,
-  },
-  security: {
-    passwordMinLength: 8,
-    passwordRequireUppercase: true,
-    passwordRequireLowercase: true,
-    passwordRequireNumbers: true,
-    passwordRequireSpecialChars: false,
-    passwordExpirationDays: 90,
-    maxLoginAttempts: 5,
-    lockoutDurationMinutes: 30,
-    sessionTimeoutMinutes: 480,
-    enableTwoFactor: false,
-    twoFactorMethod: "email",
-    enableAuditLog: true,
-    auditLogRetentionDays: 365,
-    enableIpWhitelist: false,
-    ipWhitelist: [],
-    allowedOrigins: ["*"],
-    apiRateLimitPerMinute: 100,
-  },
-  localization: {
-    defaultCountry: "PE",
-    defaultTimezone: "America/Lima",
-    dateFormat: "DD/MM/YYYY",
-    timeFormat: "HH:mm",
-    numberFormat: {
-      decimalSeparator: ".",
-      thousandsSeparator: ",",
-      decimalPlaces: 2,
-    },
-    currencyFormat: {
-      symbol: "S/",
-      symbolPosition: "before",
-      decimalPlaces: 2,
-    },
-    distanceUnit: "km",
-    weightUnit: "kg",
-    volumeUnit: "m3",
-    temperatureUnit: "C",
-    firstDayOfWeek: 1,
-  },
-  appearance: {
-    theme: "light",
-    primaryColor: "#1E88E5",
-    secondaryColor: "#43A047",
-    accentColor: "#FF9800",
-    fontFamily: "Inter",
-    fontSize: "medium",
-    compactMode: false,
-    showBreadcrumbs: true,
-    sidebarCollapsed: false,
-    tablePageSize: 20,
-    chartAnimations: true,
-    mapStyle: "streets",
-    mapDefaultZoom: 12,
-    mapDefaultCenter: { lat: -12.0464, lng: -77.0428 },
-    animationsEnabled: true,
-    colorScheme: "blue",
-    language: "es",
-  },
-};
-
-const mockRoles: Role[] = [
-  {
-    id: "role-001",
-    code: "admin",
-    name: "Administrador",
-    description: "Acceso total al sistema",
-    permissions: [
-      { resource: "*", actions: { create: true, read: true, update: true, delete: true } },
-    ],
-    isSystem: true,
-    isActive: true,
-    userCount: 3,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "role-002",
-    code: "operations",
-    name: "Operaciones",
-    description: "Gestión de órdenes, rutas y flota",
-    permissions: [
-      { resource: "orders", actions: { create: true, read: true, update: true, delete: false } },
-      { resource: "routes", actions: { create: true, read: true, update: true, delete: false } },
-      { resource: "vehicles", actions: { create: false, read: true, update: true, delete: false } },
-      { resource: "drivers", actions: { create: false, read: true, update: true, delete: false } },
-    ],
-    isSystem: true,
-    isActive: true,
-    userCount: 8,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "role-003",
-    code: "finance",
-    name: "Finanzas",
-    description: "Gestión financiera y facturación",
-    permissions: [
-      { resource: "invoices", actions: { create: true, read: true, update: true, delete: false } },
-      { resource: "payments", actions: { create: true, read: true, update: true, delete: false } },
-      { resource: "costs", actions: { create: true, read: true, update: true, delete: false } },
-      { resource: "reports.financial", actions: { create: true, read: true, update: false, delete: false } },
-    ],
-    isSystem: true,
-    isActive: true,
-    userCount: 4,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "role-004",
-    code: "driver",
-    name: "Conductor",
-    description: "Acceso móvil para conductores",
-    permissions: [
-      { resource: "orders", actions: { create: false, read: true, update: true, delete: false } },
-      { resource: "vehicles", actions: { create: false, read: true, update: false, delete: false } },
-    ],
-    isSystem: true,
-    isActive: true,
-    userCount: 25,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-];
-
-const mockIntegrations: Integration[] = [
-  {
-    id: "int-001",
-    code: "gps_tracker",
-    name: "GPS Tracker Pro",
-    description: "Sistema de rastreo GPS para vehículos",
-    type: "gps",
-    status: "active",
-    config: {
-      refreshInterval: 30,
-      enableHistory: true,
-    },
-    baseUrl: "https://api.gpstracker.com/v2",
-    lastSyncAt: "2026-02-02T12:00:00Z",
-    syncIntervalMinutes: 1,
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-02-02T12:00:00Z",
-  },
-  {
-    id: "int-002",
-    code: "sap_erp",
-    name: "SAP ERP",
-    description: "Integración con sistema ERP corporativo",
-    type: "erp",
-    status: "active",
-    config: {
-      syncOrders: true,
-      syncInvoices: true,
-      syncCustomers: true,
-    },
-    baseUrl: "https://sap.empresa.com/api",
-    lastSyncAt: "2026-02-02T06:00:00Z",
-    syncIntervalMinutes: 60,
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-02-02T06:00:00Z",
-  },
-  {
-    id: "int-003",
-    code: "google_maps",
-    name: "Google Maps Platform",
-    description: "Mapas, geocodificación y rutas",
-    type: "maps",
-    status: "active",
-    config: {
-      enableDirections: true,
-      enableGeocoding: true,
-      enablePlaces: true,
-    },
-    baseUrl: "https://maps.googleapis.com/maps/api",
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-];
-
-const mockAuditLog: AuditLogEntry[] = [
-  {
-    id: "audit-001",
-    timestamp: "2026-02-02T14:30:00Z",
-    userId: "user-001",
-    userName: "Admin",
-    action: "update",
-    resource: "settings",
-    resourceId: "operations",
-    details: "Actualización de configuración de operaciones",
-    changes: [
-      { field: "maxOrdersPerVehicle", oldValue: 15, newValue: 20 },
-    ],
-    ipAddress: "192.168.1.100",
-  },
-  {
-    id: "audit-002",
-    timestamp: "2026-02-02T14:00:00Z",
-    userId: "user-002",
-    userName: "María García",
-    action: "create",
-    resource: "orders",
-    resourceId: "ord-100",
-    resourceName: "ORD-2026-00100",
-    details: "Creación de nueva orden",
-    ipAddress: "192.168.1.101",
-  },
-  {
-    id: "audit-003",
-    timestamp: "2026-02-02T13:45:00Z",
-    userId: "user-001",
-    userName: "Admin",
-    action: "login",
-    resource: "auth",
-    details: "Inicio de sesión exitoso",
-    ipAddress: "192.168.1.100",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-  },
-];
-
-/* ============================================
-   SERVICIO
-   ============================================ */
 
 class SettingsService {
   private settings: SystemSettings = { ...mockSettings };
@@ -396,10 +50,6 @@ class SettingsService {
     });
   }
 
-  // ============================================
-  // CONFIGURACIÓN GENERAL
-  // ============================================
-
   async getAllSettings(): Promise<SystemSettings> {
     await this.simulateDelay();
 
@@ -407,7 +57,7 @@ class SettingsService {
       return { ...this.settings };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.settings.base);
   }
 
   async getSettingsByCategory<T extends keyof SystemSettings>(
@@ -419,7 +69,7 @@ class SettingsService {
       return { ...this.settings[category] };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.settings.base}/${category}`);
   }
 
   async updateSettings(data: UpdateSettingsDTO): Promise<void> {
@@ -459,7 +109,7 @@ class SettingsService {
       return;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.put(API_ENDPOINTS.settings.base, data);
   }
 
   async resetSettings(category: SettingCategory): Promise<SystemSettings[keyof SystemSettings]> {
@@ -481,7 +131,7 @@ class SettingsService {
       return defaults;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(`${API_ENDPOINTS.settings.base}/${category}/reset`);
   }
 
   async exportSettings(): Promise<string> {
@@ -491,7 +141,7 @@ class SettingsService {
       return JSON.stringify(this.settings, null, 2);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.settings.base}/export`);
   }
 
   async importSettings(json: string): Promise<void> {
@@ -518,12 +168,10 @@ class SettingsService {
       return;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(`${API_ENDPOINTS.settings.base}/import`, { json });
   }
 
-  // ============================================
   // ROLES Y PERMISOS
-  // ============================================
 
   async getRoles(): Promise<Role[]> {
     await this.simulateDelay();
@@ -532,7 +180,7 @@ class SettingsService {
       return [...this.roles];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.settings.roles);
   }
 
   async getRoleById(id: string): Promise<Role | null> {
@@ -542,7 +190,7 @@ class SettingsService {
       return this.roles.find(r => r.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.settings.roles}/${id}`);
   }
 
   async createRole(data: CreateRoleDTO): Promise<Role> {
@@ -578,7 +226,7 @@ class SettingsService {
       return role;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(API_ENDPOINTS.settings.roles, data);
   }
 
   async updateRole(id: string, data: Partial<CreateRoleDTO>): Promise<Role> {
@@ -611,7 +259,7 @@ class SettingsService {
       return this.roles[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.put(`${API_ENDPOINTS.settings.roles}/${id}`, data);
   }
 
   async deleteRole(id: string): Promise<void> {
@@ -638,12 +286,10 @@ class SettingsService {
       return;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.delete(`${API_ENDPOINTS.settings.roles}/${id}`);
   }
 
-  // ============================================
   // INTEGRACIONES
-  // ============================================
 
   async getIntegrations(): Promise<Integration[]> {
     await this.simulateDelay();
@@ -652,7 +298,7 @@ class SettingsService {
       return [...this.integrations];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.settings.integrations);
   }
 
   async getIntegrationById(id: string): Promise<Integration | null> {
@@ -662,7 +308,7 @@ class SettingsService {
       return this.integrations.find(i => i.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.settings.integrations}/${id}`);
   }
 
   async createIntegration(data: CreateIntegrationDTO): Promise<Integration> {
@@ -702,7 +348,7 @@ class SettingsService {
       return integration;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(API_ENDPOINTS.settings.integrations, data);
   }
 
   async updateIntegration(id: string, data: Partial<CreateIntegrationDTO>): Promise<Integration> {
@@ -721,7 +367,7 @@ class SettingsService {
       return this.integrations[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.put(`${API_ENDPOINTS.settings.integrations}/${id}`, data);
   }
 
   async toggleIntegration(id: string): Promise<Integration> {
@@ -742,7 +388,7 @@ class SettingsService {
       return this.integrations[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch(`${API_ENDPOINTS.settings.integrations}/${id}/toggle`);
   }
 
   async testIntegration(id: string): Promise<{ success: boolean; message: string; responseTimeMs: number }> {
@@ -769,7 +415,7 @@ class SettingsService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(`${API_ENDPOINTS.settings.integrations}/${id}/test`);
   }
 
   async syncIntegration(id: string): Promise<{ recordsSynced: number }> {
@@ -785,7 +431,7 @@ class SettingsService {
       return { recordsSynced: Math.floor(Math.random() * 100) + 10 };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(`${API_ENDPOINTS.settings.integrations}/${id}/sync`);
   }
 
   async getIntegrationHealth(): Promise<IntegrationHealthStatus[]> {
@@ -803,12 +449,8 @@ class SettingsService {
       }));
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.settings.integrations}/health`);
   }
-
-  // ============================================
-  // AUDITORÍA
-  // ============================================
 
   async getAuditLog(
     filters: AuditLogFilters = {},
@@ -856,7 +498,7 @@ class SettingsService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.settings.audit, { params: { ...filters, page, pageSize } as unknown as Record<string, string> });
   }
 
   async exportAuditLog(filters: AuditLogFilters = {}): Promise<string> {
@@ -864,9 +506,7 @@ class SettingsService {
     return JSON.stringify(result.data, null, 2);
   }
 
-  // ============================================
   // RESUMEN
-  // ============================================
 
   async getSettingsOverview(): Promise<SettingsOverview> {
     await this.simulateDelay(300);
@@ -921,7 +561,7 @@ class SettingsService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.settings.base}/overview`);
   }
 }
 

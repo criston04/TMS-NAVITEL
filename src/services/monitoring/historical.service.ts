@@ -1,10 +1,3 @@
-/**
- * @fileoverview Servicio de Rastreo Histórico
- * 
- * @module services/monitoring/historical.service
- * @description Maneja consultas de rutas históricas y exportación de datos
- */
-
 import type { 
   HistoricalRoute, 
   HistoricalRouteParams,
@@ -21,7 +14,8 @@ import {
   exportRouteToGPX
 } from "@/mocks/monitoring/historical-routes.mock";
 import { vehiclesMock } from "@/mocks/master/vehicles.mock";
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
 /**
  * Servicio de Rastreo Histórico
@@ -106,7 +100,15 @@ export class HistoricalTrackingService {
       return route;
     }
 
-    throw new Error("API not implemented");
+    const result = await apiClient.get<HistoricalRoute>(API_ENDPOINTS.monitoring.historical, {
+      params: {
+        vehicleId: params.vehicleId,
+        startDateTime: params.startDateTime,
+        endDateTime: params.endDateTime,
+      },
+    });
+    this.addToCache(cacheKey, result);
+    return result;
   }
 
   /**
@@ -175,7 +177,7 @@ export class HistoricalTrackingService {
       }));
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<Pick<Vehicle, "id" | "plate">[]>(`${API_ENDPOINTS.monitoring.historical}/vehicles`);
   }
 
   /**
@@ -196,7 +198,7 @@ export class HistoricalTrackingService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<{ min: string; max: string }>(`${API_ENDPOINTS.monitoring.historical}/vehicles/${_vehicleId}/date-range`);
   }
 
   /**
@@ -215,7 +217,7 @@ export class HistoricalTrackingService {
       return [...historicalRoutesMock];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<HistoricalRoute[]>(`${API_ENDPOINTS.monitoring.historical}/preloaded`);
   }
 
   /**

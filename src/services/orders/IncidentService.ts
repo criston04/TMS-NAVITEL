@@ -1,11 +1,3 @@
-/**
- * @fileoverview Servicio para gestión de Incidencias
- * @module services/orders/IncidentService
- * @description Maneja el catálogo de incidencias y el registro en órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type {
   IncidentCatalogItem,
   IncidentCategory,
@@ -25,6 +17,8 @@ import {
   incidentSeverityLabels,
   incidentSeverityColors,
 } from '@/mocks/orders/incidents.mock';
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
 /**
  * Simula latencia de red
@@ -46,10 +40,11 @@ const generateId = (prefix: string): string => {
 class IncidentService {
   private catalog: IncidentCatalogItem[] = [...mockIncidentsCatalog];
   private readonly records: Map<string, IncidentRecord[]> = new Map();
+  private readonly useMocks: boolean;
 
-  // ============================================
-  // MÉTODOS DE CATÁLOGO
-  // ============================================
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Obtiene todos los items del catálogo
@@ -57,44 +52,47 @@ class IncidentService {
    * @returns Promesa con items del catálogo
    */
   async getCatalogItems(filters?: IncidentCatalogFilters): Promise<IncidentCatalogItem[]> {
-    await simulateDelay();
+    if (this.useMocks) {
+      await simulateDelay();
 
-    let result = [...this.catalog];
+      let result = [...this.catalog];
 
-    if (filters?.search) {
-      const searchLower = filters.search.toLowerCase();
-      result = result.filter(
-        item =>
-          item.name.toLowerCase().includes(searchLower) ||
-          item.description.toLowerCase().includes(searchLower) ||
-          item.code.toLowerCase().includes(searchLower) ||
-          item.tags?.some(tag => tag.toLowerCase().includes(searchLower))
-      );
+      if (filters?.search) {
+        const searchLower = filters.search.toLowerCase();
+        result = result.filter(
+          item =>
+            item.name.toLowerCase().includes(searchLower) ||
+            item.description.toLowerCase().includes(searchLower) ||
+            item.code.toLowerCase().includes(searchLower) ||
+            item.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+        );
+      }
+
+      if (filters?.category) {
+        result = result.filter(item => item.category === filters.category);
+      }
+
+      if (filters?.severity) {
+        result = result.filter(item => item.defaultSeverity === filters.severity);
+      }
+
+      if (filters?.status) {
+        result = result.filter(item => item.status === filters.status);
+      }
+
+      if (filters?.requiresEvidence !== undefined) {
+        result = result.filter(item => item.requiresEvidence === filters.requiresEvidence);
+      }
+
+      if (filters?.requiresImmediateAction !== undefined) {
+        result = result.filter(
+          item => item.requiresImmediateAction === filters.requiresImmediateAction
+        );
+      }
+
+      return result.sort((a, b) => a.sortOrder - b.sortOrder);
     }
-
-    if (filters?.category) {
-      result = result.filter(item => item.category === filters.category);
-    }
-
-    if (filters?.severity) {
-      result = result.filter(item => item.defaultSeverity === filters.severity);
-    }
-
-    if (filters?.status) {
-      result = result.filter(item => item.status === filters.status);
-    }
-
-    if (filters?.requiresEvidence !== undefined) {
-      result = result.filter(item => item.requiresEvidence === filters.requiresEvidence);
-    }
-
-    if (filters?.requiresImmediateAction !== undefined) {
-      result = result.filter(
-        item => item.requiresImmediateAction === filters.requiresImmediateAction
-      );
-    }
-
-    return result.sort((a, b) => a.sortOrder - b.sortOrder);
+    return apiClient.get<IncidentCatalogItem[]>(`${API_ENDPOINTS.operations.incidents}/catalog`, { params: filters as unknown as Record<string, string> });
   }
 
   /**
@@ -102,8 +100,11 @@ class IncidentService {
    * @returns Promesa con items activos
    */
   async getActiveCatalogItems(): Promise<IncidentCatalogItem[]> {
-    await simulateDelay(200);
-    return this.catalog.filter(item => item.status === 'active');
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return this.catalog.filter(item => item.status === 'active');
+    }
+    return apiClient.get<IncidentCatalogItem[]>(`${API_ENDPOINTS.operations.incidents}/catalog/active`);
   }
 
   /**
@@ -112,8 +113,11 @@ class IncidentService {
    * @returns Promesa con el item o null
    */
   async getCatalogItemById(id: string): Promise<IncidentCatalogItem | null> {
-    await simulateDelay(100);
-    return this.catalog.find(item => item.id === id) ?? null;
+    if (this.useMocks) {
+      await simulateDelay(100);
+      return this.catalog.find(item => item.id === id) ?? null;
+    }
+    return apiClient.get<IncidentCatalogItem>(`${API_ENDPOINTS.operations.incidents}/catalog/${id}`);
   }
 
   /**
@@ -124,10 +128,13 @@ class IncidentService {
   async getCatalogItemsByCategory(
     category: IncidentCategory
   ): Promise<IncidentCatalogItem[]> {
-    await simulateDelay(200);
-    return this.catalog.filter(
-      item => item.category === category && item.status === 'active'
-    );
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return this.catalog.filter(
+        item => item.category === category && item.status === 'active'
+      );
+    }
+    return apiClient.get<IncidentCatalogItem[]>(`${API_ENDPOINTS.operations.incidents}/catalog`, { params: { category } });
   }
 
   /**
@@ -136,8 +143,11 @@ class IncidentService {
    * @returns Promesa con items que coinciden
    */
   async searchCatalog(query: string): Promise<IncidentCatalogItem[]> {
-    await simulateDelay(200);
-    return searchIncidentCatalog(query);
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return searchIncidentCatalog(query);
+    }
+    return apiClient.get<IncidentCatalogItem[]>(`${API_ENDPOINTS.operations.incidents}/catalog/search`, { params: { q: query } });
   }
 
   /**
@@ -145,8 +155,12 @@ class IncidentService {
    * @returns Promesa con mapa de categorías a cantidad
    */
   async getCategoriesWithCount(): Promise<Map<IncidentCategory, number>> {
-    await simulateDelay(100);
-    return getIncidentCategoriesWithCount();
+    if (this.useMocks) {
+      await simulateDelay(100);
+      return getIncidentCategoriesWithCount();
+    }
+    const data = await apiClient.get<Record<IncidentCategory, number>>(`${API_ENDPOINTS.operations.incidents}/catalog/categories`);
+    return new Map(Object.entries(data) as [IncidentCategory, number][]);
   }
 
   /**
@@ -155,39 +169,42 @@ class IncidentService {
    * @returns Promesa con el item creado
    */
   async createCatalogItem(data: CreateIncidentCatalogItemDTO): Promise<IncidentCatalogItem> {
-    await simulateDelay(500);
+    if (this.useMocks) {
+      await simulateDelay(500);
 
-    const now = new Date().toISOString();
-    const maxSortOrder = Math.max(...this.catalog.map(i => i.sortOrder), 0);
+      const now = new Date().toISOString();
+      const maxSortOrder = Math.max(...this.catalog.map(i => i.sortOrder), 0);
 
-    const newItem: IncidentCatalogItem = {
-      id: generateId('inc'),
-      code: data.code,
-      name: data.name,
-      description: data.description,
-      category: data.category,
-      defaultSeverity: data.defaultSeverity,
-      requiresEvidence: data.requiresEvidence,
-      acceptedEvidenceTypes: data.acceptedEvidenceTypes,
-      minEvidenceCount: data.minEvidenceCount,
-      requiresImmediateAction: data.requiresImmediateAction,
-      suggestedActions: data.suggestedActions,
-      descriptionTemplate: data.descriptionTemplate,
-      additionalFields: data.additionalFields?.map((field, i) => ({
-        ...field,
-        id: `${generateId('field')}-${i}`,
-      })),
-      affectsCompliance: data.affectsCompliance,
-      autoNotifyRoles: data.autoNotifyRoles,
-      status: 'active',
-      createdAt: now,
-      updatedAt: now,
-      sortOrder: maxSortOrder + 1,
-      tags: data.tags,
-    };
+      const newItem: IncidentCatalogItem = {
+        id: generateId('inc'),
+        code: data.code,
+        name: data.name,
+        description: data.description,
+        category: data.category,
+        defaultSeverity: data.defaultSeverity,
+        requiresEvidence: data.requiresEvidence,
+        acceptedEvidenceTypes: data.acceptedEvidenceTypes,
+        minEvidenceCount: data.minEvidenceCount,
+        requiresImmediateAction: data.requiresImmediateAction,
+        suggestedActions: data.suggestedActions,
+        descriptionTemplate: data.descriptionTemplate,
+        additionalFields: data.additionalFields?.map((field, i) => ({
+          ...field,
+          id: `${generateId('field')}-${i}`,
+        })),
+        affectsCompliance: data.affectsCompliance,
+        autoNotifyRoles: data.autoNotifyRoles,
+        status: 'active',
+        createdAt: now,
+        updatedAt: now,
+        sortOrder: maxSortOrder + 1,
+        tags: data.tags,
+      };
 
-    this.catalog.push(newItem);
-    return newItem;
+      this.catalog.push(newItem);
+      return newItem;
+    }
+    return apiClient.post<IncidentCatalogItem>(`${API_ENDPOINTS.operations.incidents}/catalog`, data);
   }
 
   /**
@@ -200,27 +217,30 @@ class IncidentService {
     id: string,
     data: Partial<CreateIncidentCatalogItemDTO>
   ): Promise<IncidentCatalogItem> {
-    await simulateDelay(400);
+    if (this.useMocks) {
+      await simulateDelay(400);
 
-    const index = this.catalog.findIndex(item => item.id === id);
-    if (index === -1) {
-      throw new Error(`Incident catalog item ${id} not found`);
+      const index = this.catalog.findIndex(item => item.id === id);
+      if (index === -1) {
+        throw new Error(`Incident catalog item ${id} not found`);
+      }
+
+      const updatedItem: IncidentCatalogItem = {
+        ...this.catalog[index],
+        ...data,
+        updatedAt: new Date().toISOString(),
+        additionalFields: data.additionalFields
+          ? data.additionalFields.map((field, i): IncidentAdditionalField => ({
+              ...field,
+              id: `${id}-field-${i + 1}`,
+            }))
+          : this.catalog[index].additionalFields,
+      };
+
+      this.catalog[index] = updatedItem;
+      return updatedItem;
     }
-
-    const updatedItem: IncidentCatalogItem = {
-      ...this.catalog[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-      additionalFields: data.additionalFields
-        ? data.additionalFields.map((field, i): IncidentAdditionalField => ({
-            ...field,
-            id: `${id}-field-${i + 1}`,
-          }))
-        : this.catalog[index].additionalFields,
-    };
-
-    this.catalog[index] = updatedItem;
-    return updatedItem;
+    return apiClient.put<IncidentCatalogItem>(`${API_ENDPOINTS.operations.incidents}/catalog/${id}`, data);
   }
 
   /**
@@ -229,12 +249,11 @@ class IncidentService {
    * @returns Promesa con el item desactivado
    */
   async deactivateCatalogItem(id: string): Promise<IncidentCatalogItem> {
-    return this.updateCatalogItem(id, { status: 'inactive' } as never);
+    if (this.useMocks) {
+      return this.updateCatalogItem(id, { status: 'inactive' } as never);
+    }
+    return apiClient.patch<IncidentCatalogItem>(`${API_ENDPOINTS.operations.incidents}/catalog/${id}/deactivate`);
   }
-
-  // ============================================
-  // MÉTODOS DE REGISTROS DE INCIDENCIAS
-  // ============================================
 
   /**
    * Obtiene incidencias registradas de una orden
@@ -242,8 +261,11 @@ class IncidentService {
    * @returns Promesa con incidencias de la orden
    */
   async getOrderIncidents(orderId: string): Promise<IncidentRecord[]> {
-    await simulateDelay(200);
-    return this.records.get(orderId) ?? [];
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return this.records.get(orderId) ?? [];
+    }
+    return apiClient.get<IncidentRecord[]>(`${API_ENDPOINTS.operations.incidents}/orders/${orderId}`);
   }
 
   /**
@@ -256,56 +278,59 @@ class IncidentService {
     orderId: string,
     data: CreateIncidentRecordDTO
   ): Promise<IncidentRecord> {
-    await simulateDelay(400);
+    if (this.useMocks) {
+      await simulateDelay(400);
 
-    let catalogItem: IncidentCatalogItem | undefined;
-    let name: string;
-    let category: IncidentCategory;
+      let catalogItem: IncidentCatalogItem | undefined;
+      let name: string;
+      let category: IncidentCategory;
 
-    if (data.type === 'catalog' && data.catalogItemId) {
-      catalogItem = await this.getCatalogItemById(data.catalogItemId) ?? undefined;
-      if (!catalogItem) {
-        throw new Error(`Catalog item ${data.catalogItemId} not found`);
+      if (data.type === 'catalog' && data.catalogItemId) {
+        catalogItem = await this.getCatalogItemById(data.catalogItemId) ?? undefined;
+        if (!catalogItem) {
+          throw new Error(`Catalog item ${data.catalogItemId} not found`);
+        }
+        name = catalogItem.name;
+        category = catalogItem.category;
+      } else {
+        if (!data.customName || !data.category) {
+          throw new Error('Custom name and category are required for free text incidents');
+        }
+        name = data.customName;
+        category = data.category;
       }
-      name = catalogItem.name;
-      category = catalogItem.category;
-    } else {
-      if (!data.customName || !data.category) {
-        throw new Error('Custom name and category are required for free text incidents');
-      }
-      name = data.customName;
-      category = data.category;
+
+      const now = new Date().toISOString();
+
+      const record: IncidentRecord = {
+        id: generateId('inc-rec'),
+        orderId,
+        catalogItemId: data.catalogItemId ?? null,
+        catalogItem,
+        type: data.type,
+        name,
+        description: data.description,
+        category,
+        severity: data.severity,
+        occurredAt: data.occurredAt,
+        milestoneId: data.milestoneId,
+        location: data.location,
+        actionTaken: data.actionTaken,
+        resolutionStatus: 'pending',
+        evidence: [],
+        additionalFieldValues: data.additionalFieldValues,
+        reportedBy: 'current-user',
+        reportedByName: 'Usuario Actual',
+        reportedAt: now,
+      };
+
+      const orderRecords = this.records.get(orderId) ?? [];
+      orderRecords.push(record);
+      this.records.set(orderId, orderRecords);
+
+      return record;
     }
-
-    const now = new Date().toISOString();
-
-    const record: IncidentRecord = {
-      id: generateId('inc-rec'),
-      orderId,
-      catalogItemId: data.catalogItemId ?? null,
-      catalogItem,
-      type: data.type,
-      name,
-      description: data.description,
-      category,
-      severity: data.severity,
-      occurredAt: data.occurredAt,
-      milestoneId: data.milestoneId,
-      location: data.location,
-      actionTaken: data.actionTaken,
-      resolutionStatus: 'pending',
-      evidence: [],
-      additionalFieldValues: data.additionalFieldValues,
-      reportedBy: 'current-user',
-      reportedByName: 'Usuario Actual',
-      reportedAt: now,
-    };
-
-    const orderRecords = this.records.get(orderId) ?? [];
-    orderRecords.push(record);
-    this.records.set(orderId, orderRecords);
-
-    return record;
+    return apiClient.post<IncidentRecord>(`${API_ENDPOINTS.operations.incidents}/orders/${orderId}`, data);
   }
 
   /**
@@ -320,27 +345,30 @@ class IncidentService {
     recordId: string,
     data: Partial<IncidentRecord>
   ): Promise<IncidentRecord> {
-    await simulateDelay(300);
+    if (this.useMocks) {
+      await simulateDelay(300);
 
-    const orderRecords = this.records.get(orderId);
-    if (!orderRecords) {
-      throw new Error(`No incidents found for order ${orderId}`);
+      const orderRecords = this.records.get(orderId);
+      if (!orderRecords) {
+        throw new Error(`No incidents found for order ${orderId}`);
+      }
+
+      const index = orderRecords.findIndex(r => r.id === recordId);
+      if (index === -1) {
+        throw new Error(`Incident record ${recordId} not found`);
+      }
+
+      const updatedRecord: IncidentRecord = {
+        ...orderRecords[index],
+        ...data,
+      };
+
+      orderRecords[index] = updatedRecord;
+      this.records.set(orderId, orderRecords);
+
+      return updatedRecord;
     }
-
-    const index = orderRecords.findIndex(r => r.id === recordId);
-    if (index === -1) {
-      throw new Error(`Incident record ${recordId} not found`);
-    }
-
-    const updatedRecord: IncidentRecord = {
-      ...orderRecords[index],
-      ...data,
-    };
-
-    orderRecords[index] = updatedRecord;
-    this.records.set(orderId, orderRecords);
-
-    return updatedRecord;
+    return apiClient.put<IncidentRecord>(`${API_ENDPOINTS.operations.incidents}/orders/${orderId}/${recordId}`, data);
   }
 
   /**
@@ -358,12 +386,15 @@ class IncidentService {
       status: 'resolved' | 'unresolved';
     }
   ): Promise<IncidentRecord> {
-    return this.updateIncidentRecord(orderId, recordId, {
-      resolutionStatus: resolution.status,
-      resolutionDescription: resolution.description,
-      resolvedAt: new Date().toISOString(),
-      resolvedBy: 'current-user',
-    });
+    if (this.useMocks) {
+      return this.updateIncidentRecord(orderId, recordId, {
+        resolutionStatus: resolution.status,
+        resolutionDescription: resolution.description,
+        resolvedAt: new Date().toISOString(),
+        resolvedBy: 'current-user',
+      });
+    }
+    return apiClient.post<IncidentRecord>(`${API_ENDPOINTS.operations.incidents}/orders/${orderId}/${recordId}/resolve`, resolution);
   }
 
   /**
@@ -373,27 +404,27 @@ class IncidentService {
    * @returns Promesa que indica éxito
    */
   async deleteIncidentRecord(orderId: string, recordId: string): Promise<boolean> {
-    await simulateDelay(200);
+    if (this.useMocks) {
+      await simulateDelay(200);
 
-    const orderRecords = this.records.get(orderId);
-    if (!orderRecords) {
-      return false;
+      const orderRecords = this.records.get(orderId);
+      if (!orderRecords) {
+        return false;
+      }
+
+      const index = orderRecords.findIndex(r => r.id === recordId);
+      if (index === -1) {
+        return false;
+      }
+
+      orderRecords.splice(index, 1);
+      this.records.set(orderId, orderRecords);
+
+      return true;
     }
-
-    const index = orderRecords.findIndex(r => r.id === recordId);
-    if (index === -1) {
-      return false;
-    }
-
-    orderRecords.splice(index, 1);
-    this.records.set(orderId, orderRecords);
-
+    await apiClient.delete(`${API_ENDPOINTS.operations.incidents}/orders/${orderId}/${recordId}`);
     return true;
   }
-
-  // ============================================
-  // MÉTODOS DE ESTADÍSTICAS
-  // ============================================
 
   /**
    * Obtiene estadísticas de incidencias
@@ -404,105 +435,104 @@ class IncidentService {
     from: string;
     to: string;
   }): Promise<IncidentStatistics> {
-    await simulateDelay(300);
+    if (this.useMocks) {
+      await simulateDelay(300);
 
-    const allRecords: IncidentRecord[] = [];
-    this.records.forEach(records => {
-      if (dateRange) {
-        const fromDate = new Date(dateRange.from);
-        const toDate = new Date(dateRange.to);
-        records.forEach(r => {
-          const recordDate = new Date(r.occurredAt);
-          if (recordDate >= fromDate && recordDate <= toDate) {
-            allRecords.push(r);
-          }
-        });
-      } else {
-        allRecords.push(...records);
-      }
-    });
+      const allRecords: IncidentRecord[] = [];
+      this.records.forEach(records => {
+        if (dateRange) {
+          const fromDate = new Date(dateRange.from);
+          const toDate = new Date(dateRange.to);
+          records.forEach(r => {
+            const recordDate = new Date(r.occurredAt);
+            if (recordDate >= fromDate && recordDate <= toDate) {
+              allRecords.push(r);
+            }
+          });
+        } else {
+          allRecords.push(...records);
+        }
+      });
 
-    // Contar por categoría
-    const byCategory: Record<IncidentCategory, number> = {
-      vehicle: 0,
-      cargo: 0,
-      driver: 0,
-      route: 0,
-      customer: 0,
-      weather: 0,
-      security: 0,
-      documentation: 0,
-      other: 0,
-    };
-    allRecords.forEach(r => {
-      byCategory[r.category]++;
-    });
+      // Contar por categoría
+      const byCategory: Record<IncidentCategory, number> = {
+        vehicle: 0,
+        cargo: 0,
+        driver: 0,
+        route: 0,
+        customer: 0,
+        weather: 0,
+        security: 0,
+        documentation: 0,
+        other: 0,
+      };
+      allRecords.forEach(r => {
+        byCategory[r.category]++;
+      });
 
-    // Contar por severidad
-    const bySeverity: Record<IncidentSeverity, number> = {
-      low: 0,
-      medium: 0,
-      high: 0,
-      critical: 0,
-    };
-    allRecords.forEach(r => {
-      bySeverity[r.severity]++;
-    });
+      // Contar por severidad
+      const bySeverity: Record<IncidentSeverity, number> = {
+        low: 0,
+        medium: 0,
+        high: 0,
+        critical: 0,
+      };
+      allRecords.forEach(r => {
+        bySeverity[r.severity]++;
+      });
 
-    // Contar por estado de resolución
-    const byResolutionStatus: Record<string, number> = {
-      pending: 0,
-      in_progress: 0,
-      resolved: 0,
-      unresolved: 0,
-    };
-    allRecords.forEach(r => {
-      byResolutionStatus[r.resolutionStatus]++;
-    });
+      // Contar por estado de resolución
+      const byResolutionStatus: Record<string, number> = {
+        pending: 0,
+        in_progress: 0,
+        resolved: 0,
+        unresolved: 0,
+      };
+      allRecords.forEach(r => {
+        byResolutionStatus[r.resolutionStatus]++;
+      });
 
-    // Contar por tipo
-    const byType = {
-      catalog: allRecords.filter(r => r.type === 'catalog').length,
-      freeText: allRecords.filter(r => r.type === 'free_text').length,
-    };
+      // Contar por tipo
+      const byType = {
+        catalog: allRecords.filter(r => r.type === 'catalog').length,
+        freeText: allRecords.filter(r => r.type === 'free_text').length,
+      };
 
-    // Top 10 incidencias más frecuentes
-    const incidentCounts = new Map<string, { name: string; count: number; catalogItemId?: string }>();
-    allRecords.forEach(r => {
-      const key = r.catalogItemId ?? r.name;
-      const existing = incidentCounts.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        incidentCounts.set(key, {
-          name: r.name,
-          count: 1,
-          catalogItemId: r.catalogItemId ?? undefined,
-        });
-      }
-    });
+      // Top 10 incidencias más frecuentes
+      const incidentCounts = new Map<string, { name: string; count: number; catalogItemId?: string }>();
+      allRecords.forEach(r => {
+        const key = r.catalogItemId ?? r.name;
+        const existing = incidentCounts.get(key);
+        if (existing) {
+          existing.count++;
+        } else {
+          incidentCounts.set(key, {
+            name: r.name,
+            count: 1,
+            catalogItemId: r.catalogItemId ?? undefined,
+          });
+        }
+      });
 
-    const topIncidents = Array.from(incidentCounts.values())
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+      const topIncidents = Array.from(incidentCounts.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
 
-    return {
-      total: allRecords.length,
-      byCategory,
-      bySeverity,
-      byResolutionStatus,
-      byType,
-      topIncidents,
-      period: {
-        from: dateRange?.from ?? new Date(0).toISOString(),
-        to: dateRange?.to ?? new Date().toISOString(),
-      },
-    };
+      return {
+        total: allRecords.length,
+        byCategory,
+        bySeverity,
+        byResolutionStatus,
+        byType,
+        topIncidents,
+        period: {
+          from: dateRange?.from ?? new Date(0).toISOString(),
+          to: dateRange?.to ?? new Date().toISOString(),
+        },
+      };
+    }
+    return apiClient.get<IncidentStatistics>(`${API_ENDPOINTS.operations.incidents}/statistics`, { params: dateRange as unknown as Record<string, string> });
   }
-
-  // ============================================
-  // MÉTODOS DE UTILIDAD
-  // ============================================
 
   /**
    * Obtiene labels de categorías

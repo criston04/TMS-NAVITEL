@@ -1,9 +1,3 @@
-/**
- * @fileoverview Datos mock para el módulo de Geocercas
- * 
- * @module mocks/master/geofences.mock
- */
-
 import { Geofence, GeofenceCategory } from "@/types/models/geofence";
 
 /**

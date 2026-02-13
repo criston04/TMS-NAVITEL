@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de barra de acciones masivas
- * @module components/orders/OrderBulkActions
- * @description Barra flotante con acciones para órdenes seleccionadas.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState } from 'react';
@@ -28,10 +20,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 /**
  * Acciones disponibles
@@ -66,10 +54,6 @@ interface OrderBulkActionsProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// CONFIGURACIÓN
-// ============================================
 
 /**
  * Configuración de acciones
@@ -106,9 +90,7 @@ const ACTION_CONFIG: Record<BulkAction, {
   },
 };
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 /**
  * Barra de acciones masivas para órdenes

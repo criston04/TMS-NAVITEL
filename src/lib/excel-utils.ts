@@ -1,9 +1,3 @@
-/**
- * @fileoverview Utilidades para exportación e importación de archivos Excel
- * 
- * @module lib/excel-utils
- */
-
 import * as XLSX from 'xlsx';
 
 /**

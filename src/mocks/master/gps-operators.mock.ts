@@ -1,11 +1,3 @@
-/**
- * @fileoverview Mock de Operadores GPS
- * @module mocks/master/gps-operators.mock
- * @description Datos mock de operadores GPS para el sistema TMS.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 export interface GpsOperator {
   id: string;
   name: string;

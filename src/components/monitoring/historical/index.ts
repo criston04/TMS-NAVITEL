@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel exports para componentes de Rastreo Histórico
- * @module components/monitoring/historical
- */
-
 export { SearchForm } from "./search-form";
 export { RouteStatsPanel } from "./route-stats-panel";
 export { PlaybackControls } from "./playback-controls";

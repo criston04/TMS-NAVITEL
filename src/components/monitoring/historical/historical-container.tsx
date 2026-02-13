@@ -1,9 +1,3 @@
-/**
- * @fileoverview Contenedor principal del módulo de Rastreo Histórico
- * 
- * @module components/monitoring/historical/historical-container
- */
-
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -14,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useHistoricalRoute } from "@/hooks/monitoring/use-historical-route";
 import { useRoutePlayback } from "@/hooks/monitoring/use-route-playback";
-import { historicalTrackingService } from "@/services/monitoring/historical.service";
 import { SearchForm } from "./search-form";
 import { RouteStatsPanel } from "./route-stats-panel";
 import { PlaybackControls } from "./playback-controls";
@@ -42,25 +35,23 @@ interface HistoricalContainerProps {
 export function HistoricalContainer({
   className,
 }: HistoricalContainerProps) {
-  // Estado del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
-  // Vehículos disponibles
   const [vehicles, setVehicles] = useState<Array<{ id: string; plate: string }>>([]);
   
   // Punto actual para reproducción
   const [currentPlaybackPoint, setCurrentPlaybackPoint] = useState<HistoricalRoutePoint | null>(null);
 
-  // Hook de ruta histórica
   const {
     route,
     stats,
     isLoading,
     error,
     loadRoute,
+    exportRoute,
+    getAvailableVehicles,
   } = useHistoricalRoute();
 
-  // Hook de reproducción
   const playback = useRoutePlayback({
     points: route?.points || [],
     onPointChange: (point, _index) => {
@@ -70,10 +61,8 @@ export function HistoricalContainer({
 
   // Cargar vehículos disponibles
   useEffect(() => {
-    historicalTrackingService.getAvailableVehicles().then((data) => {
-      setVehicles(data.map((v) => ({ id: v.id, plate: v.plate })));
-    });
-  }, []);
+    getAvailableVehicles().then(setVehicles);
+  }, [getAvailableVehicles]);
 
   /**
    * Busca una ruta histórica
@@ -87,23 +76,12 @@ export function HistoricalContainer({
   }, [loadRoute, playback]);
 
   /**
-   * Exporta la ruta
+   * Exporta la ruta usando el hook
    */
   const handleExport = useCallback(async (format: RouteExportFormat) => {
     if (!route) return;
-
-    const blob = await historicalTrackingService.exportRoute(route, { format });
-
-    // Descargar archivo
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `ruta_${route.vehiclePlate}_${new Date().toISOString().split("T")[0]}.${format}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [route]);
+    await exportRoute(format);
+  }, [route, exportRoute]);
 
   return (
     <div className={cn("flex h-full w-full", className)}>

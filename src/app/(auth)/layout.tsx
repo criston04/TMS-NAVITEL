@@ -105,7 +105,6 @@ export default function AuthLayout({
                </animateMotion>
             </g>
 
-
             {/* --- ROUTE 2: City Delivery Loop (Bottom Right) --- */}
             <path id="route2" d="M 600,800 C 600,600 900,600 900,400 S 1100,500 1200,800" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="5 5" opacity="0.2" />
             
@@ -115,7 +114,6 @@ export default function AuthLayout({
                   <mpath href="#route2" />
                </animateMotion>
             </g>
-
 
              {/* --- ROUTE 3: Left Flank Logistics --- */}
              <path id="route3" d="M 100,-100 Q 100,300 400,600 T 800,900" fill="none" stroke="#06b6d4" strokeWidth="15" strokeOpacity="0.1" />
@@ -149,7 +147,6 @@ export default function AuthLayout({
          </svg>
       </div>
 
-
       {/* 
         ------------------------------------------------
         FOREGROUND CONTENT (Glass Cards)
@@ -160,9 +157,15 @@ export default function AuthLayout({
           {/* LEFT SIDE: Hero Text (Visible on LG screens) */}
           <div className="hidden lg:flex lg:col-span-7 flex-col justify-center space-y-8 select-none pointer-events-none">
              <div className="space-y-4 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#34b7ff]/30 bg-[#34b7ff]/10 backdrop-blur-md w-fit">
-                  <span className="w-2 h-2 rounded-full bg-[#34b7ff] animate-pulse" />
-                  <span className="text-xs font-medium text-[#34b7ff] tracking-wide uppercase">Live Fleet Tracking</span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/30 backdrop-blur-md w-fit">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="text-xs font-medium text-cyan-300 tracking-wide uppercase">Live Fleet Tracking</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-950/30 backdrop-blur-md w-fit">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-xs font-medium text-amber-300 tracking-wide uppercase">Hub Operativo</span>
+                  </div>
                 </div>
                 
                 <h1 className="text-7xl font-bold tracking-tight text-white drop-shadow-2xl">
@@ -184,10 +187,14 @@ export default function AuthLayout({
                        <div className="text-3xl font-bold text-white">{t("login.stat2Value")}</div>
                        <div className="text-xs text-slate-400 uppercase tracking-widest">{t("login.stat2Label")}</div>
                     </div>
+                    <div className="w-px h-10 bg-white/10" />
+                    <div>
+                       <div className="text-3xl font-bold text-white">{t("login.stat3Value")}</div>
+                       <div className="text-xs text-slate-400 uppercase tracking-widest">{t("login.stat3Label")}</div>
+                    </div>
                 </div>
              </div>
           </div>
-
 
           {/* RIGHT SIDE: Auth Form (Glass Card) */}
           <div className="lg:col-span-5 flex justify-center w-full">

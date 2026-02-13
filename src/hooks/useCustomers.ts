@@ -1,11 +1,3 @@
-/**
- * @fileoverview Hook especializado para gestión de Clientes
- * 
- * Maneja estado, filtros, paginación, CRUD y acciones masivas
- * 
- * @module hooks/useCustomers
- */
-
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
@@ -49,7 +41,6 @@ interface UseCustomersOptions {
  * Retorno del hook
  */
 interface UseCustomersReturn extends UseCustomersState {
-  // Acciones de carga
   loadCustomers: () => Promise<void>;
   loadStats: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -58,12 +49,10 @@ interface UseCustomersReturn extends UseCustomersState {
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
   
-  // Filtros
   setFilters: (filters: CustomerFilters) => void;
   updateFilter: <K extends keyof CustomerFilters>(key: K, value: CustomerFilters[K]) => void;
   clearFilters: () => void;
   
-  // CRUD
   createCustomer: (data: CreateCustomerDTO) => Promise<Customer | null>;
   updateCustomer: (id: string, data: UpdateCustomerDTO) => Promise<Customer | null>;
   deleteCustomer: (id: string) => Promise<boolean>;
@@ -85,7 +74,6 @@ interface UseCustomersReturn extends UseCustomersState {
     errors: { row: number; message: string }[];
   }>;
   
-  // Búsqueda
   findByDocument: (documentNumber: string) => Promise<Customer | null>;
 }
 
@@ -105,7 +93,6 @@ export function useCustomers(options: UseCustomersOptions = {}): UseCustomersRet
   const { initialPageSize = 10, autoLoad = true } = options;
   const { success, error: showError } = useToast();
 
-  // Estado
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [stats, setStats] = useState<CustomerStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -448,7 +435,6 @@ export function useCustomers(options: UseCustomersOptions = {}): UseCustomersRet
   }, [filters, page, pageSize, autoLoad, loadCustomers]);
 
   return {
-    // Estado
     customers,
     stats,
     isLoading,
@@ -462,7 +448,6 @@ export function useCustomers(options: UseCustomersOptions = {}): UseCustomersRet
     selectedIds,
     cities,
     
-    // Acciones
     loadCustomers,
     loadStats,
     refresh,

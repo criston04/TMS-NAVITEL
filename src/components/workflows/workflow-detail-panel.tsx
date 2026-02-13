@@ -1,11 +1,3 @@
-/**
- * @fileoverview Panel de detalle de workflow
- * @module components/workflows/WorkflowDetailPanel
- * @description Editor visual de workflows integrado
- * @author TMS-NAVITEL
- * @version 1.1.0
- */
-
 'use client';
 
 import { memo, useState, useCallback, useRef } from 'react';
@@ -58,10 +50,6 @@ import {
 } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface WorkflowDetailPanelProps {
   workflow: Workflow | null;
   isEditing: boolean;
@@ -77,9 +65,7 @@ interface WorkflowDetailPanelProps {
   className?: string; // Para layout flexible
 }
 
-// ============================================
 // STEP CARD
-// ============================================
 
 interface StepCardProps {
   step: WorkflowStep;
@@ -286,10 +272,7 @@ const StepCard = memo(function StepCard({
   );
 });
 
-
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
   workflow,
@@ -306,7 +289,6 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
   className,
 }: Readonly<WorkflowDetailPanelProps>) {
   
-  // Estado local para edición
   const [editData, setEditData] = useState<Partial<CreateWorkflowDTO>>(() => {
     if (workflow) {
       return {

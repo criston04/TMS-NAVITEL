@@ -1,14 +1,7 @@
-/**
- * @fileoverview Servicio de Eventos de Geocerca
- * @module services/monitoring/geofence-events.service
- * @description Gestiona la persistencia y consulta de eventos de entrada/salida
- * de geocercas, incluyendo análisis de permanencia y estadísticas.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 import { notificationService } from "@/services/notification.service";
+import { mockGeofenceEvents } from "@/mocks/monitoring/geofence-events.mock";
 import type {
   GeofenceEvent,
   GeofenceDwellSummary,
@@ -18,106 +11,6 @@ import type {
   UpdateGeofenceEventDTO,
 } from "@/types/geofence-events";
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
-
-const mockGeofenceEvents: GeofenceEvent[] = [
-  {
-    id: "gfe-001",
-    geofenceId: "geo-001",
-    geofenceName: "Almacén Central",
-    geofenceCategory: "warehouse",
-    vehicleId: "veh-001",
-    vehiclePlate: "ABC-123",
-    driverId: "drv-001",
-    driverName: "Juan Pérez",
-    orderId: "ord-001",
-    orderNumber: "ORD-2026-00001",
-    milestoneId: "ms-001",
-    eventType: "entry",
-    status: "completed",
-    timestamp: "2026-02-02T08:00:00Z",
-    entryTimestamp: "2026-02-02T08:00:00Z",
-    exitTimestamp: "2026-02-02T10:30:00Z",
-    durationMinutes: 150,
-    coordinates: { lat: -12.0464, lng: -77.0428 },
-    speed: 0,
-    address: "Av. Colonial 1234, Lima",
-    wasExpected: true,
-    arrivedOnTime: true,
-    timeDifferenceMinutes: -10,
-    createdAt: "2026-02-02T08:00:00Z",
-    updatedAt: "2026-02-02T10:30:00Z",
-  },
-  {
-    id: "gfe-002",
-    geofenceId: "geo-001",
-    geofenceName: "Almacén Central",
-    geofenceCategory: "warehouse",
-    vehicleId: "veh-001",
-    vehiclePlate: "ABC-123",
-    driverId: "drv-001",
-    driverName: "Juan Pérez",
-    orderId: "ord-001",
-    orderNumber: "ORD-2026-00001",
-    eventType: "exit",
-    status: "completed",
-    timestamp: "2026-02-02T10:30:00Z",
-    coordinates: { lat: -12.0464, lng: -77.0428 },
-    speed: 15,
-    createdAt: "2026-02-02T10:30:00Z",
-    updatedAt: "2026-02-02T10:30:00Z",
-  },
-  {
-    id: "gfe-003",
-    geofenceId: "geo-002",
-    geofenceName: "Cliente Alicorp",
-    geofenceCategory: "customer",
-    vehicleId: "veh-001",
-    vehiclePlate: "ABC-123",
-    driverId: "drv-001",
-    driverName: "Juan Pérez",
-    orderId: "ord-001",
-    orderNumber: "ORD-2026-00001",
-    milestoneId: "ms-002",
-    eventType: "entry",
-    status: "active",
-    timestamp: "2026-02-02T12:15:00Z",
-    entryTimestamp: "2026-02-02T12:15:00Z",
-    coordinates: { lat: -12.0890, lng: -77.0320 },
-    speed: 0,
-    address: "Av. Argentina 4793, Lima",
-    wasExpected: true,
-    arrivedOnTime: false,
-    timeDifferenceMinutes: 15,
-    createdAt: "2026-02-02T12:15:00Z",
-    updatedAt: "2026-02-02T12:15:00Z",
-  },
-  {
-    id: "gfe-004",
-    geofenceId: "geo-003",
-    geofenceName: "Zona Restringida Norte",
-    geofenceCategory: "restricted",
-    vehicleId: "veh-002",
-    vehiclePlate: "XYZ-789",
-    driverId: "drv-002",
-    driverName: "María García",
-    eventType: "entry",
-    status: "active",
-    timestamp: "2026-02-02T11:00:00Z",
-    entryTimestamp: "2026-02-02T11:00:00Z",
-    coordinates: { lat: -11.9850, lng: -77.0150 },
-    speed: 45,
-    wasExpected: false,
-    createdAt: "2026-02-02T11:00:00Z",
-    updatedAt: "2026-02-02T11:00:00Z",
-  },
-];
-
-/* ============================================
-   SERVICIO
-   ============================================ */
 
 /**
  * Servicio para gestión de eventos de geocerca
@@ -146,10 +39,6 @@ class GeofenceEventsService {
   private generateId(): string {
     return `gfe-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
-
-  // ============================================
-  // CRUD DE EVENTOS
-  // ============================================
 
   /**
    * Obtiene eventos con filtros
@@ -228,7 +117,13 @@ class GeofenceEventsService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<{ data: GeofenceEvent[]; total: number; page: number; pageSize: number }>(API_ENDPOINTS.monitoring.geofenceEvents, {
+      params: {
+        ...filters as unknown as Record<string, string>,
+        page: String(page),
+        pageSize: String(pageSize),
+      },
+    });
   }
 
   /**
@@ -241,7 +136,7 @@ class GeofenceEventsService {
       return this.events.find(e => e.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<GeofenceEvent | null>(`${API_ENDPOINTS.monitoring.geofenceEvents}/${id}`);
   }
 
   /**
@@ -292,7 +187,7 @@ class GeofenceEventsService {
       return newEvent;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post<GeofenceEvent>(API_ENDPOINTS.monitoring.geofenceEvents, data);
   }
 
   /**
@@ -334,7 +229,7 @@ class GeofenceEventsService {
       return updated;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch<GeofenceEvent>(`${API_ENDPOINTS.monitoring.geofenceEvents}/${id}`, data);
   }
 
   /**
@@ -381,12 +276,15 @@ class GeofenceEventsService {
       });
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post<GeofenceEvent>(`${API_ENDPOINTS.monitoring.geofenceEvents}/record-exit`, {
+      vehicleId,
+      geofenceId,
+      coordinates,
+      speed,
+    });
   }
 
-  // ============================================
   // ANÁLISIS Y ESTADÍSTICAS
-  // ============================================
 
   /**
    * Obtiene resumen de permanencia por geocerca/vehículo
@@ -463,7 +361,9 @@ class GeofenceEventsService {
       return summaries;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<GeofenceDwellSummary[]>(`${API_ENDPOINTS.monitoring.geofenceEvents}/dwell-summary`, {
+      params: filters as unknown as Record<string, string>,
+    });
   }
 
   /**
@@ -553,7 +453,9 @@ class GeofenceEventsService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<GeofenceEventStats>(`${API_ENDPOINTS.monitoring.geofenceEvents}/stats`, {
+      params: filters as unknown as Record<string, string>,
+    });
   }
 
   /**
@@ -568,7 +470,7 @@ class GeofenceEventsService {
       );
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<GeofenceEvent[]>(`${API_ENDPOINTS.monitoring.geofenceEvents}/active`);
   }
 
   /**
@@ -594,12 +496,12 @@ class GeofenceEventsService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<{ isInside: boolean; event: GeofenceEvent | null }>(
+      `${API_ENDPOINTS.monitoring.geofenceEvents}/check/${vehicleId}/${geofenceId}`
+    );
   }
 
-  // ============================================
   // SUSCRIPCIÓN EN TIEMPO REAL
-  // ============================================
 
   /**
    * Suscribe a nuevos eventos

@@ -1,19 +1,6 @@
-/**
- * @fileoverview Hook para detectar conflictos de recursos en órdenes
- * @module hooks/orders/useResourceConflicts
- * @description Verifica disponibilidad de vehículos y conductores
- * en las fechas programadas de una orden.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { mockOrders } from '@/mocks/orders/orders.mock';
 import type { Order } from '@/types/order';
-
-// ============================================
-// TIPOS
-// ============================================
 
 /**
  * Tipo de conflicto detectado
@@ -31,7 +18,7 @@ export type ConflictSeverity = 'warning' | 'error';
 export interface ResourceConflict {
   /** ID único del conflicto */
   id: string;
-  /** Tipo de conflicto */
+  
   type: ConflictType;
   /** Severidad */
   severity: ConflictSeverity;
@@ -41,7 +28,7 @@ export interface ResourceConflict {
   details: {
     /** ID del recurso en conflicto */
     resourceId: string;
-    /** Nombre del recurso */
+    
     resourceName: string;
     /** ID de la orden en conflicto */
     conflictingOrderId?: string;
@@ -90,10 +77,6 @@ export interface UseResourceConflictsResult {
   clearConflicts: () => void;
 }
 
-// ============================================
-// HELPERS
-// ============================================
-
 /**
  * Verifica si dos rangos de fechas se superponen
  */
@@ -112,10 +95,6 @@ function dateRangesOverlap(
 function generateConflictId(): string {
   return `conflict-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
-
-// ============================================
-// HOOK PRINCIPAL
-// ============================================
 
 /**
  * Hook para detectar conflictos de recursos

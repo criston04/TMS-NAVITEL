@@ -1,23 +1,3 @@
-/**
- * @fileoverview Componentes de selector de idioma
- * 
- * Proporciona dos variantes del selector de idioma:
- * - LanguageToggle: Versión compacta con solo icono
- * - LanguageToggleWithLabel: Versión con bandera e idioma visible
- * 
- * @module components/language-toggle
- * @requires react
- * @requires lucide-react
- * @requires @/contexts/locale-context
- * 
- * @example
- * // Versión compacta
- * <LanguageToggle />
- * 
- * // Versión con etiqueta
- * <LanguageToggleWithLabel />
- */
-
 "use client";
 
 import * as React from "react";

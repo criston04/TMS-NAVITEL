@@ -1,8 +1,3 @@
-/**
- * @fileoverview Página de Rastreo Histórico
- * @module app/(dashboard)/monitoring/historical/page
- */
-
 "use client";
 
 import dynamic from "next/dynamic";

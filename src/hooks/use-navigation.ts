@@ -1,7 +1,5 @@
 /**
  * useNavigation Hook - Lógica de navegación extraída
- * Principio: SRP - Separar lógica de estado de la UI
- * Principio: Alta cohesión - Todo lo relacionado con navegación junto
  */
 
 "use client";

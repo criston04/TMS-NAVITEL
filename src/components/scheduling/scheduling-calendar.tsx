@@ -1,12 +1,3 @@
-/**
- * @fileoverview Calendario principal del módulo de programación
- * @module components/scheduling/SchedulingCalendar
- * @description Calendario con vistas de mes, semana y día para
- * programar órdenes con drag & drop.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useMemo, useCallback } from 'react';
@@ -24,10 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SchedulingDayCell } from './scheduling-day-cell';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 interface SchedulingCalendarProps {
   /** Datos del calendario por día */
@@ -58,10 +45,6 @@ interface SchedulingCalendarProps {
   className?: string;
 }
 
-// ============================================
-// CONSTANTES
-// ============================================
-
 const DAYS_OF_WEEK = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const DAYS_OF_WEEK_FULL = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -70,10 +53,6 @@ const VIEW_OPTIONS: { value: CalendarViewType; label: string; icon: React.Compon
   { value: 'week', label: 'Semana', icon: Rows3 },
   { value: 'day', label: 'Día', icon: CalendarDays },
 ];
-
-// ============================================
-// HELPERS
-// ============================================
 
 function getMonthName(date: Date): string {
   return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
@@ -104,9 +83,7 @@ function isSameDay(date1: Date, date2: Date): boolean {
   );
 }
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 export const SchedulingCalendar = memo(function SchedulingCalendar({
   calendarData,

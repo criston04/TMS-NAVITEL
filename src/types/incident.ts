@@ -1,13 +1,4 @@
 /**
- * @fileoverview Tipos e interfaces para el catálogo de Incidencias
- * @module types/incident
- * @description Define estructuras para incidencias predefinidas y personalizadas,
- * incluyendo categorías, severidad y plantillas.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-/**
  * Categorías de incidencias
  * @enum {string}
  */
@@ -86,11 +77,11 @@ export interface IncidentCatalogItem {
  * @interface IncidentAdditionalField
  */
 export interface IncidentAdditionalField {
-  /** ID del campo */
+  
   id: string;
   /** Etiqueta del campo */
   label: string;
-  /** Tipo de campo */
+  
   type: 'text' | 'number' | 'date' | 'select' | 'textarea';
   /** Es obligatorio */
   required: boolean;
@@ -115,7 +106,7 @@ export interface IncidentRecord {
   catalogItemId: string | null;
   /** Datos del catálogo (populated) */
   catalogItem?: IncidentCatalogItem;
-  /** Tipo de incidencia */
+  
   type: 'catalog' | 'free_text';
   /** Nombre de la incidencia (del catálogo o personalizado) */
   name: string;
@@ -129,7 +120,7 @@ export interface IncidentRecord {
   occurredAt: string;
   /** ID del hito donde ocurrió (opcional) */
   milestoneId?: string;
-  /** Nombre del hito */
+  
   milestoneName?: string;
   /** Ubicación donde ocurrió */
   location?: {
@@ -155,7 +146,7 @@ export interface IncidentRecord {
   reportedBy: string;
   /** Nombre del usuario que registró */
   reportedByName: string;
-  /** Fecha de registro */
+  
   reportedAt: string;
   /** Notas adicionales */
   notes?: string;
@@ -168,9 +159,9 @@ export interface IncidentRecord {
 export interface IncidentEvidence {
   /** ID único */
   id: string;
-  /** Tipo de evidencia */
+  
   type: 'photo' | 'document' | 'video';
-  /** Nombre del archivo */
+  
   fileName: string;
   /** Tipo MIME */
   mimeType: string;
@@ -182,7 +173,7 @@ export interface IncidentEvidence {
   thumbnailUrl?: string;
   /** Descripción */
   description?: string;
-  /** Fecha de captura */
+  
   capturedAt: string;
   /** Ubicación de captura */
   location?: {
@@ -230,7 +221,7 @@ export interface CreateIncidentRecordDTO {
   category?: IncidentCategory;
   /** Severidad */
   severity: IncidentSeverity;
-  /** Fecha de ocurrencia */
+  
   occurredAt: string;
   /** ID del hito relacionado */
   milestoneId?: string;
@@ -265,7 +256,7 @@ export interface IncidentCatalogFilters {
  * @interface IncidentStatistics
  */
 export interface IncidentStatistics {
-  /** Total de incidencias */
+  
   total: number;
   /** Por categoría */
   byCategory: Record<IncidentCategory, number>;

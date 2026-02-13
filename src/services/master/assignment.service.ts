@@ -1,21 +1,11 @@
-/**
- * @fileoverview Servicio de Asignación Conductor-Vehículo
- * 
- * Gestiona la asignación de conductores a vehículos validando
- * compatibilidad de licencias según normativa MTC Perú.
- * 
- * @module services/master/assignment.service
- */
-
 import { Driver } from "@/types/models/driver";
 import { Vehicle, VehicleType } from "@/types/models/vehicle";
 import { 
   LICENSE_VEHICLE_COMPATIBILITY 
 } from "@/lib/validators/driver-validators";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 export interface Assignment {
   id: string;
@@ -121,9 +111,6 @@ export interface AssignmentHistory {
   performedAt: string;
 }
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
 
 const mockAssignments: Assignment[] = [
   {
@@ -179,13 +166,15 @@ const mockHistory: AssignmentHistory[] = [
   },
 ];
 
-/* ============================================
-   SERVICIO
-   ============================================ */
 
 class AssignmentService {
+  private readonly useMocks: boolean;
   private assignments: Assignment[] = [...mockAssignments];
   private history: AssignmentHistory[] = [...mockHistory];
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Simula delay de red
@@ -418,6 +407,7 @@ class AssignmentService {
     driver: Driver,
     vehicle: Vehicle
   ): Promise<AssignmentValidationResult> {
+    if (this.useMocks) {
     await this.simulateDelay(200);
 
     const errors: ValidationError[] = [];
@@ -536,53 +526,67 @@ class AssignmentService {
       vehicleEligibility,
       compatibility,
     };
+    }
+    return apiClient.post<AssignmentValidationResult>(`${API_ENDPOINTS.master.assignments}/validate`, { driverId: driver.id, vehicleId: vehicle.id });
   }
 
   /**
    * Obtiene todas las asignaciones
    */
   async getAssignments(filters?: { status?: string; type?: string }): Promise<Assignment[]> {
-    await this.simulateDelay(200);
+    if (this.useMocks) {
+      await this.simulateDelay(200);
 
-    let result = [...this.assignments];
+      let result = [...this.assignments];
 
-    if (filters?.status) {
-      result = result.filter(a => a.status === filters.status);
+      if (filters?.status) {
+        result = result.filter(a => a.status === filters.status);
+      }
+
+      if (filters?.type) {
+        result = result.filter(a => a.assignmentType === filters.type);
+      }
+
+      return result;
     }
-
-    if (filters?.type) {
-      result = result.filter(a => a.assignmentType === filters.type);
-    }
-
-    return result;
+    return apiClient.get<Assignment[]>(API_ENDPOINTS.master.assignments, { params: filters as unknown as Record<string, string> });
   }
 
   /**
    * Obtiene una asignación por ID
    */
   async getAssignmentById(id: string): Promise<Assignment | null> {
-    await this.simulateDelay(100);
-    return this.assignments.find(a => a.id === id) || null;
+    if (this.useMocks) {
+      await this.simulateDelay(100);
+      return this.assignments.find(a => a.id === id) || null;
+    }
+    return apiClient.get<Assignment | null>(`${API_ENDPOINTS.master.assignments}/${id}`);
   }
 
   /**
    * Obtiene la asignación activa de un conductor
    */
   async getDriverAssignment(driverId: string): Promise<Assignment | null> {
-    await this.simulateDelay(100);
-    return this.assignments.find(a => 
-      a.driverId === driverId && a.status === "active"
-    ) || null;
+    if (this.useMocks) {
+      await this.simulateDelay(100);
+      return this.assignments.find(a => 
+        a.driverId === driverId && a.status === "active"
+      ) || null;
+    }
+    return apiClient.get<Assignment | null>(`${API_ENDPOINTS.master.assignments}/by-driver/${driverId}`);
   }
 
   /**
    * Obtiene la asignación activa de un vehículo
    */
   async getVehicleAssignment(vehicleId: string): Promise<Assignment | null> {
-    await this.simulateDelay(100);
-    return this.assignments.find(a => 
-      a.vehicleId === vehicleId && a.status === "active"
-    ) || null;
+    if (this.useMocks) {
+      await this.simulateDelay(100);
+      return this.assignments.find(a => 
+        a.vehicleId === vehicleId && a.status === "active"
+      ) || null;
+    }
+    return apiClient.get<Assignment | null>(`${API_ENDPOINTS.master.assignments}/by-vehicle/${vehicleId}`);
   }
 
   /**
@@ -593,6 +597,7 @@ class AssignmentService {
     driver: Driver,
     vehicle: Vehicle
   ): Promise<Assignment> {
+    if (this.useMocks) {
     await this.simulateDelay(300);
 
     // Validar asignación
@@ -651,38 +656,44 @@ class AssignmentService {
     });
 
     return newAssignment;
+    }
+    return apiClient.post<Assignment>(API_ENDPOINTS.master.assignments, request);
   }
 
   /**
    * Desasigna un conductor de un vehículo
    */
   async unassign(assignmentId: string, reason?: string): Promise<void> {
-    await this.simulateDelay(200);
+    if (this.useMocks) {
+      await this.simulateDelay(200);
 
-    const assignment = this.assignments.find(a => a.id === assignmentId);
-    if (!assignment) {
-      throw new Error(`Asignación ${assignmentId} no encontrada`);
+      const assignment = this.assignments.find(a => a.id === assignmentId);
+      if (!assignment) {
+        throw new Error(`Asignación ${assignmentId} no encontrada`);
+      }
+
+      // Actualizar asignación
+      this.assignments = this.assignments.map(a => 
+        a.id === assignmentId
+          ? { ...a, status: "completed" as const, endDate: new Date().toISOString() }
+          : a
+      );
+
+      // Agregar al historial
+      this.history.push({
+        id: this.generateId("hist"),
+        action: "unassigned",
+        driverId: assignment.driverId,
+        driverName: assignment.driverName,
+        vehicleId: assignment.vehicleId,
+        vehiclePlate: assignment.vehiclePlate,
+        reason,
+        performedBy: "current-user",
+        performedAt: new Date().toISOString(),
+      });
+      return;
     }
-
-    // Actualizar asignación
-    this.assignments = this.assignments.map(a => 
-      a.id === assignmentId
-        ? { ...a, status: "completed" as const, endDate: new Date().toISOString() }
-        : a
-    );
-
-    // Agregar al historial
-    this.history.push({
-      id: this.generateId("hist"),
-      action: "unassigned",
-      driverId: assignment.driverId,
-      driverName: assignment.driverName,
-      vehicleId: assignment.vehicleId,
-      vehiclePlate: assignment.vehiclePlate,
-      reason,
-      performedBy: "current-user",
-      performedAt: new Date().toISOString(),
-    });
+    return apiClient.delete<void>(`${API_ENDPOINTS.master.assignments}/${assignmentId}`, { params: reason ? { reason } : undefined });
   }
 
   /**
@@ -695,6 +706,7 @@ class AssignmentService {
     vehicle: Vehicle,
     reason?: string
   ): Promise<Assignment> {
+    if (this.useMocks) {
     await this.simulateDelay(400);
 
     // Validar nueva asignación
@@ -752,6 +764,8 @@ class AssignmentService {
     });
 
     return newAssignment;
+    }
+    return apiClient.post<Assignment>(`${API_ENDPOINTS.master.assignments}/transfer`, { vehicleId, newDriverId, reason });
   }
 
   /**
@@ -761,24 +775,27 @@ class AssignmentService {
     allDrivers: Driver[],
     allVehicles: Vehicle[]
   ): Promise<AssignmentStats> {
-    await this.simulateDelay(100);
+    if (this.useMocks) {
+      await this.simulateDelay(100);
 
-    const activeAssignments = this.assignments.filter(a => a.status === "active");
-    
-    return {
-      totalAssignments: this.assignments.length,
-      activeAssignments: activeAssignments.length,
-      permanentAssignments: activeAssignments.filter(a => a.assignmentType === "permanent").length,
-      temporaryAssignments: activeAssignments.filter(a => a.assignmentType === "temporary").length,
-      driversWithVehicle: allDrivers.filter(d => d.assignedVehicleId).length,
-      driversWithoutVehicle: allDrivers.filter(d => !d.assignedVehicleId && d.status === "active").length,
-      vehiclesAssigned: allVehicles.filter(v => v.currentDriverId).length,
-      vehiclesAvailable: allVehicles.filter(v => 
-        !v.currentDriverId && 
-        v.status === "active" && 
-        v.operationalStatus === "operational"
-      ).length,
-    };
+      const activeAssignments = this.assignments.filter(a => a.status === "active");
+      
+      return {
+        totalAssignments: this.assignments.length,
+        activeAssignments: activeAssignments.length,
+        permanentAssignments: activeAssignments.filter(a => a.assignmentType === "permanent").length,
+        temporaryAssignments: activeAssignments.filter(a => a.assignmentType === "temporary").length,
+        driversWithVehicle: allDrivers.filter(d => d.assignedVehicleId).length,
+        driversWithoutVehicle: allDrivers.filter(d => !d.assignedVehicleId && d.status === "active").length,
+        vehiclesAssigned: allVehicles.filter(v => v.currentDriverId).length,
+        vehiclesAvailable: allVehicles.filter(v => 
+          !v.currentDriverId && 
+          v.status === "active" && 
+          v.operationalStatus === "operational"
+        ).length,
+      };
+    }
+    return apiClient.get<AssignmentStats>(`${API_ENDPOINTS.master.assignments}/stats`);
   }
 
   /**
@@ -790,32 +807,35 @@ class AssignmentService {
     startDate?: string;
     endDate?: string;
   }): Promise<AssignmentHistory[]> {
-    await this.simulateDelay(200);
+    if (this.useMocks) {
+      await this.simulateDelay(200);
 
-    let result = [...this.history];
+      let result = [...this.history];
 
-    if (filters?.driverId) {
-      result = result.filter(h => h.driverId === filters.driverId);
+      if (filters?.driverId) {
+        result = result.filter(h => h.driverId === filters.driverId);
+      }
+
+      if (filters?.vehicleId) {
+        result = result.filter(h => h.vehicleId === filters.vehicleId);
+      }
+
+      if (filters?.startDate) {
+        result = result.filter(h => h.performedAt >= filters.startDate!);
+      }
+
+      if (filters?.endDate) {
+        result = result.filter(h => h.performedAt <= filters.endDate!);
+      }
+
+      // Ordenar por fecha descendente
+      result.sort((a, b) => 
+        new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()
+      );
+
+      return result;
     }
-
-    if (filters?.vehicleId) {
-      result = result.filter(h => h.vehicleId === filters.vehicleId);
-    }
-
-    if (filters?.startDate) {
-      result = result.filter(h => h.performedAt >= filters.startDate!);
-    }
-
-    if (filters?.endDate) {
-      result = result.filter(h => h.performedAt <= filters.endDate!);
-    }
-
-    // Ordenar por fecha descendente
-    result.sort((a, b) => 
-      new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()
-    );
-
-    return result;
+    return apiClient.get<AssignmentHistory[]>(`${API_ENDPOINTS.master.assignments}/history`, { params: filters as unknown as Record<string, string> });
   }
 
   /**
@@ -825,16 +845,19 @@ class AssignmentService {
     vehicle: Vehicle,
     allDrivers: Driver[]
   ): Promise<{ driver: Driver; compatibility: CompatibilityResult; eligibility: DriverEligibilityResult }[]> {
-    await this.simulateDelay(200);
+    if (this.useMocks) {
+      await this.simulateDelay(200);
 
-    return allDrivers
-      .filter(driver => driver.status === "active")
-      .map(driver => ({
-        driver,
-        compatibility: this.validateCompatibility(driver, vehicle),
-        eligibility: this.validateDriverForAssignment(driver),
-      }))
-      .filter(result => result.compatibility.isCompatible && result.eligibility.isEligible);
+      return allDrivers
+        .filter(driver => driver.status === "active")
+        .map(driver => ({
+          driver,
+          compatibility: this.validateCompatibility(driver, vehicle),
+          eligibility: this.validateDriverForAssignment(driver),
+        }))
+        .filter(result => result.compatibility.isCompatible && result.eligibility.isEligible);
+    }
+    return apiClient.get<{ driver: Driver; compatibility: CompatibilityResult; eligibility: DriverEligibilityResult }[]>(`${API_ENDPOINTS.master.assignments}/compatible-drivers/${vehicle.id}`);
   }
 
   /**
@@ -844,16 +867,19 @@ class AssignmentService {
     driver: Driver,
     allVehicles: Vehicle[]
   ): Promise<{ vehicle: Vehicle; compatibility: CompatibilityResult; eligibility: VehicleEligibilityResult }[]> {
-    await this.simulateDelay(200);
+    if (this.useMocks) {
+      await this.simulateDelay(200);
 
-    return allVehicles
-      .filter(vehicle => vehicle.status === "active" && vehicle.operationalStatus === "operational")
-      .map(vehicle => ({
-        vehicle,
-        compatibility: this.validateCompatibility(driver, vehicle),
-        eligibility: this.validateVehicleForAssignment(vehicle),
-      }))
-      .filter(result => result.compatibility.isCompatible && result.eligibility.isEligible);
+      return allVehicles
+        .filter(vehicle => vehicle.status === "active" && vehicle.operationalStatus === "operational")
+        .map(vehicle => ({
+          vehicle,
+          compatibility: this.validateCompatibility(driver, vehicle),
+          eligibility: this.validateVehicleForAssignment(vehicle),
+        }))
+        .filter(result => result.compatibility.isCompatible && result.eligibility.isEligible);
+    }
+    return apiClient.get<{ vehicle: Vehicle; compatibility: CompatibilityResult; eligibility: VehicleEligibilityResult }[]>(`${API_ENDPOINTS.master.assignments}/compatible-vehicles/${driver.id}`);
   }
 }
 

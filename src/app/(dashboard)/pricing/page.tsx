@@ -1,11 +1,3 @@
-/**
- * @fileoverview Página de Gestión de Tarifas y Precios
- * @module app/(dashboard)/pricing/page
- * @description Módulo para configurar tarifas de transporte, servicios adicionales y cálculo de costos
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -84,10 +76,6 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface Rate {
   id: string;
   name: string;
@@ -115,10 +103,6 @@ interface FuelSurcharge {
   effectiveDate: string;
   isActive: boolean;
 }
-
-// ============================================
-// DATOS MOCK
-// ============================================
 
 const mockRates: Rate[] = [
   {
@@ -230,10 +214,6 @@ const mockFuelSurcharges: FuelSurcharge[] = [
   },
 ];
 
-// ============================================
-// HELPERS
-// ============================================
-
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -266,9 +246,7 @@ const typeLabels: Record<string, string> = {
   percentage: "Porcentaje",
 };
 
-// ============================================
 // COMPONENTES
-// ============================================
 
 function RateCategoryBadge({ category }: { category: string }) {
   const config = categoryConfig[category] || { label: category, color: "bg-gray-100 text-gray-700", icon: Tag };
@@ -451,9 +429,7 @@ function CreateRateDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export default function PricingPage() {
   const [showCreateRate, setShowCreateRate] = useState(false);

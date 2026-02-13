@@ -1,9 +1,3 @@
-/**
- * @fileoverview Skeleton para panel de estadísticas
- * 
- * @module components/monitoring/common/skeletons/stats-panel-skeleton
- */
-
 import { cn } from "@/lib/utils";
 
 interface StatsPanelSkeletonProps {

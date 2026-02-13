@@ -1,12 +1,3 @@
-/**
- * @fileoverview Servicio de Exámenes Médicos y Psicológicos
- * 
- * Gestiona los exámenes ocupacionales de conductores según
- * normativa peruana de seguridad y salud en el trabajo.
- * 
- * @module services/master/medical-exams.service
- */
-
 import { 
   MedicalExam, 
   PsychologicalExam, 
@@ -15,9 +6,9 @@ import {
   MedicalRestriction,
 } from "@/types/models/driver";
 
-/* ============================================
-   TIPOS Y CONSTANTES
-   ============================================ */
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
+
 
 /**
  * Estadísticas de exámenes
@@ -79,9 +70,6 @@ export const COMMON_MEDICAL_RESTRICTIONS: MedicalRestriction[] = [
   { code: "R008", description: "Control de glucosa mensual", isTemporary: true, affectsDriving: false },
 ];
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
 
 const medicalExamsMock: MedicalExam[] = [
   {
@@ -143,14 +131,15 @@ const psychologicalExamsMock: PsychologicalExam[] = [
   },
 ];
 
-/* ============================================
-   SERVICIO DE EXÁMENES MÉDICOS
-   ============================================ */
 
 class MedicalExamsService {
-  private useMocks = true;
+  private readonly useMocks: boolean;
   private medicalExams = [...medicalExamsMock];
   private psychologicalExams = [...psychologicalExamsMock];
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Simula delay de red
@@ -171,7 +160,11 @@ class MedicalExamsService {
   /**
    * Obtiene todos los exámenes médicos de un conductor
    */
-  async getMedicalExamsByDriver(_driverId: string): Promise<MedicalExam[]> {
+  async getMedicalExamsByDriver(driverId: string): Promise<MedicalExam[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MedicalExam[]>(`${API_ENDPOINTS.master.medicalExams}/medical/by-driver/${driverId}`);
+    }
+
     await this.simulateDelay();
     // En mock, retornamos todos los exámenes (en producción se filtraría por driverId)
     return this.medicalExams;
@@ -181,6 +174,10 @@ class MedicalExamsService {
    * Obtiene un examen médico por ID
    */
   async getMedicalExamById(id: string): Promise<MedicalExam | null> {
+    if (!this.useMocks) {
+      return apiClient.get<MedicalExam>(`${API_ENDPOINTS.master.medicalExams}/medical/${id}`);
+    }
+
     await this.simulateDelay();
     return this.medicalExams.find(e => e.id === id) || null;
   }
@@ -189,9 +186,13 @@ class MedicalExamsService {
    * Crea un nuevo examen médico
    */
   async createMedicalExam(
-    _driverId: string,
+    driverId: string,
     data: Omit<MedicalExam, "id" | "createdAt">
   ): Promise<MedicalExam> {
+    if (!this.useMocks) {
+      return apiClient.post<MedicalExam>(`${API_ENDPOINTS.master.medicalExams}/medical`, { ...data, driverId });
+    }
+
     await this.simulateDelay(500);
     
     const newExam: MedicalExam = {
@@ -211,6 +212,10 @@ class MedicalExamsService {
     id: string,
     data: Partial<MedicalExam>
   ): Promise<MedicalExam> {
+    if (!this.useMocks) {
+      return apiClient.put<MedicalExam>(`${API_ENDPOINTS.master.medicalExams}/medical/${id}`, data);
+    }
+
     await this.simulateDelay(400);
     
     const index = this.medicalExams.findIndex(e => e.id === id);
@@ -226,6 +231,11 @@ class MedicalExamsService {
    * Elimina un examen médico
    */
   async deleteMedicalExam(id: string): Promise<void> {
+    if (!this.useMocks) {
+      await apiClient.delete(`${API_ENDPOINTS.master.medicalExams}/medical/${id}`);
+      return;
+    }
+
     await this.simulateDelay(300);
     
     const index = this.medicalExams.findIndex(e => e.id === id);
@@ -241,7 +251,11 @@ class MedicalExamsService {
   /**
    * Obtiene todos los exámenes psicológicos de un conductor
    */
-  async getPsychologicalExamsByDriver(_driverId: string): Promise<PsychologicalExam[]> {
+  async getPsychologicalExamsByDriver(driverId: string): Promise<PsychologicalExam[]> {
+    if (!this.useMocks) {
+      return apiClient.get<PsychologicalExam[]>(`${API_ENDPOINTS.master.medicalExams}/psychological/by-driver/${driverId}`);
+    }
+
     await this.simulateDelay();
     return this.psychologicalExams;
   }
@@ -250,6 +264,10 @@ class MedicalExamsService {
    * Obtiene un examen psicológico por ID
    */
   async getPsychologicalExamById(id: string): Promise<PsychologicalExam | null> {
+    if (!this.useMocks) {
+      return apiClient.get<PsychologicalExam>(`${API_ENDPOINTS.master.medicalExams}/psychological/${id}`);
+    }
+
     await this.simulateDelay();
     return this.psychologicalExams.find(e => e.id === id) || null;
   }
@@ -258,9 +276,13 @@ class MedicalExamsService {
    * Crea un nuevo examen psicológico
    */
   async createPsychologicalExam(
-    _driverId: string,
+    driverId: string,
     data: Omit<PsychologicalExam, "id" | "createdAt">
   ): Promise<PsychologicalExam> {
+    if (!this.useMocks) {
+      return apiClient.post<PsychologicalExam>(`${API_ENDPOINTS.master.medicalExams}/psychological`, { ...data, driverId });
+    }
+
     await this.simulateDelay(500);
     
     const newExam: PsychologicalExam = {
@@ -280,6 +302,10 @@ class MedicalExamsService {
     id: string,
     data: Partial<PsychologicalExam>
   ): Promise<PsychologicalExam> {
+    if (!this.useMocks) {
+      return apiClient.put<PsychologicalExam>(`${API_ENDPOINTS.master.medicalExams}/psychological/${id}`, data);
+    }
+
     await this.simulateDelay(400);
     
     const index = this.psychologicalExams.findIndex(e => e.id === id);
@@ -295,6 +321,11 @@ class MedicalExamsService {
    * Elimina un examen psicológico
    */
   async deletePsychologicalExam(id: string): Promise<void> {
+    if (!this.useMocks) {
+      await apiClient.delete(`${API_ENDPOINTS.master.medicalExams}/psychological/${id}`);
+      return;
+    }
+
     await this.simulateDelay(300);
     
     const index = this.psychologicalExams.findIndex(e => e.id === id);
@@ -311,6 +342,10 @@ class MedicalExamsService {
    * Obtiene estadísticas de exámenes
    */
   async getExamStats(): Promise<ExamStats> {
+    if (!this.useMocks) {
+      return apiClient.get<ExamStats>(`${API_ENDPOINTS.master.medicalExams}/stats`);
+    }
+
     await this.simulateDelay();
     
     const today = new Date();
@@ -342,6 +377,10 @@ class MedicalExamsService {
     medical: MedicalExam[];
     psychological: PsychologicalExam[];
   }> {
+    if (!this.useMocks) {
+      return apiClient.get<{ medical: MedicalExam[]; psychological: PsychologicalExam[] }>(`${API_ENDPOINTS.master.medicalExams}/expiring`, { params: daysAhead ? { daysAhead } : undefined });
+    }
+
     await this.simulateDelay();
     
     const today = new Date();
@@ -367,6 +406,10 @@ class MedicalExamsService {
     medical: MedicalExam[];
     psychological: PsychologicalExam[];
   }> {
+    if (!this.useMocks) {
+      return apiClient.get<{ medical: MedicalExam[]; psychological: PsychologicalExam[] }>(`${API_ENDPOINTS.master.medicalExams}/expired`);
+    }
+
     await this.simulateDelay();
     
     const today = new Date();
@@ -382,13 +425,17 @@ class MedicalExamsService {
   /**
    * Verifica si un conductor tiene exámenes vigentes
    */
-  async hasValidExams(_driverId: string): Promise<{
+  async hasValidExams(driverId: string): Promise<{
     hasMedical: boolean;
     hasPsychological: boolean;
     medicalExpiry?: string;
     psychologicalExpiry?: string;
     issues: string[];
   }> {
+    if (!this.useMocks) {
+      return apiClient.get<{ hasMedical: boolean; hasPsychological: boolean; medicalExpiry?: string; psychologicalExpiry?: string; issues: string[] }>(`${API_ENDPOINTS.master.medicalExams}/validate/${driverId}`);
+    }
+
     await this.simulateDelay();
     
     const today = new Date();
@@ -423,7 +470,11 @@ class MedicalExamsService {
   /**
    * Obtiene restricciones médicas activas de un conductor
    */
-  async getActiveRestrictions(_driverId: string): Promise<MedicalRestriction[]> {
+  async getActiveRestrictions(driverId: string): Promise<MedicalRestriction[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MedicalRestriction[]>(`${API_ENDPOINTS.master.medicalExams}/restrictions/${driverId}`);
+    }
+
     await this.simulateDelay();
     
     const today = new Date();

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Tarjetas de estadísticas de clientes
- * 
- * @module components/customers/customer-stats
- */
-
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,28 +1,3 @@
-/**
- * @fileoverview Componente wrapper para páginas con animaciones
- * 
- * Envuelve el contenido de las páginas proporcionando:
- * - Animaciones de entrada consistentes
- * - Header opcional con título, descripción y acciones
- * - Espaciado uniforme
- * 
- * Principio DRY: Reutilizable para todas las páginas del dashboard.
- * 
- * @module components/page-wrapper
- * @requires react
- * @requires @/lib/utils
- * 
- * @example
- * <PageWrapper
- *   title="Dashboard"
- *   description="Vista general del sistema"
- *   actions={<Button>Exportar</Button>}
- * >
- *   <KPICards />
- *   <Charts />
- * </PageWrapper>
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Lista de pagos
- * @module components/finance/payment-list
- */
-
 "use client";
 
 import { useState } from "react";

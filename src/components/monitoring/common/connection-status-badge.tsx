@@ -1,9 +1,3 @@
-/**
- * @fileoverview Badge de estado de conexión/retransmisión
- * 
- * @module components/monitoring/common/connection-status-badge
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

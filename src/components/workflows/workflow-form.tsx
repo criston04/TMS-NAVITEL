@@ -1,8 +1,3 @@
-/**
- * @fileoverview Formulario de creación/edición de workflows
- * @module components/workflows/workflow-form
- */
-
 'use client';
 
 import { type FC, useState, useCallback, useEffect } from 'react';

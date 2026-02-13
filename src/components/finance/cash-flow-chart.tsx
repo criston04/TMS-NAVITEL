@@ -1,8 +1,3 @@
-/**
- * @fileoverview Gráfico de flujo de caja
- * @module components/finance/cash-flow-chart
- */
-
 "use client";
 
 import {
@@ -29,7 +24,6 @@ interface CashFlowChartProps {
 // Colores para el gráfico de pie
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
-// Datos mock para distribución de costos
 const costDistribution = [
   { name: "Combustible", value: 45000, color: "#f59e0b" },
   { name: "Peajes", value: 12000, color: "#3b82f6" },
@@ -76,7 +70,6 @@ export function CashFlowChart({ data, variant = "bar" }: CashFlowChartProps) {
     );
   }
 
-  // Datos para gráfico de barras
   const barData = [
     {
       name: "Ingresos",

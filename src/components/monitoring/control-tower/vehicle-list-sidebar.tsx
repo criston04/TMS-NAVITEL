@@ -1,9 +1,3 @@
-/**
- * @fileoverview Lista de vehículos en sidebar de Torre de Control
- * 
- * @module components/monitoring/control-tower/vehicle-list-sidebar
- */
-
 "use client";
 
 import { useMemo } from "react";

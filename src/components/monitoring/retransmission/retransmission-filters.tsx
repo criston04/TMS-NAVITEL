@@ -1,9 +1,3 @@
-/**
- * @fileoverview Filtros para la tabla de retransmisión
- * 
- * @module components/monitoring/retransmission/retransmission-filters
- */
-
 "use client";
 
 import { useMemo } from "react";
@@ -26,7 +20,7 @@ import type {
 } from "@/types/monitoring";
 
 interface RetransmissionFiltersProps {
-  /** Filtros actuales */
+  
   filters: Filters;
   /** Callback al cambiar filtros */
   onFiltersChange: (filters: Filters) => void;

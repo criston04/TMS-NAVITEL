@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel exports para componentes comunes de Monitoreo
- * @module components/monitoring/common
- */
-
 export { ConnectionStatusBadge } from "./connection-status-badge";
 export { MovementStatusBadge } from "./movement-status-badge";
 export { DurationDisplay } from "./duration-display";

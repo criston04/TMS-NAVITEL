@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente de campo de número de orden
- * @module components/orders/OrderNumberField
- * @description Campo con toggle para generar número de orden
- * automáticamente o ingresar manualmente.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState, useCallback, useEffect } from 'react';
@@ -23,10 +14,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 interface OrderNumberFieldProps {
   /** Valor actual */
@@ -47,10 +34,6 @@ interface OrderNumberFieldProps {
   className?: string;
 }
 
-// ============================================
-// HELPERS
-// ============================================
-
 /**
  * Genera un número de orden automático
  * Formato: PREFIX-YYYY-XXXXX
@@ -61,9 +44,7 @@ function generateOrderNumber(prefix: string = 'ORD'): string {
   return `${prefix}-${year}-${random}`;
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 function OrderNumberFieldComponent({
   value,

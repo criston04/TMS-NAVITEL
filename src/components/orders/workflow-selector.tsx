@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente selector de workflow para órdenes
- * @module components/orders/WorkflowSelector
- * @description Permite seleccionar y visualizar workflows disponibles
- * con sugerencia automática basada en cliente.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState } from 'react';
@@ -39,10 +30,6 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface WorkflowSelectorProps {
   /** Workflow seleccionado actualmente */
   selectedWorkflow: Workflow | null;
@@ -62,10 +49,6 @@ interface WorkflowSelectorProps {
   className?: string;
 }
 
-// ============================================
-// HELPERS
-// ============================================
-
 /**
  * Calcula la duración total de un workflow
  */
@@ -83,9 +66,7 @@ function formatDuration(minutes: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 }
 
-// ============================================
 // COMPONENTE DE PASO DEL WORKFLOW
-// ============================================
 
 interface StepPreviewItemProps {
   step: WorkflowStep;
@@ -133,9 +114,7 @@ function StepPreviewItem({ step, isFirst, isLast }: StepPreviewItemProps) {
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 function WorkflowSelectorComponent({
   selectedWorkflow,

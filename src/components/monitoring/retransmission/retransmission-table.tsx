@@ -1,9 +1,3 @@
-/**
- * @fileoverview Tabla principal de retransmisión
- * 
- * @module components/monitoring/retransmission/retransmission-table
- */
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -17,9 +11,9 @@ type SortField = "vehiclePlate" | "companyName" | "gpsCompanyName" | "lastConnec
 type SortOrder = "asc" | "desc";
 
 interface RetransmissionTableProps {
-  /** Lista de registros */
+  
   records: RetransmissionRecord[];
-  /** Estado de carga */
+  
   isLoading?: boolean;
   /** Callback al hacer clic en comentario */
   onCommentClick: (record: RetransmissionRecord) => void;

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Filtros de facturas
- * @module components/finance/invoice-filters
- */
-
 "use client";
 
 import { useState } from "react";

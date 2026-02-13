@@ -1,9 +1,3 @@
-/**
- * @fileoverview Skeleton para mapa
- * 
- * @module components/monitoring/common/skeletons/map-skeleton
- */
-
 import { cn } from "@/lib/utils";
 import { Map } from "lucide-react";
 

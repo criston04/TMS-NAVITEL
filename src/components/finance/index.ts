@@ -1,9 +1,3 @@
-/**
- * @fileoverview Re-export de componentes del módulo de Finanzas
- * @module components/finance
- */
-
-// Estadísticas
 export { FinanceStatsCards } from "./finance-stats-cards";
 
 // Facturas

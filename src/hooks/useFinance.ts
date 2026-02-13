@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestión financiera del TMS
- * @module hooks/useFinance
- * @description Hook de React que proporciona acceso a facturas, pagos,
- * costos, tarifas y análisis financiero.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { financeService } from "@/services/finance.service";
 import type {
@@ -28,12 +19,8 @@ import type {
   InvoiceStatus,
 } from "@/types/finance";
 
-/* ============================================
-   HOOK PRINCIPAL
-   ============================================ */
 
 interface UseFinanceReturn {
-  // Datos
   invoices: Invoice[];
   payments: Payment[];
   costs: TransportCost[];
@@ -41,31 +28,26 @@ interface UseFinanceReturn {
   stats: FinanceStats | null;
   aging: AccountsReceivableAging | null;
 
-  // Estado
   loading: boolean;
   error: string | null;
   total: number;
   page: number;
   pageSize: number;
 
-  // Acciones de Facturas
   fetchInvoices: (filters?: InvoiceFilters, page?: number) => Promise<void>;
   createInvoice: (data: CreateInvoiceDTO) => Promise<Invoice | null>;
   sendInvoice: (id: string) => Promise<boolean>;
   cancelInvoice: (id: string) => Promise<boolean>;
   updateInvoiceStatus: (id: string, status: InvoiceStatus) => Promise<boolean>;
 
-  // Acciones de Pagos
   fetchPayments: (filters?: PaymentFilters, page?: number) => Promise<void>;
   recordPayment: (data: CreatePaymentDTO) => Promise<Payment | null>;
   getPaymentsByInvoice: (invoiceId: string) => Promise<Payment[]>;
 
-  // Acciones de Costos
   fetchCosts: (filters?: CostFilters, page?: number) => Promise<void>;
   recordCost: (data: CreateTransportCostDTO) => Promise<TransportCost | null>;
   approveCost: (id: string) => Promise<boolean>;
 
-  // Acciones de Tarifas
   fetchRates: (filters?: { category?: string; isActive?: boolean }) => Promise<void>;
   calculateRate: (
     originZone: string,
@@ -93,7 +75,6 @@ interface UseFinanceOptions {
 export function useFinance(options: UseFinanceOptions = {}): UseFinanceReturn {
   const { autoFetch = true, initialPageSize = 20, initialFilters = {} } = options;
 
-  // Estados
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [costs, setCosts] = useState<TransportCost[]>([]);
@@ -365,9 +346,6 @@ export function useFinance(options: UseFinanceOptions = {}): UseFinanceReturn {
   };
 }
 
-/* ============================================
-   HOOK DE FACTURAS
-   ============================================ */
 
 export function useInvoices(filters?: InvoiceFilters) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -429,9 +407,6 @@ export function useInvoices(filters?: InvoiceFilters) {
   };
 }
 
-/* ============================================
-   HOOK DE RENTABILIDAD
-   ============================================ */
 
 export function useProfitability(startDate: string, endDate: string) {
   const [analysis, setAnalysis] = useState<ProfitabilityAnalysis | null>(null);
@@ -458,9 +433,6 @@ export function useProfitability(startDate: string, endDate: string) {
   return { analysis, loading, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE FLUJO DE CAJA
-   ============================================ */
 
 export function useCashFlow(startDate: string, endDate: string) {
   const [cashFlow, setCashFlow] = useState<CashFlowSummary | null>(null);
@@ -487,9 +459,6 @@ export function useCashFlow(startDate: string, endDate: string) {
   return { cashFlow, loading, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE RESUMEN FINANCIERO DE CLIENTE
-   ============================================ */
 
 export function useCustomerFinancials(customerId: string) {
   const [summary, setSummary] = useState<CustomerFinancialSummary | null>(null);
@@ -522,7 +491,6 @@ export function useCustomerFinancials(customerId: string) {
     fetch();
   }, [fetch]);
 
-  // Estadísticas calculadas
   const stats = useMemo(() => {
     if (!summary) return null;
 
@@ -547,9 +515,6 @@ export function useCustomerFinancials(customerId: string) {
   };
 }
 
-/* ============================================
-   HOOK DE COSTOS POR VEHÍCULO
-   ============================================ */
 
 export function useVehicleCosts(vehicleId: string) {
   const [costs, setCosts] = useState<TransportCost[]>([]);
@@ -596,9 +561,6 @@ export function useVehicleCosts(vehicleId: string) {
   return { costs, totals, loading, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE COSTOS POR ORDEN
-   ============================================ */
 
 export function useOrderCosts(orderId: string) {
   const [costs, setCosts] = useState<TransportCost[]>([]);

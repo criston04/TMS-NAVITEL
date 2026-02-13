@@ -1,8 +1,3 @@
-/**
- * @fileoverview Mock data para Operadores Logísticos
- * @module mocks/master/operators
- */
-
 import type { Operator, OperatorStats } from "@/types/models/operator";
 
 /**

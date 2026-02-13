@@ -1,10 +1,3 @@
-/**
- * @fileoverview Mapa de ruta histórica con Leaflet
- * 
- * @module components/monitoring/historical/historical-map
- * @description Mapa real con Leaflet mostrando la ruta histórica del vehículo
- */
-
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";

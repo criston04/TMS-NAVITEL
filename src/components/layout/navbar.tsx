@@ -1,11 +1,3 @@
-/**
- * @fileoverview Barra de navegación superior
- * @module components/layout/Navbar
- * @description Navbar con búsqueda, logo de empresa cliente, acciones rápidas y menú de usuario
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState } from 'react';
@@ -33,10 +25,6 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface TenantConfig {
   /** Nombre de la empresa */
   name: string;
@@ -48,13 +36,8 @@ interface TenantConfig {
   brandColor?: string;
 }
 
-// ============================================
-// CONSTANTES
-// ============================================
-
 const NAVBAR_HEIGHT = 'h-14'; // 56px - compacto pero funcional
 
-// Configuración del tenant actual (en producción vendría de un contexto/API)
 const CURRENT_TENANT: TenantConfig = {
   name: 'ANTARES LOGISTICS',
   shortName: 'GT',
@@ -62,9 +45,7 @@ const CURRENT_TENANT: TenantConfig = {
   brandColor: '#0055EE', // Azul del logo de Antares
 };
 
-// ============================================
 // COMPONENTE LOGO EMPRESA
-// ============================================
 
 interface TenantLogoProps {
   tenant: TenantConfig;
@@ -111,9 +92,7 @@ function TenantLogo({ tenant, className }: TenantLogoProps) {
   );
 }
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 export const Navbar = memo(function Navbar() {
   return (
@@ -222,6 +201,5 @@ export const Navbar = memo(function Navbar() {
   );
 });
 
-// Exportar tipos y configuración para uso externo
 export type { TenantConfig };
 export { CURRENT_TENANT, TenantLogo };

@@ -1,19 +1,7 @@
-/**
- * @fileoverview Hook para estadísticas operativas de clientes
- * @module hooks/useCustomerOperationalStats
- * @description Conecta clientes con su historial de órdenes para calcular
- * estadísticas operativas en tiempo real.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { customersService } from "@/services/master/customers.service";
 import type { CustomerOperationalStats } from "@/types/models/customer";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 /**
  * Orden simplificada para historial
@@ -95,9 +83,6 @@ const defaultSummary: OrdersSummary = {
   cancelled: 0,
 };
 
-/* ============================================
-   HOOK
-   ============================================ */
 
 /**
  * Hook para obtener y gestionar estadísticas operativas de un cliente
@@ -105,31 +90,6 @@ const defaultSummary: OrdersSummary = {
  * @param customerId - ID del cliente
  * @returns Estado y funciones para estadísticas del cliente
  * 
- * @example
- * ```tsx
- * function CustomerDashboard({ customerId }: Props) {
- *   const {
- *     stats,
- *     orders,
- *     isLoading,
- *     hasActiveOrders,
- *     successRate,
- *     loyaltyLevel,
- *     refresh
- *   } = useCustomerOperationalStats(customerId);
- * 
- *   if (isLoading) return <Spinner />;
- * 
- *   return (
- *     <div>
- *       <p>Órdenes totales: {stats?.totalOrders}</p>
- *       <p>Tasa de éxito: {successRate}%</p>
- *       <p>Nivel de fidelidad: {loyaltyLevel}</p>
- *       <Badge>{hasActiveOrders ? "Cliente activo" : "Sin órdenes activas"}</Badge>
- *     </div>
- *   );
- * }
- * ```
  */
 export function useCustomerOperationalStats(
   customerId: string | undefined

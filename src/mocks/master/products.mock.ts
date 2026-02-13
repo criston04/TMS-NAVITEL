@@ -1,8 +1,3 @@
-/**
- * @fileoverview Mock data para Productos
- * @module mocks/master/products
- */
-
 import type { Product, ProductStats, ProductCategory } from "@/types/models/product";
 
 /**

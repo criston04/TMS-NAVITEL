@@ -1,11 +1,3 @@
-/**
- * @fileoverview Skeleton de carga para el módulo de Programación
- * @module app/(dashboard)/scheduling/loading
- * @description Muestra mientras se carga el módulo.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { PageWrapper } from '@/components/page-wrapper';
 import { Skeleton } from '@/components/ui/skeleton';
 

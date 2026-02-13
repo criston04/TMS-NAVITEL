@@ -1,11 +1,3 @@
-/**
- * @fileoverview Página de detalle de orden
- * @module app/(dashboard)/orders/[id]/page
- * @description Vista detallada de una orden con timeline, hitos e incidencias.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { use, useState, useCallback } from 'react';
@@ -30,7 +22,6 @@ import {
 } from 'lucide-react';
 // No se necesitan imports de tipo aquí, se infieren de los hooks
 
-// Hooks
 import { useOrder } from '@/hooks/useOrders';
 import { useWorkflowProgress } from '@/hooks/useWorkflows';
 import { useOrderIncidents } from '@/hooks/useIncidents';
@@ -47,17 +38,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { OrderTimeline, STATUS_CONFIG, PRIORITY_CONFIG } from '@/components/orders';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
 }
-
-// ============================================
-// UTILIDADES
-// ============================================
 
 /**
  * Formatea una fecha
@@ -84,9 +67,7 @@ function formatShortDate(date: Date): string {
   }).format(new Date(date));
 }
 
-// ============================================
 // COMPONENTE SKELETON
-// ============================================
 
 function OrderDetailSkeleton() {
   return (
@@ -126,9 +107,7 @@ function OrderDetailSkeleton() {
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 /**
  * Página de detalle de una orden
@@ -137,10 +116,8 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
   
-  // Estado local
   const [activeTab, setActiveTab] = useState<'timeline' | 'incidents' | 'history'>('timeline');
 
-  // Hooks de datos
   const { order, isLoading, error, startTrip, sendToExternal } = useOrder(id, {
     realtimeUpdates: true,
   });
@@ -157,7 +134,6 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
     router.push(`/orders/${id}/edit`);
   }, [router, id]);
 
-  // Acciones
   const handleStartTrip = useCallback(async () => {
     await startTrip();
   }, [startTrip]);

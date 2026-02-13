@@ -32,7 +32,7 @@ import {
   FileText,
   ArrowLeft,
 } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Inspection, Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -69,6 +69,7 @@ const inspectionTypeLabels: Record<string, string> = {
 };
 
 export default function InspectionsPage() {
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(true);
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -83,8 +84,8 @@ export default function InspectionsPage() {
     try {
       setLoading(true);
       const [inspectionsData, vehiclesData] = await Promise.all([
-        maintenanceService.getInspections(),
-        maintenanceService.getVehicles(),
+        maintenance.getInspections(),
+        maintenance.getVehicles(),
       ]);
       setInspections(inspectionsData);
       setVehicles(vehiclesData);

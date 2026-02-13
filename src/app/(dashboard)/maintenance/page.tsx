@@ -33,7 +33,7 @@ import {
   Settings2,
   BarChart3,
 } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle, WorkOrder, Alert, MaintenanceMetrics } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -342,6 +342,7 @@ const MetricItem = ({
 // ============================================================================
 
 export default function MaintenancePage() {
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(true);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
@@ -356,10 +357,10 @@ export default function MaintenancePage() {
     try {
       setLoading(true);
       const [vehiclesData, workOrdersData, alertsData, metricsData] = await Promise.all([
-        maintenanceService.getVehicles(),
-        maintenanceService.getWorkOrders(),
-        maintenanceService.getAlerts({ unreadOnly: true }),
-        maintenanceService.getMaintenanceMetrics(),
+        maintenance.getVehicles(),
+        maintenance.getWorkOrders(),
+        maintenance.getAlerts({ unreadOnly: true }),
+        maintenance.getMaintenanceMetrics(),
       ]);
 
       setVehicles(vehiclesData);

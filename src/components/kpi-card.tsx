@@ -1,31 +1,3 @@
-/**
- * @fileoverview Componente de tarjeta KPI para métricas clave
- * 
- * Muestra indicadores clave de rendimiento (KPIs) con:
- * - Icono representativo
- * - Valor principal
- * - Indicador de tendencia (opcional)
- * - Variantes de color según el tipo de métrica
- * 
- * Principios SOLID:
- * - SRP: Solo muestra una métrica KPI
- * - OCP: Extensible via variantes sin modificar código
- * 
- * @module components/kpi-card
- * @requires react
- * @requires @/components/ui/card
- * @requires lucide-react
- * 
- * @example
- * <KPICard
- *   title="Entregas Hoy"
- *   value={156}
- *   change={{ value: "+12%", trend: "up" }}
- *   icon={Package}
- *   variant="default"
- * />
- */
-
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";

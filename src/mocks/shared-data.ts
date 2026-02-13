@@ -1,19 +1,5 @@
-/**
- * @fileoverview Datos mock centralizados y compartidos
- * @module mocks/shared-data
- * @description Fuente única de datos mock para todos los módulos del TMS.
- * Todos los módulos (Órdenes, Programación, Monitoreo, etc.) deben usar estos datos
- * para mantener consistencia en la aplicación.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type { OrderPriority, OrderStatus, MilestoneStatus, CargoType } from '@/types/order';
 import type { VehicleType, VehicleOperationalStatus } from '@/types/models/vehicle';
-
-// ============================================
-// CLIENTES
-// ============================================
 
 export interface SharedCustomer {
   id: string;
@@ -100,10 +86,6 @@ export const SHARED_CUSTOMERS: SharedCustomer[] = [
   },
 ];
 
-// ============================================
-// VEHÍCULOS
-// ============================================
-
 export interface SharedVehicle {
   id: string;
   code: string;
@@ -185,10 +167,6 @@ export const SHARED_VEHICLES: SharedVehicle[] = [
     gpsDeviceId: 'GPS-005',
   },
 ];
-
-// ============================================
-// CONDUCTORES
-// ============================================
 
 export interface SharedDriver {
   id: string;
@@ -278,9 +256,7 @@ export const SHARED_DRIVERS: SharedDriver[] = [
   },
 ];
 
-// ============================================
 // TRANSPORTISTAS / CARRIERS
-// ============================================
 
 export interface SharedCarrier {
   id: string;
@@ -299,9 +275,7 @@ export const SHARED_CARRIERS: SharedCarrier[] = [
   { id: 'car-005', code: 'SLG', name: 'San Lorenzo Logística S.A.C.', ruc: '20517372877', phone: '+51 1 652 0200', email: 'operaciones@sanlorenzologistica.com.pe' },
 ];
 
-// ============================================
 // OPERADORES GPS
-// ============================================
 
 export interface SharedGPSOperator {
   id: string;
@@ -316,9 +290,7 @@ export const SHARED_GPS_OPERATORS: SharedGPSOperator[] = [
   { id: 'gps-op-004', name: 'GPS Tracker Plus', platform: 'GPSTracker' },
 ];
 
-// ============================================
 // UBICACIONES / GEOFENCES
-// ============================================
 
 export interface SharedLocation {
   id: string;
@@ -344,10 +316,6 @@ export const SHARED_LOCATIONS: SharedLocation[] = [
   { id: 'loc-010', name: 'Planta Huancayo', address: 'Zona Industrial El Tambo', city: 'Huancayo', region: 'Junín', lat: -12.0651, lng: -75.2049, type: 'planta' },
 ];
 
-// ============================================
-// TIPOS DE CARGA
-// ============================================
-
 export interface SharedCargoType {
   type: CargoType;
   name: string;
@@ -363,10 +331,6 @@ export const SHARED_CARGO_TYPES: SharedCargoType[] = [
   { type: 'oversized', name: 'Sobredimensionado', description: 'Carga que excede dimensiones estándar' },
   { type: 'fragile', name: 'Frágil', description: 'Mercancía que requiere manejo delicado' },
 ];
-
-// ============================================
-// ÓRDENES PREDEFINIDAS
-// ============================================
 
 export interface SharedOrder {
   id: string;
@@ -569,10 +533,6 @@ export const SHARED_ORDERS: SharedOrder[] = [
   },
 ];
 
-// ============================================
-// FUNCIONES DE BÚSQUEDA
-// ============================================
-
 export function findCustomerById(id: string): SharedCustomer | undefined {
   return SHARED_CUSTOMERS.find(c => c.id === id);
 }
@@ -600,10 +560,6 @@ export function findOrderById(id: string): SharedOrder | undefined {
 export function findOrderByNumber(orderNumber: string): SharedOrder | undefined {
   return SHARED_ORDERS.find(o => o.orderNumber === orderNumber);
 }
-
-// ============================================
-// ESTADÍSTICAS GLOBALES
-// ============================================
 
 export function getOrderStats() {
   const orders = SHARED_ORDERS;

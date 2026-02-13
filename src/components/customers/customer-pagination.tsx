@@ -1,9 +1,3 @@
-/**
- * @fileoverview Componente de paginación para clientes
- * 
- * @module components/customers/customer-pagination
- */
-
 "use client";
 
 import { Button } from "@/components/ui/button";

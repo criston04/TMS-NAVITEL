@@ -1,19 +1,6 @@
-/**
- * @fileoverview Tipos e interfaces para el módulo de Monitoreo
- * @module types/monitoring
- * @description Define todas las estructuras de datos para Retransmisión,
- * Torre de Control, Multiventana y Rastreo Histórico.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 // Vehicle, Order, and OrderMilestone types are used for documentation purposes
 import type { Vehicle as _Vehicle } from "./models/vehicle";
 import type { Order as _Order, OrderMilestone as _OrderMilestone } from "./order";
-
-// ============================================================================
-// TIPOS BASE
-// ============================================================================
 
 /**
  * Estado de movimiento del vehículo
@@ -44,10 +31,6 @@ export type MilestoneTrackingStatus = "completed" | "in_progress" | "pending";
  * @enum {number}
  */
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 16 | 32;
-
-// ============================================================================
-// INTERFACES DE RETRANSMISIÓN
-// ============================================================================
 
 /**
  * Empresa proveedora de GPS
@@ -91,7 +74,7 @@ export interface RetransmissionRecord {
   gpsCompanyName: string;
   /** Última conexión registrada */
   lastConnection: string;
-  /** Estado de movimiento */
+  
   movementStatus: MovementStatus;
   /** Estado de retransmisión */
   retransmissionStatus: RetransmissionStatus;
@@ -156,10 +139,6 @@ export interface RetransmissionStats {
   disconnectedPercentage: number;
 }
 
-// ============================================================================
-// INTERFACES DE TORRE DE CONTROL
-// ============================================================================
-
 /**
  * Posición geográfica de un vehículo
  * @interface VehiclePosition
@@ -196,13 +175,13 @@ export interface TrackedVehicle {
   type: string;
   /** Posición actual */
   position: VehiclePosition;
-  /** Estado de movimiento */
+  
   movementStatus: MovementStatus;
   /** Estado de conexión */
   connectionStatus: RetransmissionStatus;
   /** ID del conductor asignado */
   driverId?: string;
-  /** Nombre del conductor */
+  
   driverName?: string;
   /** ID de la orden activa */
   activeOrderId?: string;
@@ -219,11 +198,11 @@ export interface TrackedVehicle {
  * @interface TrackedMilestone
  */
 export interface TrackedMilestone {
-  /** ID del hito */
+  
   id: string;
   /** Nombre del hito/geocerca */
   name: string;
-  /** Tipo de hito */
+  
   type: "origin" | "waypoint" | "destination";
   /** Secuencia en la ruta */
   sequence: number;
@@ -232,7 +211,7 @@ export interface TrackedMilestone {
     lat: number;
     lng: number;
   };
-  /** Estado de tracking */
+  
   trackingStatus: MilestoneTrackingStatus;
   /** Hora estimada de llegada */
   estimatedArrival?: string;
@@ -255,9 +234,9 @@ export interface TrackedOrder {
   id: string;
   /** Número de orden */
   orderNumber: string;
-  /** ID del cliente */
+  
   customerId: string;
-  /** Nombre del cliente */
+  
   customerName: string;
   /** Estado de la orden */
   status: string;
@@ -290,10 +269,6 @@ export interface ControlTowerFilters {
   connectionStatus?: RetransmissionStatus | "all";
 }
 
-// ============================================================================
-// INTERFACES DE MULTIVENTANA
-// ============================================================================
-
 /**
  * Panel individual de vehículo en multiventana
  * @interface VehiclePanel
@@ -309,7 +284,7 @@ export interface VehiclePanel {
   position: PanelPosition;
   /** Si el panel está activo/visible */
   isActive: boolean;
-  /** Fecha de agregado */
+  
   addedAt: string;
 }
 
@@ -338,10 +313,6 @@ export interface MultiWindowGridConfig {
   /** Máximo de paneles permitidos */
   maxPanels: number;
 }
-
-// ============================================================================
-// INTERFACES DE RASTREO HISTÓRICO
-// ============================================================================
 
 /**
  * Punto individual de una ruta histórica
@@ -377,7 +348,7 @@ export interface HistoricalRoutePoint {
  * @interface HistoricalRouteEvent
  */
 export interface HistoricalRouteEvent {
-  /** Tipo de evento */
+  
   type: "geofence_enter" | "geofence_exit" | "stop_start" | "stop_end" | "speed_alert" | "ignition_on" | "ignition_off";
   /** Descripción del evento */
   description: string;
@@ -396,9 +367,9 @@ export interface HistoricalRoute {
   vehicleId: string;
   /** Placa del vehículo */
   vehiclePlate: string;
-  /** Fecha de inicio */
+  
   startDate: string;
-  /** Fecha de fin */
+  
   endDate: string;
   /** Puntos de la ruta */
   points: HistoricalRoutePoint[];
@@ -471,10 +442,6 @@ export interface RoutePlaybackState {
   currentPoint: HistoricalRoutePoint | null;
 }
 
-// ============================================================================
-// INTERFACES DE WEBSOCKET
-// ============================================================================
-
 /**
  * Mensaje de actualización de posición
  * @interface PositionUpdateMessage
@@ -542,10 +509,6 @@ export interface WebSocketConfig {
   connectionTimeout: number;
 }
 
-// ============================================================================
-// TIPOS DE EXPORTACIÓN
-// ============================================================================
-
 /**
  * Formatos de exportación disponibles para rutas
  * @type RouteExportFormat
@@ -563,6 +526,6 @@ export interface RouteExportOptions {
   includeStats?: boolean;
   /** Incluir eventos */
   includeEvents?: boolean;
-  /** Nombre del archivo */
+  
   filename?: string;
 }

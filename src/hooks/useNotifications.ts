@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestión de notificaciones
- * @module hooks/useNotifications
- * @description Proporciona acceso al sistema de notificaciones, incluyendo
- * notificaciones en tiempo real, historial y preferencias.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { notificationService } from "@/services/notification.service";
 import type {
@@ -18,9 +9,6 @@ import type {
   CreateNotificationDTO,
 } from "@/types/notification";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 /**
  * Estado del hook
@@ -51,7 +39,7 @@ interface UseNotificationsReturn extends UseNotificationsState {
   deleteNotification: (id: string) => Promise<void>;
   /** Aplicar filtros */
   applyFilters: (filters: NotificationFilters) => void;
-  /** Filtros actuales */
+  
   filters: NotificationFilters;
   /** Crear notificación */
   createNotification: (data: CreateNotificationDTO) => Promise<SystemNotification>;
@@ -93,9 +81,6 @@ const _defaultStats: NotificationStats = {
   },
 };
 
-/* ============================================
-   HOOK
-   ============================================ */
 
 /**
  * Hook para gestionar notificaciones del sistema
@@ -104,33 +89,6 @@ const _defaultStats: NotificationStats = {
  * @param autoSubscribe - Suscribirse a notificaciones en tiempo real
  * @returns Estado y funciones para gestionar notificaciones
  * 
- * @example
- * ```tsx
- * function NotificationBell() {
- *   const {
- *     notifications,
- *     unreadCount,
- *     hasUnread,
- *     markAsRead,
- *     markAllAsRead
- *   } = useNotifications("user-001");
- * 
- *   return (
- *     <div>
- *       <Badge count={unreadCount}>
- *         <BellIcon />
- *       </Badge>
- *       {notifications.map(n => (
- *         <NotificationItem 
- *           key={n.id} 
- *           notification={n}
- *           onRead={() => markAsRead(n.id)}
- *         />
- *       ))}
- *     </div>
- *   );
- * }
- * ```
  */
 export function useNotifications(
   userId?: string,
@@ -363,12 +321,10 @@ export function useNotifications(
     }
   }, [userId]);
 
-  // Notificaciones no leídas
   const unreadNotifications = useMemo(() => {
     return state.notifications.filter(n => !n.readAt);
   }, [state.notifications]);
 
-  // Notificaciones por categoría
   const notificationsByCategory = useMemo(() => {
     const categories: Record<NotificationCategory, SystemNotification[]> = {
       order: [],

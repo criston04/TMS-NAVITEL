@@ -34,7 +34,7 @@ import {
   DollarSign,
   ArrowLeft,
 } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { WorkOrder, Vehicle, Workshop } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -85,6 +85,7 @@ const priorityConfig = {
 } as const;
 
 export default function WorkOrdersPage() {
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(true);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -100,9 +101,9 @@ export default function WorkOrdersPage() {
     try {
       setLoading(true);
       const [workOrdersData, vehiclesData, workshopsData] = await Promise.all([
-        maintenanceService.getWorkOrders(),
-        maintenanceService.getVehicles(),
-        maintenanceService.getWorkshops(),
+        maintenance.getWorkOrders(),
+        maintenance.getVehicles(),
+        maintenance.getWorkshops(),
       ]);
       setWorkOrders(workOrdersData);
       setVehicles(vehiclesData);

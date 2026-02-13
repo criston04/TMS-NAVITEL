@@ -1,9 +1,3 @@
-/**
- * @fileoverview Tooltip para punto de ruta histórica
- * 
- * @module components/monitoring/historical/route-point-tooltip
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

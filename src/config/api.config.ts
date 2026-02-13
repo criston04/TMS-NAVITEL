@@ -1,12 +1,3 @@
-/**
- * @fileoverview Configuración centralizada de API
- * 
- * Single Source of Truth para URLs, timeouts y configuración HTTP.
- * Facilita el cambio entre entornos (dev, staging, prod).
- * 
- * @module config/api
- */
-
 /** Entornos disponibles */
 type Environment = "development" | "staging" | "production";
 
@@ -59,7 +50,15 @@ export const apiConfig = configs[currentEnv];
  * Facilita agregar nuevos módulos sin modificar código existente (OCP)
  */
 export const API_ENDPOINTS = {
-  // Módulo MAESTRO
+  // ── AUTH ──────────────────────────────
+  auth: {
+    login: "/auth/login",
+    logout: "/auth/logout",
+    refresh: "/auth/refresh",
+    me: "/auth/me",
+  },
+
+  // ── MÓDULO MAESTRO ───────────────────
   master: {
     customers: "/master/customers",
     drivers: "/master/drivers",
@@ -67,24 +66,87 @@ export const API_ENDPOINTS = {
     operators: "/master/operators",
     products: "/master/products",
     geofences: "/master/geofences",
+    assignments: "/master/assignments",
+    audit: "/master/audit",
+    maintenance: "/master/maintenance",
+    medicalExams: "/master/medical-exams",
+    workflows: "/master/workflows",
   },
-  // Módulo OPERACIONES
+
+  // ── MÓDULO OPERACIONES ───────────────
   operations: {
-    controlTower: "/operations/control-tower",
     orders: "/operations/orders",
     scheduling: "/operations/scheduling",
+    incidents: "/operations/incidents",
+    orderWorkflows: "/operations/order-workflows",
   },
-  // Módulo FINANZAS
+
+  // ── MÓDULO MONITOREO ─────────────────
+  monitoring: {
+    tracking: "/monitoring/tracking",
+    historical: "/monitoring/historical",
+    retransmission: "/monitoring/retransmission",
+    geofenceEvents: "/monitoring/geofence-events",
+    websocket: "/monitoring/ws",
+  },
+
+  // ── MÓDULO FINANZAS ──────────────────
   finance: {
     invoices: "/finance/invoices",
-    pricing: "/finance/pricing",
+    payments: "/finance/payments",
+    costs: "/finance/costs",
+    rates: "/finance/rates",
+    stats: "/finance/stats",
+    aging: "/finance/aging",
+    profitability: "/finance/profitability",
+    cashFlow: "/finance/cash-flow",
+    customerSummary: "/finance/customers", // + /:customerId/summary
   },
-  // Auth
-  auth: {
-    login: "/auth/login",
-    logout: "/auth/logout",
-    refresh: "/auth/refresh",
-    me: "/auth/me",
+
+  // ── MÓDULO REPORTES ──────────────────
+  reports: {
+    definitions: "/reports/definitions",
+    templates: "/reports/templates",
+    generated: "/reports/generated",
+    schedules: "/reports/schedules",
+  },
+
+  // ── MÓDULO NOTIFICACIONES ────────────
+  notifications: {
+    base: "/notifications",
+    preferences: "/notifications/preferences",
+    templates: "/notifications/templates",
+    stats: "/notifications/stats",
+  },
+
+  // ── MÓDULO CONFIGURACIÓN ─────────────
+  settings: {
+    base: "/settings",
+    roles: "/settings/roles",
+    integrations: "/settings/integrations",
+    audit: "/settings/audit",
+  },
+
+  // ── MÓDULO MANTENIMIENTO ─────────────
+  maintenance: {
+    vehicles: "/maintenance/vehicles",
+    schedules: "/maintenance/schedules",
+    workOrders: "/maintenance/work-orders",
+    inspections: "/maintenance/inspections",
+    parts: "/maintenance/parts",
+    workshops: "/maintenance/workshops",
+    breakdowns: "/maintenance/breakdowns",
+    alerts: "/maintenance/alerts",
+    metrics: "/maintenance/metrics",
+    documents: "/maintenance/documents",
+    settings: "/maintenance/settings",
+  },
+
+  // ── SERVICIO DE RUTAS ────────────────
+  routing: {
+    calculate: "/routing/calculate",
+    optimize: "/routing/optimize",
+    geocode: "/routing/geocode",
   },
 } as const;
 

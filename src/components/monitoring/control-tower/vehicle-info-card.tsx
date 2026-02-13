@@ -1,9 +1,3 @@
-/**
- * @fileoverview Tarjeta de información de vehículo
- * 
- * @module components/monitoring/control-tower/vehicle-info-card
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

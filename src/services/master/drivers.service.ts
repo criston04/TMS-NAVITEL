@@ -1,11 +1,3 @@
-/**
- * @fileoverview Servicio de Conductores
- * 
- * Incluye funcionalidades de checklist y validación de documentos.
- * 
- * @module services/master/drivers.service
- */
-
 import { BulkService } from "@/services/base.service";
 import { API_ENDPOINTS } from "@/config/api.config";
 import { Driver, DriverStats } from "@/types/models";

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modal de importación de clientes desde CSV/Excel
- * 
- * @module components/customers/customer-import-modal
- */
-
 "use client";
 
 import { useState, useCallback, useRef } from "react";

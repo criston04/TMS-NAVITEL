@@ -1,12 +1,3 @@
-/**
- * @fileoverview Datos mock para el módulo de programación
- * @module mocks/scheduling
- * @description Funciones y datos específicos del módulo de programación
- * que utilizan los datos compartidos centralizados.
- * @author TMS-NAVITEL
- * @version 2.0.0
- */
-
 import type { Order } from '@/types/order';
 import type { 
   SchedulingKPIs,
@@ -15,7 +6,6 @@ import type {
   ResourceSuggestion,
 } from '@/types/scheduling';
 
-// Importar datos compartidos
 import {
   SHARED_VEHICLES,
   SHARED_DRIVERS,
@@ -30,7 +20,6 @@ import {
 
 import type { VehicleType } from '@/types/models/vehicle';
 
-// Tipos para el módulo de scheduling
 export interface MockVehicle {
   id: string;
   plateNumber: string;
@@ -49,10 +38,6 @@ export interface MockDriver {
   licenseExpiry: string;
   hoursThisWeek: number;
 }
-
-// ============================================
-// DATOS DERIVADOS PARA SCHEDULING
-// ============================================
 
 /**
  * Vehículos disponibles para programación
@@ -83,9 +68,7 @@ export const MOCK_DRIVERS = SHARED_DRIVERS.map(d => ({
   hoursThisWeek: d.hoursThisWeek,
 }));
 
-// ============================================
 // KPIs POR DEFECTO
-// ============================================
 
 export function getSchedulingKPIs(): SchedulingKPIs {
   const orderStats = getOrderStats();
@@ -113,10 +96,6 @@ export function getSchedulingKPIs(): SchedulingKPIs {
 
 export const DEFAULT_KPIS: SchedulingKPIs = getSchedulingKPIs();
 
-// ============================================
-// CONFIGURACIÓN POR DEFECTO
-// ============================================
-
 export const DEFAULT_SCHEDULING_CONFIG: SchedulingFeatureFlags = {
   enableHOSValidation: true,
   maxDrivingHours: 10,
@@ -126,9 +105,7 @@ export const DEFAULT_SCHEDULING_CONFIG: SchedulingFeatureFlags = {
   gpsIntegrationType: 'internal',
 };
 
-// ============================================
 // GENERADORES DE DATOS
-// ============================================
 
 /**
  * Genera órdenes pendientes mock usando datos compartidos
@@ -284,7 +261,6 @@ export function generateMockSuggestions(_orderId: string): ResourceSuggestion[] 
   return [...vehicleSuggestions, ...driverSuggestions];
 }
 
-// Funciones de búsqueda para compatibilidad
 export function findVehicleById(id: string): MockVehicle | undefined {
   return MOCK_VEHICLES.find(v => v.id === id);
 }

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de seguridad
- * @module components/settings/security-settings
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

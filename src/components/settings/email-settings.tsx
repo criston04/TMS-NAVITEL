@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de email
- * @module components/settings/email-settings
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

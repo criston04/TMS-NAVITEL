@@ -1,9 +1,3 @@
-/**
- * @fileoverview Índice de componentes de clientes
- * 
- * @module components/customers
- */
-
 export { CustomerFormModal } from "./customer-form-modal";
 export { CustomerDetailDrawer } from "./customer-detail-drawer";
 export { CustomerDeleteDialog } from "./customer-delete-dialog";

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Declaraciones de tipos para módulos sin tipos
- * 
- * @module types/modules.d.ts
- */
-
 // leaflet-path-drag
 declare module "leaflet-path-drag" {
   import * as L from "leaflet";

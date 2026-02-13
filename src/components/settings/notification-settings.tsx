@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de notificaciones
- * @module components/settings/notification-settings
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

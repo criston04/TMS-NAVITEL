@@ -1,18 +1,5 @@
-/**
- * @fileoverview Modelos del módulo MAESTRO - Conductores
- * 
- * Define las estructuras de datos para la gestión completa de conductores
- * incluyendo documentación legal, exámenes médicos, certificaciones y
- * control de horas de conducción según normativa peruana (MTC).
- * 
- * @module types/models/driver
- */
-
 import { ActivatableEntity, RequiredDocument, ValidationChecklist } from "@/types/common";
 
-/* ============================================
-   TIPOS BASE Y ENUMERACIONES
-   ============================================ */
 
 /**
  * Categorías de licencia de conducir según MTC Perú
@@ -61,9 +48,6 @@ export type DriverDocumentType = "DNI" | "CE" | "PASSPORT";
  */
 export type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
 
-/* ============================================
-   INFORMACIÓN DE CONTACTO
-   ============================================ */
 
 /**
  * Contacto de emergencia del conductor
@@ -83,9 +67,6 @@ export interface EmergencyContact {
   address?: string;
 }
 
-/* ============================================
-   LICENCIA DE CONDUCIR
-   ============================================ */
 
 /**
  * Restricciones de la licencia
@@ -111,7 +92,7 @@ export interface DriverLicense {
   category: LicenseCategory;
   /** Fecha de emisión */
   issueDate: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Entidad emisora */
   issuingAuthority: string;
@@ -131,9 +112,6 @@ export interface DriverLicense {
   lastVerificationDate?: string;
 }
 
-/* ============================================
-   EXÁMENES MÉDICOS Y PSICOLÓGICOS
-   ============================================ */
 
 /**
  * Tipo de examen médico
@@ -156,11 +134,11 @@ export type ExamResult = "approved" | "conditional" | "rejected" | "pending";
 export interface MedicalExam {
   /** ID único */
   id: string;
-  /** Tipo de examen */
+  
   type: MedicalExamType;
-  /** Fecha del examen */
+  
   date: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Resultado */
   result: ExamResult;
@@ -180,7 +158,7 @@ export interface MedicalExam {
   fileUrl?: string;
   /** Observaciones */
   observations?: string;
-  /** Fecha de registro */
+  
   createdAt: string;
 }
 
@@ -206,9 +184,9 @@ export interface MedicalRestriction {
 export interface PsychologicalExam {
   /** ID único */
   id: string;
-  /** Fecha del examen */
+  
   date: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Resultado */
   result: ExamResult;
@@ -226,7 +204,7 @@ export interface PsychologicalExam {
   fileUrl?: string;
   /** Observaciones */
   observations?: string;
-  /** Fecha de registro */
+  
   createdAt: string;
 }
 
@@ -246,9 +224,6 @@ export interface PsychologicalProfile {
   additionalNotes?: string;
 }
 
-/* ============================================
-   CERTIFICACIONES Y CAPACITACIONES
-   ============================================ */
 
 /**
  * Tipos de certificación/capacitación
@@ -295,13 +270,10 @@ export interface TrainingCertification {
   fileUrl?: string;
   /** Es obligatorio */
   isRequired: boolean;
-  /** Fecha de registro */
+  
   createdAt: string;
 }
 
-/* ============================================
-   ANTECEDENTES Y RÉCORD
-   ============================================ */
 
 /**
  * Antecedentes policiales
@@ -311,7 +283,7 @@ export interface PoliceRecord {
   id: string;
   /** Fecha de emisión */
   issueDate: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Resultado */
   result: "clean" | "with_records" | "pending";
@@ -331,7 +303,7 @@ export interface CriminalRecord {
   id: string;
   /** Fecha de emisión */
   issueDate: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Resultado */
   result: "clean" | "with_records" | "pending";
@@ -349,7 +321,7 @@ export interface CriminalRecord {
 export interface DrivingRecord {
   /** ID único */
   id: string;
-  /** Fecha de consulta */
+  
   queryDate: string;
   /** Papeletas pendientes */
   pendingTickets: number;
@@ -387,9 +359,6 @@ export interface DrivingInfraction {
   points: number;
 }
 
-/* ============================================
-   CONTROL DE HORAS DE CONDUCCIÓN
-   ============================================ */
 
 /**
  * Configuración de límites de conducción según normativa
@@ -457,9 +426,6 @@ export interface WeeklyHoursSummary {
   dailyBreakdown: DrivingHoursLog[];
 }
 
-/* ============================================
-   HISTORIAL E INCIDENTES
-   ============================================ */
 
 /**
  * Tipo de incidente
@@ -486,11 +452,11 @@ type DriverIncidentSeverity = "low" | "medium" | "high" | "critical";
 export interface DriverIncident {
   /** ID único */
   id: string;
-  /** Tipo de incidente */
+  
   type: IncidentType;
   /** Severidad */
   severity: DriverIncidentSeverity;
-  /** Fecha del incidente */
+  
   date: string;
   /** Descripción */
   description: string;
@@ -508,15 +474,12 @@ export interface DriverIncident {
   status: "open" | "investigating" | "resolved" | "closed";
   /** Archivos adjuntos */
   attachments?: string[];
-  /** Fecha de registro */
+  
   createdAt: string;
   /** Fecha de resolución */
   resolvedAt?: string;
 }
 
-/* ============================================
-   EVALUACIÓN DE DESEMPEÑO
-   ============================================ */
 
 /**
  * Métricas de desempeño del conductor
@@ -543,9 +506,6 @@ export interface DriverPerformanceMetrics {
   };
 }
 
-/* ============================================
-   ENTIDAD PRINCIPAL: CONDUCTOR
-   ============================================ */
 
 /**
  * Entidad Conductor - Modelo completo
@@ -577,13 +537,13 @@ export interface Driver extends ActivatableEntity {
   phone: string;
   /** Teléfono alternativo */
   alternativePhone?: string;
-  /** Fecha de nacimiento */
+  
   birthDate: string;
   /** Lugar de nacimiento */
   birthPlace?: string;
   /** Nacionalidad */
   nationality: string;
-  /** Tipo de sangre */
+  
   bloodType?: BloodType;
   /** Dirección de domicilio */
   address: string;
@@ -695,9 +655,6 @@ export interface Driver extends ActivatableEntity {
   tags?: string[];
 }
 
-/* ============================================
-   TIPOS PARA CREACIÓN Y ACTUALIZACIÓN
-   ============================================ */
 
 /**
  * Datos para crear un nuevo conductor
@@ -720,15 +677,12 @@ export type CreateDriverDTO = Omit<Driver,
  */
 export type UpdateDriverDTO = Partial<CreateDriverDTO>;
 
-/* ============================================
-   ESTADÍSTICAS
-   ============================================ */
 
 /**
  * Estadísticas de conductores
  */
 export interface DriverStats {
-  /** Total de conductores */
+  
   total: number;
   /** Conductores habilitados */
   enabled: number;
@@ -754,19 +708,19 @@ export interface DriverStats {
  * Alertas de documentación
  */
 export interface DriverDocumentAlert {
-  /** ID del conductor */
+  
   driverId: string;
-  /** Nombre del conductor */
+  
   driverName: string;
-  /** Tipo de documento */
+  
   documentType: string;
-  /** Nombre del documento */
+  
   documentName: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Días restantes */
   daysRemaining: number;
   /** Nivel de alerta */
   alertLevel: "warning" | "urgent" | "expired";
 }
-
+

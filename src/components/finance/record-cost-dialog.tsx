@@ -1,8 +1,3 @@
-/**
- * @fileoverview Diálogo para registrar costo
- * @module components/finance/record-cost-dialog
- */
-
 "use client";
 
 import { useState } from "react";
@@ -47,7 +42,6 @@ const costTypes: { value: CostType; label: string }[] = [
   { value: "other", label: "Otro" },
 ];
 
-// Vehículos mock
 const vehicles = [
   { id: "veh-001", plate: "ABC-123" },
   { id: "veh-002", plate: "DEF-456" },
@@ -55,7 +49,6 @@ const vehicles = [
   { id: "veh-004", plate: "JKL-012" },
 ];
 
-// Órdenes mock
 const orders = [
   { id: "ord-001", number: "ORD-2024-001" },
   { id: "ord-002", number: "ORD-2024-002" },

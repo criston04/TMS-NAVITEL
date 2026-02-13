@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestionar el historial de órdenes de un conductor
- * @module hooks/useDriverOrderHistory
- * @description Conecta la información del conductor con su historial de órdenes,
- * proporcionando datos estadísticos y filtrado temporal.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { orderService } from '@/services/orders';
 import type { Order, OrderStatus } from '@/types/order';
@@ -61,7 +52,7 @@ interface UseDriverOrderHistoryReturn extends UseDriverOrderHistoryState {
   refresh: () => Promise<void>;
   /** Aplicar filtros */
   applyFilters: (filters: DriverOrderHistoryFilters) => void;
-  /** Filtros actuales */
+  
   filters: DriverOrderHistoryFilters;
   /** Órdenes completadas */
   completedOrders: Order[];
@@ -91,31 +82,6 @@ const defaultStats: DriverOrderStats = {
  * @param initialFilters - Filtros iniciales opcionales
  * @returns Estado y funciones para gestionar el historial
  * 
- * @example
- * ```tsx
- * function DriverOrderHistory({ driverId }: { driverId: string }) {
- *   const {
- *     orders,
- *     stats,
- *     isLoading,
- *     completedOrders,
- *     activeOrders,
- *     successRate,
- *     applyFilters
- *   } = useDriverOrderHistory(driverId);
- * 
- *   if (isLoading) return <Spinner />;
- * 
- *   return (
- *     <div>
- *       <p>Órdenes totales: {stats.total}</p>
- *       <p>Tasa de éxito: {successRate}%</p>
- *       <p>Entregas a tiempo: {stats.onTimeDeliveryRate}%</p>
- *       <OrderList orders={orders} />
- *     </div>
- *   );
- * }
- * ```
  */
 export function useDriverOrderHistory(
   driverId: string | undefined,
@@ -186,12 +152,10 @@ export function useDriverOrderHistory(
     await loadOrderHistory();
   }, [loadOrderHistory]);
 
-  // Órdenes completadas
   const completedOrders = useMemo(() => {
     return state.orders.filter(o => o.status === 'completed' || o.status === 'closed');
   }, [state.orders]);
 
-  // Órdenes activas (en progreso)
   const activeOrders = useMemo(() => {
     return state.orders.filter(o => 
       o.status === 'in_transit' || 

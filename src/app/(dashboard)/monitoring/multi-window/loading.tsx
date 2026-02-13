@@ -1,8 +1,3 @@
-/**
- * @fileoverview Loading skeleton para Multiventana
- * @module app/(dashboard)/monitoring/multi-window/loading
- */
-
 export default function MultiWindowLoading() {
   return (
     <div className="p-6">

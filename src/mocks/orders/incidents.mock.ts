@@ -1,11 +1,3 @@
-/**
- * @fileoverview Mock data para catálogo de Incidencias
- * @module mocks/orders/incidents
- * @description Genera catálogo predefinido de incidencias y funciones de utilidad.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type {
   IncidentCatalogItem,
   IncidentCategory,

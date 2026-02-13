@@ -1,9 +1,3 @@
-/**
- * @fileoverview Diálogo de confirmación para eliminar cliente
- * 
- * @module components/customers/customer-delete-dialog
- */
-
 "use client";
 
 import {

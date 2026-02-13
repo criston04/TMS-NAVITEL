@@ -1,12 +1,3 @@
-/**
- * @fileoverview Timeline de recursos para el módulo de programación
- * @module components/scheduling/SchedulingTimeline
- * @description Muestra la línea de tiempo de vehículos/conductores
- * con sus asignaciones por hora.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useRef, useEffect } from 'react';
@@ -27,10 +18,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface SchedulingTimelineProps {
   /** Datos de timeline por recurso */
   timelines: ResourceTimeline[];
@@ -50,19 +37,11 @@ interface SchedulingTimelineProps {
   className?: string;
 }
 
-// ============================================
-// CONSTANTES
-// ============================================
-
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const HOUR_WIDTH = 80; // px por hora
 const RESOURCE_HEIGHT = 64; // px por recurso
 const HEADER_HEIGHT = 44;
 const RESOURCE_COLUMN_WIDTH = 180;
-
-// ============================================
-// HELPERS
-// ============================================
 
 function formatHour(hour: number): string {
   return `${hour.toString().padStart(2, '0')}:00`;
@@ -88,9 +67,7 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-// ============================================
 // COMPONENTE: BARRA DE ORDEN EN TIMELINE
-// ============================================
 
 const TimelineOrderBar = memo(function TimelineOrderBar({
   order,
@@ -157,9 +134,7 @@ const TimelineOrderBar = memo(function TimelineOrderBar({
   );
 });
 
-// ============================================
 // COMPONENTE: FILA DE RECURSO
-// ============================================
 
 const ResourceRow = memo(function ResourceRow({
   timeline,
@@ -285,9 +260,7 @@ const ResourceRow = memo(function ResourceRow({
   );
 });
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export const SchedulingTimeline = memo(function SchedulingTimeline({
   timelines,

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Lista de costos
- * @module components/finance/costs-list
- */
-
 "use client";
 
 import { useState } from "react";

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Diálogo para crear nueva factura
- * @module components/finance/create-invoice-dialog
- */
-
 "use client";
 
 import { useState } from "react";
@@ -54,7 +49,6 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
     { id: "1", description: "", quantity: 1, unitPrice: 0, total: 0 },
   ]);
 
-  // Clientes mock
   const customers = [
     { id: "cust-001", name: "Corporación ABC S.A.C." },
     { id: "cust-002", name: "Transportes del Sur" },

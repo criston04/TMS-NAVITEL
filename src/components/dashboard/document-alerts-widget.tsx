@@ -1,12 +1,3 @@
-/**
- * @fileoverview Widget de Alertas de Documentos para Dashboard
- * 
- * Componente compacto que muestra un resumen de documentos
- * vencidos o por vencer de conductores y vehículos.
- * 
- * @module components/dashboard/document-alerts-widget
- */
-
 "use client";
 
 import * as React from "react";
@@ -36,9 +27,6 @@ import { Driver } from "@/types/models/driver";
 import { Vehicle } from "@/types/models/vehicle";
 import { cn } from "@/lib/utils";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 interface DocumentAlertsWidgetProps {
   drivers: Driver[];
@@ -49,9 +37,6 @@ interface DocumentAlertsWidgetProps {
   className?: string;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 type AlertLevel = "expired" | "urgent" | "warning" | "ok";
 
@@ -86,9 +71,6 @@ const ALERT_LEVEL_CONFIG: Record<AlertLevel, { icon: typeof AlertCircle; color: 
   },
 };
 
-/* ============================================
-   COMPONENTE PRINCIPAL
-   ============================================ */
 
 export function DocumentAlertsWidget({
   drivers,
@@ -256,9 +238,6 @@ export function DocumentAlertsWidget({
   );
 }
 
-/* ============================================
-   COMPONENTE COMPACTO
-   ============================================ */
 
 export function DocumentAlertsCompact({
   drivers,

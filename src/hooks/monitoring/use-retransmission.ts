@@ -1,10 +1,3 @@
-/**
- * @fileoverview Hook para gestión de retransmisión GPS
- * 
- * @module hooks/monitoring/use-retransmission
- * @description Maneja estado, filtros y auto-refresh de registros de retransmisión
- */
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -40,11 +33,11 @@ export interface UseRetransmissionState {
   gpsCompanies: GpsCompany[];
   /** Lista de operadores/transportistas */
   companies: string[];
-  /** Estado de carga */
+  
   isLoading: boolean;
   /** Error si ocurrió alguno */
   error: Error | null;
-  /** Filtros actuales */
+  
   filters: RetransmissionFilters;
   /** Última actualización */
   lastUpdated: Date | null;
@@ -76,21 +69,6 @@ export interface UseRetransmissionActions {
 /**
  * Hook para gestión de retransmisión GPS
  * 
- * @example
- * ```tsx
- * const { 
- *   records, 
- *   stats, 
- *   isLoading, 
- *   filters, 
- *   setFilters, 
- *   updateComment,
- *   refresh 
- * } = useRetransmission({
- *   autoRefresh: true,
- *   refreshIntervalMs: 15000,
- * });
- * ```
  */
 export function useRetransmission(
   options: UseRetransmissionOptions = {}
@@ -101,7 +79,6 @@ export function useRetransmission(
     initialFilters = {},
   } = options;
 
-  // Estado
   const [records, setRecords] = useState<RetransmissionRecord[]>([]);
   const [stats, setStats] = useState<RetransmissionStats>({
     total: 0,
@@ -238,7 +215,6 @@ export function useRetransmission(
     loadData(filters);
   }, [filters, loadData]);
 
-  // Configurar auto-refresh
   useEffect(() => {
     if (!autoRefresh || !autoRefreshEnabled.current) return;
 
@@ -257,7 +233,6 @@ export function useRetransmission(
 
   // Memoizar el retorno para evitar re-renders innecesarios
   return useMemo(() => ({
-    // Estado
     records,
     stats,
     gpsCompanies,
@@ -266,7 +241,6 @@ export function useRetransmission(
     error,
     filters,
     lastUpdated,
-    // Acciones
     setFilters,
     updateFilter,
     clearFilters,

@@ -1,11 +1,3 @@
-/**
- * @fileoverview Hooks personalizados para el módulo de Órdenes
- * @module hooks/useOrders
- * @description Hooks para gestión de estado y operaciones de órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -22,27 +14,23 @@ import type {
 } from '@/types/order';
 import { orderService } from '@/services/orders';
 
-// ============================================
-// TIPOS
-// ============================================
-
 /**
  * Estado del hook useOrders
  */
 interface UseOrdersState {
   /** Lista de órdenes */
   orders: Order[];
-  /** Total de registros */
+  
   total: number;
-  /** Página actual */
+  
   page: number;
   /** Total de páginas */
   totalPages: number;
   /** Contadores por estado */
   statusCounts: Record<OrderStatus, number>;
-  /** Está cargando */
+  
   isLoading: boolean;
-  /** Error si lo hay */
+  
   error: string | null;
 }
 
@@ -64,7 +52,7 @@ interface UseOrdersOptions {
  * Resultado del hook useOrders
  */
 interface UseOrdersResult extends UseOrdersState {
-  /** Filtros actuales */
+  
   filters: OrderFilters;
   /** Actualiza los filtros */
   setFilters: (filters: OrderFilters) => void;
@@ -98,28 +86,10 @@ interface UseOrdersResult extends UseOrdersState {
   isSelected: (id: string) => boolean;
 }
 
-// ============================================
-// HOOK: useOrders
-// ============================================
-
 /**
  * Hook para gestión de lista de órdenes con filtros y paginación
  * @param options - Opciones del hook
  * @returns Estado y métodos para gestionar órdenes
- * @example
- * ```tsx
- * const {
- *   orders,
- *   isLoading,
- *   filters,
- *   setFilters,
- *   selectedIds,
- *   toggleSelection,
- * } = useOrders({
- *   initialFilters: { status: 'in_transit' },
- *   pageSize: 20,
- * });
- * ```
  */
 export function useOrders(options: UseOrdersOptions = {}): UseOrdersResult {
   const {
@@ -129,7 +99,6 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersResult {
     pollingInterval = 0,
   } = options;
 
-  // Estado principal
   const [state, setState] = useState<UseOrdersState>({
     orders: [],
     total: 0,
@@ -150,7 +119,6 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersResult {
     error: null,
   });
 
-  // Filtros
   const [filters, setFiltersState] = useState<OrderFilters>({
     ...initialFilters,
     pageSize,
@@ -373,19 +341,15 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersResult {
   };
 }
 
-// ============================================
-// HOOK: useOrder
-// ============================================
-
 /**
  * Estado del hook useOrder
  */
 interface UseOrderState {
   /** Orden cargada */
   order: Order | null;
-  /** Está cargando */
+  
   isLoading: boolean;
-  /** Error si lo hay */
+  
   error: string | null;
 }
 
@@ -574,10 +538,6 @@ export function useOrder(
   };
 }
 
-// ============================================
-// HOOK: useOrderFilters
-// ============================================
-
 /**
  * Hook para gestionar filtros de órdenes con persistencia en URL
  * @param initialFilters - Filtros iniciales
@@ -667,10 +627,6 @@ export function useOrderFilters(initialFilters: OrderFilters = {}) {
     isLoadingOptions: isLoading,
   };
 }
-
-// ============================================
-// HOOK: useOrderRealtime
-// ============================================
 
 /**
  * Hook para suscripción a eventos en tiempo real de órdenes

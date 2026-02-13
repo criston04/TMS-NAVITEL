@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel exports para componentes de Monitoreo
- * @module components/monitoring
- */
-
 // Common components
 export * from "./common";
 

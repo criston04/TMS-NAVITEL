@@ -1,13 +1,11 @@
-/**
- * @fileoverview Servicio de Finanzas
- * @module services/finance.service
- * @description Gestiona facturas, pagos, costos de transporte,
- * tarifas y análisis financiero del TMS.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
+import {
+  mockInvoices,
+  mockPayments,
+  mockCosts,
+  mockRates,
+} from "@/mocks/finance";
 import type {
   Invoice,
   InvoiceStatus,
@@ -29,274 +27,6 @@ import type {
   CostFilters,
 } from "@/types/finance";
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
-
-const mockInvoices: Invoice[] = [
-  {
-    id: "inv-001",
-    invoiceNumber: "INV-2026-00001",
-    type: "service",
-    status: "paid",
-    customerId: "cust-001",
-    customerName: "Alicorp S.A.A.",
-    customerTaxId: "20100055237",
-    customerAddress: "Av. Argentina 4793, Lima",
-    customerEmail: "pagos@alicorp.com.pe",
-    issueDate: "2026-01-15T00:00:00Z",
-    dueDate: "2026-02-14T00:00:00Z",
-    paidDate: "2026-02-10T00:00:00Z",
-    currency: "PEN",
-    subtotal: 15000.00,
-    taxTotal: 2700.00,
-    discountTotal: 0,
-    total: 17700.00,
-    amountPaid: 17700.00,
-    amountDue: 0,
-    lineItems: [
-      {
-        id: "li-001",
-        description: "Servicio de transporte Lima - Arequipa",
-        quantity: 5,
-        unitPrice: 3000.00,
-        unit: "viaje",
-        taxRate: 18,
-        taxAmount: 2700.00,
-        discount: 0,
-        discountType: "percentage",
-        subtotal: 15000.00,
-        total: 17700.00,
-        orderId: "ord-001",
-        orderNumber: "ORD-2026-00001",
-        serviceDate: "2026-01-10T00:00:00Z",
-      },
-    ],
-    taxes: [{ id: "tax-001", name: "IGV", code: "IGV", rate: 18, amount: 2700.00, isInclusive: false }],
-    orderIds: ["ord-001"],
-    createdBy: "admin",
-    createdAt: "2026-01-15T00:00:00Z",
-    updatedAt: "2026-02-10T00:00:00Z",
-    sentAt: "2026-01-15T10:00:00Z",
-  },
-  {
-    id: "inv-002",
-    invoiceNumber: "INV-2026-00002",
-    type: "service",
-    status: "overdue",
-    customerId: "cust-002",
-    customerName: "Gloria S.A.",
-    customerTaxId: "20100190797",
-    issueDate: "2026-01-01T00:00:00Z",
-    dueDate: "2026-01-31T00:00:00Z",
-    currency: "PEN",
-    subtotal: 25000.00,
-    taxTotal: 4500.00,
-    discountTotal: 500.00,
-    total: 29000.00,
-    amountPaid: 10000.00,
-    amountDue: 19000.00,
-    lineItems: [
-      {
-        id: "li-002",
-        description: "Servicio de distribución Lima metropolitana",
-        quantity: 10,
-        unitPrice: 2500.00,
-        unit: "ruta",
-        taxRate: 18,
-        taxAmount: 4500.00,
-        discount: 500.00,
-        discountType: "fixed",
-        subtotal: 24500.00,
-        total: 29000.00,
-      },
-    ],
-    taxes: [{ id: "tax-002", name: "IGV", code: "IGV", rate: 18, amount: 4500.00, isInclusive: false }],
-    createdBy: "admin",
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "inv-003",
-    invoiceNumber: "INV-2026-00003",
-    type: "freight",
-    status: "pending",
-    customerId: "cust-003",
-    customerName: "Backus S.A.",
-    customerTaxId: "20100113610",
-    issueDate: "2026-02-01T00:00:00Z",
-    dueDate: "2026-03-03T00:00:00Z",
-    currency: "PEN",
-    subtotal: 50000.00,
-    taxTotal: 9000.00,
-    discountTotal: 0,
-    total: 59000.00,
-    amountPaid: 0,
-    amountDue: 59000.00,
-    lineItems: [
-      {
-        id: "li-003",
-        description: "Flete internacional Chile - Lima",
-        quantity: 2,
-        unitPrice: 25000.00,
-        unit: "contenedor",
-        taxRate: 18,
-        taxAmount: 9000.00,
-        discount: 0,
-        discountType: "percentage",
-        subtotal: 50000.00,
-        total: 59000.00,
-      },
-    ],
-    taxes: [{ id: "tax-003", name: "IGV", code: "IGV", rate: 18, amount: 9000.00, isInclusive: false }],
-    createdBy: "admin",
-    createdAt: "2026-02-01T00:00:00Z",
-    updatedAt: "2026-02-01T00:00:00Z",
-  },
-];
-
-const mockPayments: Payment[] = [
-  {
-    id: "pay-001",
-    paymentNumber: "PAY-2026-00001",
-    invoiceId: "inv-001",
-    invoiceNumber: "INV-2026-00001",
-    customerId: "cust-001",
-    customerName: "Alicorp S.A.A.",
-    amount: 17700.00,
-    currency: "PEN",
-    method: "bank_transfer",
-    status: "completed",
-    paymentDate: "2026-02-10T00:00:00Z",
-    referenceNumber: "TRF-202602100001",
-    bankName: "BCP",
-    createdAt: "2026-02-10T00:00:00Z",
-    updatedAt: "2026-02-10T00:00:00Z",
-  },
-  {
-    id: "pay-002",
-    paymentNumber: "PAY-2026-00002",
-    invoiceId: "inv-002",
-    invoiceNumber: "INV-2026-00002",
-    customerId: "cust-002",
-    customerName: "Gloria S.A.",
-    amount: 10000.00,
-    currency: "PEN",
-    method: "check",
-    status: "completed",
-    paymentDate: "2026-01-20T00:00:00Z",
-    checkNumber: "001234567",
-    bankName: "BBVA",
-    createdAt: "2026-01-20T00:00:00Z",
-    updatedAt: "2026-01-20T00:00:00Z",
-  },
-];
-
-const mockCosts: TransportCost[] = [
-  {
-    id: "cost-001",
-    type: "fuel",
-    category: "operativo",
-    description: "Combustible Diesel B5",
-    amount: 5000.00,
-    currency: "PEN",
-    quantity: 500,
-    unitCost: 10.00,
-    unit: "galón",
-    vehicleId: "veh-001",
-    vehiclePlate: "ABC-123",
-    date: "2026-02-01T00:00:00Z",
-    isReimbursable: false,
-    isApproved: true,
-    approvedBy: "supervisor-001",
-    approvedAt: "2026-02-01T12:00:00Z",
-    createdAt: "2026-02-01T00:00:00Z",
-    updatedAt: "2026-02-01T00:00:00Z",
-  },
-  {
-    id: "cost-002",
-    type: "toll",
-    category: "operativo",
-    description: "Peajes Lima - Arequipa",
-    amount: 450.00,
-    currency: "PEN",
-    quantity: 1,
-    unitCost: 450.00,
-    unit: "viaje",
-    vehicleId: "veh-001",
-    vehiclePlate: "ABC-123",
-    orderId: "ord-001",
-    orderNumber: "ORD-2026-00001",
-    date: "2026-01-10T00:00:00Z",
-    isReimbursable: true,
-    isApproved: true,
-    createdAt: "2026-01-10T00:00:00Z",
-    updatedAt: "2026-01-10T00:00:00Z",
-  },
-  {
-    id: "cost-003",
-    type: "maintenance",
-    category: "mantenimiento",
-    description: "Cambio de aceite y filtros",
-    amount: 800.00,
-    currency: "PEN",
-    quantity: 1,
-    unitCost: 800.00,
-    unit: "servicio",
-    vehicleId: "veh-002",
-    vehiclePlate: "XYZ-789",
-    date: "2026-01-25T00:00:00Z",
-    isReimbursable: false,
-    isApproved: true,
-    createdAt: "2026-01-25T00:00:00Z",
-    updatedAt: "2026-01-25T00:00:00Z",
-  },
-];
-
-const mockRates: ServiceRate[] = [
-  {
-    id: "rate-001",
-    code: "LIMA-AQP-STD",
-    name: "Lima - Arequipa Standard",
-    description: "Tarifa estándar para ruta Lima-Arequipa",
-    category: "distance",
-    baseRate: 3000.00,
-    currency: "PEN",
-    unit: "viaje",
-    minCharge: 2500.00,
-    originZone: "LIMA",
-    destinationZone: "AREQUIPA",
-    effectiveFrom: "2026-01-01T00:00:00Z",
-    isActive: true,
-    taxInclusive: false,
-    taxRate: 18,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "rate-002",
-    code: "DIST-LIMA-KG",
-    name: "Distribución Lima por Kg",
-    category: "weight",
-    baseRate: 0.50,
-    currency: "PEN",
-    unit: "kg",
-    minCharge: 100.00,
-    maxCharge: 5000.00,
-    originZone: "LIMA",
-    destinationZone: "LIMA",
-    effectiveFrom: "2026-01-01T00:00:00Z",
-    isActive: true,
-    taxInclusive: false,
-    taxRate: 18,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-];
-
-/* ============================================
-   SERVICIO
-   ============================================ */
 
 class FinanceService {
   private invoices: Invoice[] = [...mockInvoices];
@@ -325,9 +55,7 @@ class FinanceService {
     return `${prefix}-${year}-${seq}`;
   }
 
-  // ============================================
   // FACTURAS
-  // ============================================
 
   async getInvoices(
     filters: InvoiceFilters = {},
@@ -381,7 +109,9 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<{ data: Invoice[]; total: number; page: number; pageSize: number }>(API_ENDPOINTS.finance.invoices, {
+      params: { ...filters, page, pageSize } as unknown as Record<string, string | number | boolean | undefined>,
+    });
   }
 
   async getInvoiceById(id: string): Promise<Invoice | null> {
@@ -391,7 +121,7 @@ class FinanceService {
       return this.invoices.find(i => i.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<Invoice | null>(`${API_ENDPOINTS.finance.invoices}/${id}`);
   }
 
   async createInvoice(data: CreateInvoiceDTO): Promise<Invoice> {
@@ -465,7 +195,7 @@ class FinanceService {
       return invoice;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post<Invoice>(API_ENDPOINTS.finance.invoices, data);
   }
 
   async updateInvoiceStatus(id: string, status: InvoiceStatus): Promise<Invoice> {
@@ -486,7 +216,7 @@ class FinanceService {
       return this.invoices[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch<Invoice>(`${API_ENDPOINTS.finance.invoices}/${id}/status`, { status });
   }
 
   async sendInvoice(id: string): Promise<Invoice> {
@@ -497,9 +227,7 @@ class FinanceService {
     return this.updateInvoiceStatus(id, "cancelled");
   }
 
-  // ============================================
   // PAGOS
-  // ============================================
 
   async getPayments(
     filters: PaymentFilters = {},
@@ -553,7 +281,9 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<{ data: Payment[]; total: number; page: number; pageSize: number }>(API_ENDPOINTS.finance.payments, {
+      params: { ...filters, page, pageSize } as unknown as Record<string, string | number | boolean | undefined>,
+    });
   }
 
   async recordPayment(data: CreatePaymentDTO): Promise<Payment> {
@@ -616,7 +346,7 @@ class FinanceService {
       return payment;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post<Payment>(API_ENDPOINTS.finance.payments, data);
   }
 
   async getPaymentsByInvoice(invoiceId: string): Promise<Payment[]> {
@@ -626,12 +356,12 @@ class FinanceService {
       return this.payments.filter(p => p.invoiceId === invoiceId);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<Payment[]>(`${API_ENDPOINTS.finance.payments}`, {
+      params: { invoiceId },
+    });
   }
 
-  // ============================================
   // COSTOS
-  // ============================================
 
   async getCosts(
     filters: CostFilters = {},
@@ -681,7 +411,9 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<{ data: TransportCost[]; total: number; page: number; pageSize: number }>(API_ENDPOINTS.finance.costs, {
+      params: { ...filters, page, pageSize } as unknown as Record<string, string | number | boolean | undefined>,
+    });
   }
 
   async recordCost(data: CreateTransportCostDTO): Promise<TransportCost> {
@@ -717,7 +449,7 @@ class FinanceService {
       return cost;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post<TransportCost>(API_ENDPOINTS.finance.costs, data);
   }
 
   async approveCost(id: string, approvedBy: string): Promise<TransportCost> {
@@ -739,7 +471,7 @@ class FinanceService {
       return this.costs[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post<TransportCost>(`${API_ENDPOINTS.finance.costs}/${id}/approve`, {});
   }
 
   async getCostsByOrder(orderId: string): Promise<TransportCost[]> {
@@ -749,7 +481,7 @@ class FinanceService {
       return this.costs.filter(c => c.orderId === orderId);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<TransportCost[]>(`${API_ENDPOINTS.finance.costs}/by-order/${orderId}`);
   }
 
   async getCostsByVehicle(vehicleId: string): Promise<TransportCost[]> {
@@ -759,12 +491,10 @@ class FinanceService {
       return this.costs.filter(c => c.vehicleId === vehicleId);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<TransportCost[]>(`${API_ENDPOINTS.finance.costs}/by-vehicle/${vehicleId}`);
   }
 
-  // ============================================
   // TARIFAS
-  // ============================================
 
   async getRates(
     filters: { category?: string; originZone?: string; destinationZone?: string; isActive?: boolean } = {}
@@ -790,7 +520,9 @@ class FinanceService {
       return filtered;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<ServiceRate[]>(API_ENDPOINTS.finance.rates, {
+      params: filters as Record<string, string | number | boolean | undefined>,
+    });
   }
 
   async getRateById(id: string): Promise<ServiceRate | null> {
@@ -800,7 +532,7 @@ class FinanceService {
       return this.rates.find(r => r.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<ServiceRate | null>(`${API_ENDPOINTS.finance.rates}/${id}`);
   }
 
   async calculateRate(
@@ -835,12 +567,12 @@ class FinanceService {
       return { rate, amount };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<{ rate: ServiceRate | null; amount: number }>(`${API_ENDPOINTS.finance.rates}/calculate`, {
+      params: { originZone, destinationZone, weight, volume },
+    });
   }
 
-  // ============================================
   // ANÁLISIS FINANCIERO
-  // ============================================
 
   async getFinanceStats(
     startDate?: string,
@@ -898,7 +630,9 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<FinanceStats>(API_ENDPOINTS.finance.stats, {
+      params: { startDate, endDate },
+    });
   }
 
   async getCustomerFinancialSummary(customerId: string): Promise<CustomerFinancialSummary> {
@@ -947,7 +681,7 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<CustomerFinancialSummary>(`${API_ENDPOINTS.finance.customerSummary}/${customerId}/summary`);
   }
 
   async getAccountsReceivableAging(): Promise<AccountsReceivableAging> {
@@ -992,7 +726,7 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<AccountsReceivableAging>(API_ENDPOINTS.finance.aging);
   }
 
   async getProfitabilityAnalysis(
@@ -1048,7 +782,9 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<ProfitabilityAnalysis>(API_ENDPOINTS.finance.profitability, {
+      params: { startDate, endDate },
+    });
   }
 
   async getCashFlowSummary(
@@ -1090,7 +826,9 @@ class FinanceService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<CashFlowSummary>(API_ENDPOINTS.finance.cashFlow, {
+      params: { startDate, endDate },
+    });
   }
 }
 

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de integraciones
- * @module components/settings/integration-settings
- */
-
 "use client";
 
 import { useState } from "react";

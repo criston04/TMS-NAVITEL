@@ -1,8 +1,3 @@
-/**
- * @fileoverview Diálogo para programar un reporte
- * @module components/reports/schedule-report-dialog
- */
-
 "use client";
 
 import { useState } from "react";

@@ -1,11 +1,3 @@
-/**
- * @fileoverview Servicio para exportación de órdenes a Excel
- * @module services/orders/OrderExportService
- * @description Maneja la exportación de órdenes a formato Excel con todos los campos.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type {
   Order,
   OrderFilters,
@@ -14,6 +6,8 @@ import type {
   OrderStatusHistory,
 } from '@/types/order';
 import { orderService } from './OrderService';
+import { apiConfig, API_ENDPOINTS } from '@/config/api.config';
+import { apiClient } from '@/lib/api';
 
 /**
  * Tipo para una fila de exportación
@@ -235,6 +229,12 @@ const CLOSURE_COLUMNS: ExportColumn[] = [
  * Clase de servicio para exportación de órdenes
  */
 class OrderExportService {
+  private readonly useMocks: boolean;
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
+
   /**
    * Convierte una orden a fila de exportación
    * @param order - Orden a convertir
@@ -356,6 +356,10 @@ class OrderExportService {
       filters: OrderFilters;
     };
   }> {
+    if (!this.useMocks) {
+      return apiClient.post<{ sheets: Array<{ name: string; columns: ExportColumn[]; rows: ExportRow[] }>; metadata: { generatedAt: string; totalOrders: number; filters: OrderFilters } }>(`${API_ENDPOINTS.operations.orders}/export/prepare`, options);
+    }
+
     await simulateDelay(500);
 
     // Obtener órdenes según filtros o IDs
@@ -470,6 +474,10 @@ class OrderExportService {
    * @description En producción, usar librería como xlsx o exceljs
    */
   async generateExcel(options: OrderExportOptions): Promise<Blob> {
+    if (!this.useMocks) {
+      return apiClient.post<Blob>(`${API_ENDPOINTS.operations.orders}/export/excel`, options);
+    }
+
     const data = await this.prepareExportData(options);
     
     // En producción, aquí se usaría xlsx o exceljs para generar el archivo

@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestión de eventos de geocerca
- * @module hooks/useGeofenceEvents
- * @description Hook de React que proporciona acceso a eventos de geocerca,
- * incluyendo entradas, salidas, permanencia y estadísticas en tiempo real.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { geofenceEventsService } from "@/services/monitoring/geofence-events.service";
 import type {
@@ -17,12 +8,9 @@ import type {
   CreateGeofenceEventDTO,
 } from "@/types/geofence-events";
 
-/* ============================================
-   INTERFACES
-   ============================================ */
 
 interface UseGeofenceEventsReturn {
-  /** Lista de eventos */
+  
   events: GeofenceEvent[];
   /** Estadísticas de eventos */
   stats: GeofenceEventStats | null;
@@ -30,22 +18,21 @@ interface UseGeofenceEventsReturn {
   dwellSummaries: GeofenceDwellSummary[];
   /** Eventos activos (vehículos dentro de geocercas) */
   activeEvents: GeofenceEvent[];
-  /** Estado de carga */
+  
   loading: boolean;
   /** Estado de carga de estadísticas */
   statsLoading: boolean;
   /** Error si existe */
   error: string | null;
-  /** Total de resultados */
+  
   total: number;
-  /** Página actual */
+  
   page: number;
   /** Tamaño de página */
   pageSize: number;
-  /** Filtros actuales */
+  
   filters: GeofenceEventFilters;
 
-  // Acciones
   /** Carga eventos con filtros */
   fetchEvents: (filters?: GeofenceEventFilters, page?: number) => Promise<void>;
   /** Carga estadísticas */
@@ -96,30 +83,12 @@ interface UseGeofenceEventsOptions {
   refreshInterval?: number;
 }
 
-/* ============================================
-   HOOK
-   ============================================ */
 
 /**
  * Hook para gestión de eventos de geocerca
  * @param options Opciones de configuración
  * @returns Estado y acciones para gestión de eventos
  * 
- * @example
- * ```tsx
- * const { events, stats, recordEntry, recordExit } = useGeofenceEvents({
- *   initialFilters: { vehicleId: "veh-001" },
- *   realTime: true,
- * });
- * 
- * // Registrar entrada
- * await recordEntry({
- *   geofenceId: "geo-001",
- *   vehicleId: "veh-001",
- *   eventType: "entry",
- *   coordinates: { lat: -12.0464, lng: -77.0428 },
- * });
- * ```
  */
 export function useGeofenceEvents(
   options: UseGeofenceEventsOptions = {}
@@ -132,7 +101,6 @@ export function useGeofenceEvents(
     refreshInterval,
   } = options;
 
-  // Estados
   const [events, setEvents] = useState<GeofenceEvent[]>([]);
   const [stats, setStats] = useState<GeofenceEventStats | null>(null);
   const [dwellSummaries, setDwellSummaries] = useState<GeofenceDwellSummary[]>([]);
@@ -145,7 +113,6 @@ export function useGeofenceEvents(
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [filters, setFilters] = useState<GeofenceEventFilters>(initialFilters);
 
-  // Funciones de carga
   const fetchEvents = useCallback(
     async (newFilters?: GeofenceEventFilters, newPage?: number) => {
       setLoading(true);
@@ -221,7 +188,6 @@ export function useGeofenceEvents(
     }
   }, []);
 
-  // Acciones
   const recordEntry = useCallback(
     async (data: CreateGeofenceEventDTO): Promise<GeofenceEvent | null> => {
       try {
@@ -341,11 +307,9 @@ export function useGeofenceEvents(
     return () => clearInterval(interval);
   }, [refreshInterval, fetchEvents, fetchActiveEvents]);
 
-  // Estadísticas calculadas
   const computedStats = useMemo(() => {
     if (stats) return stats;
     
-    // Estadísticas básicas desde eventos locales
     const entries = events.filter(e => e.eventType === "entry");
     const exits = events.filter(e => e.eventType === "exit");
     
@@ -390,9 +354,6 @@ export function useGeofenceEvents(
   };
 }
 
-/* ============================================
-   HOOKS ESPECIALIZADOS
-   ============================================ */
 
 /**
  * Hook para eventos de una geocerca específica
@@ -461,7 +422,6 @@ export function useDwellAnalysis(filters?: {
     fetch();
   }, [fetch]);
 
-  // Estadísticas calculadas
   const totalVisits = useMemo(
     () => summaries.reduce((sum, s) => sum + s.visitCount, 0),
     [summaries]

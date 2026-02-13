@@ -1,11 +1,3 @@
-/**
- * @fileoverview Mock data para Workflows configurables
- * @module mocks/orders/workflows
- * @description Genera workflows predefinidos y configurables para el módulo de órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type { Workflow } from '@/types/workflow';
 
 /**
@@ -373,7 +365,7 @@ const workflowExpress: Workflow = {
           trigger: 'on_exit',
           recipients: ['cliente'],
           template: {
-            body: '🚀 Su pedido express {{orderNumber}} está en camino!',
+            body: ' Su pedido express {{orderNumber}} está en camino!',
           },
         },
       ],
@@ -408,7 +400,7 @@ const workflowExpress: Workflow = {
           trigger: 'on_delay',
           recipients: ['cliente', 'operador'],
           template: {
-            body: '⚠️ Pedido express {{orderNumber}} con posible retraso.',
+            body: 'Pedido express {{orderNumber}} con posible retraso.',
           },
           onlyOnDelay: true,
         },
@@ -445,7 +437,7 @@ const workflowExpress: Workflow = {
           trigger: 'on_complete',
           recipients: ['cliente'],
           template: {
-            body: '✅ Su pedido {{orderNumber}} ha sido entregado!',
+            body: 'Su pedido {{orderNumber}} ha sido entregado!',
           },
         },
       ],
@@ -769,7 +761,7 @@ const workflowRefrigerated: Workflow = {
               trigger: 'on_delay',
               recipients: ['conductor', 'calidad@navitel.com', 'gerencia@navitel.com'],
               template: {
-                body: '🚨 ALERTA CRÍTICA: Posible ruptura de cadena de frío en orden {{orderNumber}}. Verificar inmediatamente.',
+                body: 'ALERTA CRÍTICA: Posible ruptura de cadena de frío en orden {{orderNumber}}. Verificar inmediatamente.',
               },
             },
           },
@@ -940,7 +932,7 @@ const workflowHazmat: Workflow = {
           trigger: 'on_delay',
           recipients: ['seguridad@navitel.com', 'operador'],
           template: {
-            body: '⚠️ MATPEL: Orden {{orderNumber}} presenta desviación de ruta o retraso.',
+            body: ' MATPEL: Orden {{orderNumber}} presenta desviación de ruta o retraso.',
           },
           onlyOnDelay: true,
         },
@@ -1019,7 +1011,7 @@ const workflowHazmat: Workflow = {
               trigger: 'on_delay',
               recipients: ['seguridad@navitel.com', 'gerencia@navitel.com', 'conductor'],
               template: {
-                body: '🚨 EMERGENCIA MATPEL: Posible desvío de ruta en orden {{orderNumber}}. Contactar conductor inmediatamente.',
+                body: 'EMERGENCIA MATPEL: Posible desvío de ruta en orden {{orderNumber}}. Contactar conductor inmediatamente.',
               },
             },
           },

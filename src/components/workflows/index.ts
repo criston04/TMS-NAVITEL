@@ -1,8 +1,3 @@
-/**
- * @fileoverview Componentes del módulo Workflows
- * @module components/workflows
- */
-
 // Componentes de lista y visualización
 export { WorkflowList } from './workflow-list';
 export { WorkflowCard } from './workflow-card';
@@ -18,4 +13,4 @@ export { WorkflowTimeline } from './workflow-timeline';
 export { WorkflowLayout } from './workflow-layout';
 export { WorkflowSidebar } from './workflow-sidebar';
 export { WorkflowDetailPanel } from './workflow-detail-panel';
-
+

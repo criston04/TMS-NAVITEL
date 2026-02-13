@@ -1,8 +1,3 @@
-/**
- * @fileoverview Re-export de componentes del módulo de Reportes
- * @module components/reports
- */
-
 // Listas
 export { ReportDefinitionsList } from "./report-definitions-list";
 export { GeneratedReportsList } from "./generated-reports-list";

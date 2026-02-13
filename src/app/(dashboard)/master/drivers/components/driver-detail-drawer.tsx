@@ -1,12 +1,3 @@
-/**
- * @fileoverview Drawer de Detalle de Conductor
- * 
- * Panel lateral que muestra información completa del conductor
- * con pestañas para diferentes secciones.
- * 
- * @module app/(dashboard)/master/drivers/components/driver-detail-drawer
- */
-
 "use client";
 
 import * as React from "react";
@@ -47,9 +38,6 @@ import { cn } from "@/lib/utils";
 import { Driver, MedicalExam, PsychologicalExam, TrainingCertification } from "@/types/models/driver";
 import { getDaysUntilExpiry, getExpiryAlertLevel } from "@/lib/validators/driver-validators";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 interface DriverDetailDrawerProps {
   open: boolean;
@@ -60,9 +48,6 @@ interface DriverDetailDrawerProps {
   onAssignVehicle?: (driver: Driver) => void;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 const STATUS_CONFIG = {
   active: { label: "Activo", color: "bg-green-500", textColor: "text-green-700", bgLight: "bg-green-50" },
@@ -72,9 +57,6 @@ const STATUS_CONFIG = {
   terminated: { label: "Cesado", color: "bg-slate-500", textColor: "text-slate-700", bgLight: "bg-slate-50" },
 };
 
-/* ============================================
-   COMPONENTES AUXILIARES
-   ============================================ */
 
 function InfoRow({ 
   icon: Icon, 
@@ -238,9 +220,6 @@ function CertificationCard({ cert }: { cert: TrainingCertification }) {
   );
 }
 
-/* ============================================
-   COMPONENTE PRINCIPAL
-   ============================================ */
 
 export function DriverDetailDrawer({
   open,

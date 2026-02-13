@@ -1,9 +1,3 @@
-/**
- * @fileoverview Botón de exportar ruta histórica
- * 
- * @module components/monitoring/historical/export-button
- */
-
 "use client";
 
 import { useState } from "react";

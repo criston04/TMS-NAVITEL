@@ -1,11 +1,3 @@
-/**
- * @fileoverview Hooks para gestión de incidencias
- * @module hooks/useIncidents
- * @description Hooks para catálogo y registros de incidencias.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -17,10 +9,6 @@ import type {
   IncidentStatistics,
 } from '@/types/incident';
 import { incidentService } from '@/services/orders';
-
-// ============================================
-// TIPOS
-// ============================================
 
 /**
  * Filtros para catálogo de incidencias
@@ -44,7 +32,7 @@ interface UseIncidentCatalogResult {
   items: IncidentCatalogItem[];
   /** Items filtrados */
   filteredItems: IncidentCatalogItem[];
-  /** Filtros actuales */
+  
   filters: IncidentCatalogFilters;
   /** Actualiza filtros */
   setFilters: (filters: IncidentCatalogFilters) => void;
@@ -52,9 +40,9 @@ interface UseIncidentCatalogResult {
   categories: IncidentCategory[];
   /** Severidades disponibles */
   severities: IncidentSeverity[];
-  /** Está cargando */
+  
   isLoading: boolean;
-  /** Error si lo hay */
+  
   error: string | null;
   /** Recarga el catálogo */
   refresh: () => Promise<void>;
@@ -91,7 +79,7 @@ interface ResolveIncidentData {
 interface UseOrderIncidentsResult {
   /** Incidencias de la orden */
   incidents: IncidentRecord[];
-  /** Total de incidencias */
+  
   totalIncidents: number;
   /** Incidencias pendientes */
   pendingIncidents: IncidentRecord[];
@@ -99,9 +87,9 @@ interface UseOrderIncidentsResult {
   resolvedIncidents: IncidentRecord[];
   /** Estadísticas */
   statistics: IncidentStatistics | null;
-  /** Está cargando */
+  
   isLoading: boolean;
-  /** Error si lo hay */
+  
   error: string | null;
   /** Crea una incidencia */
   createIncident: (data: CreateIncidentData) => Promise<IncidentRecord | null>;
@@ -114,21 +102,10 @@ interface UseOrderIncidentsResult {
   refresh: () => Promise<void>;
 }
 
-// ============================================
-// HOOK: useIncidentCatalog
-// ============================================
-
 /**
  * Hook para acceder al catálogo de incidencias predefinidas
  * @param initialFilters - Filtros iniciales
  * @returns Catálogo y métodos para filtrar
- * @example
- * ```tsx
- * const { filteredItems, setFilters, categories } = useIncidentCatalog();
- * 
- * // Filtrar por categoría
- * setFilters({ category: 'vehicle' });
- * ```
  */
 export function useIncidentCatalog(
   initialFilters: IncidentCatalogFilters = {}
@@ -237,29 +214,10 @@ export function useIncidentCatalog(
   };
 }
 
-// ============================================
-// HOOK: useOrderIncidents
-// ============================================
-
 /**
  * Hook para gestionar incidencias de una orden específica
  * @param orderId - ID de la orden
  * @returns Incidencias y métodos para gestionarlas
- * @example
- * ```tsx
- * const { 
- *   incidents, 
- *   pendingIncidents, 
- *   createIncident, 
- *   resolveIncident 
- * } = useOrderIncidents(orderId);
- * 
- * // Crear incidencia del catálogo
- * await createIncident('catalog-item-id', 'Detalles adicionales');
- * 
- * // Crear incidencia de texto libre
- * await createIncident(null, 'Descripción detallada del problema');
- * ```
  */
 export function useOrderIncidents(orderId: string | null): UseOrderIncidentsResult {
   const [incidents, setIncidents] = useState<IncidentRecord[]>([]);
@@ -395,10 +353,6 @@ export function useOrderIncidents(orderId: string | null): UseOrderIncidentsResu
   };
 }
 
-// ============================================
-// HOOK: useIncidentForm
-// ============================================
-
 /**
  * Estado del formulario de incidencia
  */
@@ -419,7 +373,7 @@ interface IncidentFormState {
  * Resultado del hook useIncidentForm
  */
 interface UseIncidentFormResult {
-  /** Estado del formulario */
+  
   formState: IncidentFormState;
   /** Actualiza un campo */
   updateField: <K extends keyof IncidentFormState>(key: K, value: IncidentFormState[K]) => void;

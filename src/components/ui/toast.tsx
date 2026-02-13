@@ -1,9 +1,3 @@
-/**
- * @fileoverview Sistema de notificaciones toast
- * 
- * @module components/ui/toast
- */
-
 "use client";
 
 import * as React from "react";
@@ -175,7 +169,6 @@ interface ToastContextValue {
   addToast: (toast: Omit<ToastData, "id">) => string;
   removeToast: (id: string) => void;
   clearToasts: () => void;
-  // Helpers
   success: (title: string, description?: string) => string;
   error: (title: string, description?: string) => string;
   warning: (title: string, description?: string) => string;
@@ -220,7 +213,6 @@ export function ToastProvider({
     setToasts([]);
   }, []);
   
-  // Helpers para tipos comunes
   const success = React.useCallback((title: string, description?: string) => {
     return addToast({ title, description, variant: "success" });
   }, [addToast]);

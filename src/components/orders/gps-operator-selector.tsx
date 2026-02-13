@@ -1,11 +1,3 @@
-/**
- * @fileoverview Selector de Operador GPS
- * @module components/orders/gps-operator-selector
- * @description Componente para seleccionar el operador GPS de monitoreo.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -41,10 +33,6 @@ import {
   type GpsOperator,
 } from '@/mocks/master/gps-operators.mock';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface GpsOperatorSelectorProps {
   /** Valor seleccionado */
   value?: string;
@@ -68,9 +56,7 @@ interface GpsOperatorSelectorProps {
   compact?: boolean;
 }
 
-// ============================================
 // COMPONENTE STATUS BADGE
-// ============================================
 
 function StatusBadge({ status }: { status: GpsOperator['integrationStatus'] }) {
   const config = {
@@ -106,9 +92,7 @@ function StatusBadge({ status }: { status: GpsOperator['integrationStatus'] }) {
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export function GpsOperatorSelector({
   value,

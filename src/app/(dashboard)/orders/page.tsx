@@ -1,11 +1,3 @@
-/**
- * @fileoverview Página principal de órdenes
- * @module app/(dashboard)/orders/page
- * @description Lista de órdenes con filtros, estadísticas y acciones masivas.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -18,7 +10,6 @@ import {
 } from 'lucide-react';
 import type { Order, OrderStatus } from '@/types/order';
 
-// Hooks
 import { useOrders, useOrderFilters } from '@/hooks/useOrders';
 import { useOrderExport, useBulkActions } from '@/hooks/useOrderImportExport';
 
@@ -32,18 +23,10 @@ import {
   OrderBulkActions,
 } from '@/components/orders';
 
-// ============================================
-// TIPOS
-// ============================================
-
 /**
  * Vista disponible
  */
 type ViewMode = 'list' | 'grid';
-
-// ============================================
-// HELPERS
-// ============================================
 
 /**
  * Convierte status a array para manejo uniforme
@@ -53,9 +36,7 @@ function toStatusArray(status: OrderStatus | OrderStatus[] | undefined): OrderSt
   return Array.isArray(status) ? status : [status];
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 /**
  * Página principal del módulo de órdenes
@@ -65,7 +46,6 @@ export default function OrdersPage() {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-  // Hook de filtros
   const {
     filters,
     setFilters,
@@ -75,7 +55,6 @@ export default function OrdersPage() {
     isLoadingOptions,
   } = useOrderFilters();
 
-  // Hook principal de órdenes - pasamos filters como dependencia
   const {
     orders,
     total,
@@ -102,10 +81,8 @@ export default function OrdersPage() {
     setOrderFilters(filters);
   }, [filters, setOrderFilters]);
 
-  // Hook de exportación
   const { exportOrders, isExporting } = useOrderExport();
 
-  // Hook de acciones masivas
   const { state: bulkState, executeAction } = useBulkActions();
 
   // Sincronizar filtros con el hook de órdenes
@@ -128,7 +105,6 @@ export default function OrdersPage() {
     router.push('/orders/import');
   }, [router]);
 
-  // Exportar seleccionadas
   const handleExport = useCallback(async () => {
     const selectedOrders = orders.filter(o => selectedIds.has(o.id));
     if (selectedOrders.length > 0) {
@@ -169,7 +145,6 @@ export default function OrdersPage() {
     }
   }, [selectedIds, executeAction, handleExport, clearSelection, refresh]);
 
-  // Estado activo seleccionado (para highlight en cards)
   const activeStatus = useMemo(() => {
     const currentArray = toStatusArray(filters.status);
     if (currentArray.length === 1) {

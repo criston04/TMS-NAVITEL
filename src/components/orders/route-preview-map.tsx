@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente de mapa de vista previa de ruta
- * @module components/orders/RoutePreviewMap
- * @description Muestra la ruta planificada con los milestones en un mapa
- * de Leaflet. Usa dynamic import para evitar SSR.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useEffect, useRef, useState, useCallback, memo } from 'react';
@@ -45,10 +36,6 @@ const leafletStyles = `
   }
 `;
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface RoutePoint {
   id: string;
   name: string;
@@ -72,10 +59,6 @@ interface RoutePreviewMapProps {
   className?: string;
 }
 
-// ============================================
-// CONFIGURACIÓN
-// ============================================
-
 const MARKER_COLORS = {
   origin: '#22c55e',      // green-500
   waypoint: '#3b82f6',    // blue-500
@@ -85,10 +68,6 @@ const MARKER_COLORS = {
 const LINE_COLOR = '#6366f1'; // indigo-500
 const DEFAULT_CENTER = { lat: -12.0464, lng: -77.0428 }; // Lima, Perú
 const DEFAULT_ZOOM = 12;
-
-// ============================================
-// HELPERS
-// ============================================
 
 /**
  * Crea un icono SVG para marcador
@@ -134,9 +113,7 @@ function calculateBounds(points: RoutePoint[]): [[number, number], [number, numb
   ];
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 function RoutePreviewMapComponent({
   points,

@@ -1,11 +1,3 @@
-/**
- * @fileoverview Resumen de orden antes de crear
- * @module components/orders/order-summary
- * @description Muestra un resumen completo de la orden antes de confirmar su creación.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import {
@@ -34,10 +26,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { OrderPriority, CargoType } from '@/types/order';
-
-// ============================================
-// TIPOS
-// ============================================
 
 export interface OrderSummaryData {
   // Cliente
@@ -89,7 +77,6 @@ export interface OrderSummaryData {
     estimatedArrival?: string;
   }>;
   
-  // Asignación
   assignment?: {
     vehicle?: {
       id: string;
@@ -134,10 +121,6 @@ interface SummarySectionProps {
   children: React.ReactNode;
 }
 
-// ============================================
-// CONSTANTES
-// ============================================
-
 const PRIORITY_CONFIG: Record<OrderPriority, { label: string; color: string }> = {
   low: { label: 'Baja', color: 'bg-slate-500' },
   normal: { label: 'Normal', color: 'bg-blue-500' },
@@ -161,9 +144,7 @@ const MILESTONE_TYPE_LABELS = {
   destination: 'Destino',
 };
 
-// ============================================
 // COMPONENTE SECCIÓN COLAPSABLE
-// ============================================
 
 function SummarySection({
   title,
@@ -217,9 +198,7 @@ function SummarySection({
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export function OrderSummary({ data, onEditSection }: OrderSummaryProps) {
   const formatDate = (dateStr: string) => {

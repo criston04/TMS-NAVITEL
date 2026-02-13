@@ -1,25 +1,3 @@
-/**
- * @fileoverview Contexto de internacionalización (i18n) para Navitel TMS
- * 
- * Provee funcionalidades de traducción y cambio de idioma a toda la aplicación.
- * Soporta ES (Español) y EN (English) con persistencia en localStorage.
- * 
- * @module contexts/locale-context
- * @requires react
- * @requires @/config/i18n
- * @requires @/locales/translations
- * 
- * @example
- * // En el layout raíz
- * <LocaleProvider>
- *   <App />
- * </LocaleProvider>
- * 
- * // En cualquier componente
- * const { locale, setLocale, t } = useLocale();
- * t("auth.login.title"); // "Iniciar Sesión" o "Sign In"
- */
-
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useSyncExternalStore, useMemo } from "react";
@@ -50,7 +28,6 @@ function useHydrated(): boolean {
   );
 }
 
-// Helper function to get saved locale from storage
 function getSavedLocale(): Locale {
   if (globalThis.window === undefined) {
     return defaultLocale;
@@ -69,7 +46,6 @@ function getSavedLocale(): Locale {
   return defaultLocale;
 }
 
-// Helper to get nested value from object by key path
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNestedValue(obj: any, keys: string[]): string | undefined {
   let value = obj;
@@ -83,7 +59,6 @@ function getNestedValue(obj: any, keys: string[]): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-// Helper to replace template params in string
 function replaceParams(text: string, params?: Record<string, string>): string {
   if (!params) return text;
   return text.replaceAll(/\{\{(\w+)\}\}/g, (_, paramKey) => params[paramKey] || `{{${paramKey}}}`);
@@ -123,7 +98,6 @@ export function LocaleProvider({ children }: Readonly<{ children: React.ReactNod
       const fallbackValue = getNestedValue(translations[defaultLocale], keys);
       if (fallbackValue) return replaceParams(fallbackValue, params);
       
-      // Return key if not found
       return key;
     },
     [localeValue]
@@ -135,7 +109,6 @@ export function LocaleProvider({ children }: Readonly<{ children: React.ReactNod
     [localeValue, setLocale, t]
   );
 
-  // Return consistent provider - locale updates automatically when hydrated
   return (
     <LocaleContext.Provider value={contextValue}>
       {children}
@@ -151,7 +124,6 @@ export function useLocale() {
   return context;
 }
 
-// Hook shortcut for translations
 export function useTranslations() {
   const { t } = useLocale();
   return t;

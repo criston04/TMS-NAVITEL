@@ -1,11 +1,3 @@
-/**
- * @fileoverview Panel lateral con lista de workflows
- * @module components/workflows/WorkflowSidebar
- * @description Muestra lista de workflows con búsqueda y filtros.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState, useMemo } from 'react';
@@ -32,16 +24,12 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface WorkflowSidebarProps {
-  /** Lista de workflows */
+  
   workflows: Workflow[];
   /** Workflow seleccionado */
   selectedWorkflow: Workflow | null;
-  /** Está cargando */
+  
   isLoading?: boolean;
   /** Callback al seleccionar workflow */
   onSelectWorkflow: (workflow: Workflow) => void;
@@ -55,10 +43,6 @@ interface WorkflowSidebarProps {
   className?: string;
 }
 
-// ============================================
-// CONFIGURACIÓN DE ESTADOS
-// ============================================
-
 const STATUS_CONFIG: Record<WorkflowStatus, {
   label: string;
   color: string;
@@ -70,9 +54,7 @@ const STATUS_CONFIG: Record<WorkflowStatus, {
   draft: { label: 'Borrador', color: '#f59e0b', bgColor: 'bg-amber-100 dark:bg-amber-900/30', icon: FileText },
 };
 
-// ============================================
 // MINI CARD DE WORKFLOW
-// ============================================
 
 interface WorkflowMiniCardProps {
   workflow: Workflow;
@@ -137,9 +119,7 @@ const WorkflowMiniCard = memo(function WorkflowMiniCard({
   );
 });
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export const WorkflowSidebar = memo(function WorkflowSidebar({
   workflows,

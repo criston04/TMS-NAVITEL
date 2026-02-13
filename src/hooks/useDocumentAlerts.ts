@@ -1,12 +1,3 @@
-/**
- * @fileoverview Sistema de Alertas de Documentos
- * 
- * Hook y utilidades para monitoreo de vencimientos de documentos
- * de conductores y vehículos según normativa peruana MTC.
- * 
- * @module hooks/useDocumentAlerts
- */
-
 "use client";
 
 import * as React from "react";
@@ -18,9 +9,6 @@ import {
   type ExpiryAlertLevel 
 } from "@/lib/validators/driver-validators";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 export type DocumentType = 
   // Documentos de Conductor
@@ -92,27 +80,21 @@ export interface UseDocumentAlertsReturn {
   isLoading: boolean;
   error: string | null;
   
-  // Acciones
   refreshAlerts: () => Promise<void>;
   acknowledgeAlert: (alertId: string) => void;
   dismissAlert: (alertId: string) => void;
   dismissAllExpired: () => void;
   
-  // Filtros
   getAlertsByLevel: (level: ExpiryAlertLevel) => DocumentAlert[];
   getAlertsByEntity: (entityType: "driver" | "vehicle", entityId: string) => DocumentAlert[];
   getAlertsByDocumentType: (type: DocumentType) => DocumentAlert[];
   getExpiredAlerts: () => DocumentAlert[];
   getUrgentAlerts: () => DocumentAlert[];
   
-  // Notificaciones
   enableNotifications: () => Promise<boolean>;
   sendTestNotification: () => void;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   // Conductor
@@ -138,9 +120,6 @@ const ALERT_LEVEL_PRIORITY: Record<ExpiryAlertLevel, number> = {
   ok: 3,
 };
 
-/* ============================================
-   FUNCIONES AUXILIARES
-   ============================================ */
 
 /**
  * Genera alertas para documentos de un conductor
@@ -475,9 +454,6 @@ function calculateSummary(alerts: DocumentAlert[]): AlertsSummary {
   return summary;
 }
 
-/* ============================================
-   HOOK PRINCIPAL
-   ============================================ */
 
 export function useDocumentAlerts(options: UseDocumentAlertsOptions = {}): UseDocumentAlertsReturn {
   const {
@@ -640,12 +616,10 @@ export function useDocumentAlerts(options: UseDocumentAlertsOptions = {}): UseDo
     }
   }, [summary]);
 
-  // Efecto para actualizar alertas cuando cambian los datos
   React.useEffect(() => {
     refreshAlerts();
   }, [refreshAlerts]);
 
-  // Efecto para auto-refresh
   React.useEffect(() => {
     if (!autoRefresh) return;
 
@@ -656,7 +630,6 @@ export function useDocumentAlerts(options: UseDocumentAlertsOptions = {}): UseDo
     return () => clearInterval(interval);
   }, [autoRefresh, refreshInterval, refreshAlerts]);
 
-  // Efecto para enviar notificaciones cuando hay alertas críticas
   React.useEffect(() => {
     if (summary.expired > 0 && Notification.permission === "granted") {
       new Notification("⚠️ NAVITEL TMS - Documentos Vencidos", {

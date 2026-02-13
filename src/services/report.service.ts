@@ -1,13 +1,11 @@
-/**
- * @fileoverview Servicio de Reportes
- * @module services/report.service
- * @description Gestiona la generación, programación y distribución de
- * reportes del TMS, incluyendo reportes operacionales, financieros y KPIs.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
+import {
+  mockDefinitions,
+  mockTemplates,
+  mockGeneratedReports,
+  mockSchedules,
+} from "@/mocks/reports";
 import type {
   ReportDefinition,
   ReportTemplate,
@@ -26,222 +24,6 @@ import type {
 
 type RelativeDateRange = { unit: "days" | "weeks" | "months" | "quarters" | "years"; value: number };
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
-
-const mockDefinitions: ReportDefinition[] = [
-  {
-    id: "def-001",
-    code: "RPT-OPS-DAILY",
-    name: "Reporte Operacional Diario",
-    description: "Resumen de operaciones del día",
-    type: "operational",
-    category: "Operaciones",
-    dataSource: "orders",
-    columns: [
-      { id: "col-1", field: "orderNumber", header: "N° Orden", isVisible: true, format: "text" },
-      { id: "col-2", field: "customerName", header: "Cliente", isVisible: true, format: "text" },
-      { id: "col-3", field: "status", header: "Estado", isVisible: true, format: "text" },
-      { id: "col-4", field: "deliveryDate", header: "Fecha Entrega", isVisible: true, format: "datetime" },
-      { id: "col-5", field: "vehiclePlate", header: "Vehículo", isVisible: true, format: "text" },
-      { id: "col-6", field: "driverName", header: "Conductor", isVisible: true, format: "text" },
-    ],
-    filters: [],
-    isPublic: true,
-    createdBy: "admin",
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-    usageCount: 125,
-  },
-  {
-    id: "def-002",
-    code: "RPT-FIN-MONTHLY",
-    name: "Reporte Financiero Mensual",
-    description: "Resumen financiero del mes",
-    type: "financial",
-    category: "Finanzas",
-    dataSource: "invoices",
-    columns: [
-      { id: "col-1", field: "invoiceNumber", header: "N° Factura", isVisible: true, format: "text" },
-      { id: "col-2", field: "customerName", header: "Cliente", isVisible: true, format: "text" },
-      { id: "col-3", field: "total", header: "Total", isVisible: true, format: "currency", currency: "PEN" },
-      { id: "col-4", field: "amountPaid", header: "Pagado", isVisible: true, format: "currency", currency: "PEN" },
-      { id: "col-5", field: "status", header: "Estado", isVisible: true, format: "text" },
-    ],
-    filters: [],
-    showTotals: true,
-    isPublic: true,
-    createdBy: "admin",
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-    usageCount: 89,
-  },
-  {
-    id: "def-003",
-    code: "RPT-FLEET-STATUS",
-    name: "Estado de Flota",
-    description: "Estado actual de todos los vehículos",
-    type: "fleet",
-    category: "Flota",
-    dataSource: "vehicles",
-    columns: [
-      { id: "col-1", field: "plate", header: "Placa", isVisible: true, format: "text" },
-      { id: "col-2", field: "model", header: "Modelo", isVisible: true, format: "text" },
-      { id: "col-3", field: "status", header: "Estado", isVisible: true, format: "text" },
-      { id: "col-4", field: "currentKm", header: "Km Actual", isVisible: true, format: "number" },
-      { id: "col-5", field: "lastMaintenance", header: "Último Mtto", isVisible: true, format: "date" },
-      { id: "col-6", field: "nextMaintenance", header: "Próximo Mtto", isVisible: true, format: "date" },
-    ],
-    filters: [],
-    isPublic: true,
-    createdBy: "admin",
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-    usageCount: 67,
-  },
-];
-
-const mockTemplates: ReportTemplate[] = [
-  {
-    id: "tpl-001",
-    name: "Órdenes por Período",
-    type: "order",
-    definition: {
-      dataSource: "orders",
-      columns: mockDefinitions[0].columns,
-    },
-    requiredParams: [
-      { name: "dateRange", label: "Rango de Fechas", type: "dateRange", required: true },
-      { 
-        name: "status", 
-        label: "Estado", 
-        type: "multiSelect", 
-        options: [
-          { value: "pending", label: "Pendiente" },
-          { value: "in_progress", label: "En Progreso" },
-          { value: "completed", label: "Completado" },
-        ],
-        required: false 
-      },
-    ],
-    defaultFormat: "pdf",
-    availableFormats: ["pdf", "excel", "csv"],
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "tpl-002",
-    name: "Facturación por Cliente",
-    type: "financial",
-    definition: {
-      dataSource: "invoices",
-      columns: mockDefinitions[1].columns,
-      showTotals: true,
-    },
-    requiredParams: [
-      { name: "dateRange", label: "Rango de Fechas", type: "dateRange", required: true },
-      { name: "customerId", label: "Cliente", type: "select", required: false },
-    ],
-    defaultFormat: "excel",
-    availableFormats: ["pdf", "excel", "csv"],
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-];
-
-const mockGeneratedReports: GeneratedReport[] = [
-  {
-    id: "gen-001",
-    definitionId: "def-001",
-    name: "Reporte Operacional - Enero 2026",
-    type: "operational",
-    parameters: { month: "2026-01" },
-    filters: [],
-    dateRange: { start: "2026-01-01", end: "2026-01-31" },
-    status: "completed",
-    format: "pdf",
-    fileUrl: "/reports/gen-001.pdf",
-    fileSize: 245678,
-    rowCount: 150,
-    requestedAt: "2026-02-01T08:00:00Z",
-    startedAt: "2026-02-01T08:00:01Z",
-    completedAt: "2026-02-01T08:00:15Z",
-    expiresAt: "2026-02-08T08:00:00Z",
-    requestedBy: "admin",
-  },
-  {
-    id: "gen-002",
-    definitionId: "def-002",
-    name: "Reporte Financiero - Enero 2026",
-    type: "financial",
-    parameters: { month: "2026-01" },
-    filters: [],
-    dateRange: { start: "2026-01-01", end: "2026-01-31" },
-    status: "completed",
-    format: "excel",
-    fileUrl: "/reports/gen-002.xlsx",
-    fileSize: 189456,
-    rowCount: 45,
-    requestedAt: "2026-02-01T09:00:00Z",
-    startedAt: "2026-02-01T09:00:01Z",
-    completedAt: "2026-02-01T09:00:08Z",
-    expiresAt: "2026-02-08T09:00:00Z",
-    requestedBy: "finance",
-  },
-];
-
-const mockSchedules: ReportSchedule[] = [
-  {
-    id: "sch-001",
-    definitionId: "def-001",
-    name: "Reporte Operacional Diario",
-    frequency: "daily",
-    timeOfDay: "06:00",
-    timezone: "America/Lima",
-    parameters: {},
-    relativeDateRange: { unit: "days", value: 1 },
-    format: "pdf",
-    recipients: ["operaciones@empresa.com", "gerencia@empresa.com"],
-    sendEmpty: false,
-    isActive: true,
-    lastRunAt: "2026-02-02T06:00:00Z",
-    nextRunAt: "2026-02-03T06:00:00Z",
-    lastStatus: "completed",
-    runCount: 33,
-    createdBy: "admin",
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-02-02T06:00:00Z",
-  },
-  {
-    id: "sch-002",
-    definitionId: "def-002",
-    name: "Reporte Financiero Semanal",
-    frequency: "weekly",
-    dayOfWeek: 1, // Lunes
-    timeOfDay: "08:00",
-    timezone: "America/Lima",
-    parameters: {},
-    relativeDateRange: { unit: "weeks", value: 1 },
-    format: "excel",
-    recipients: ["finanzas@empresa.com"],
-    sendEmpty: true,
-    isActive: true,
-    lastRunAt: "2026-01-27T08:00:00Z",
-    nextRunAt: "2026-02-03T08:00:00Z",
-    lastStatus: "completed",
-    runCount: 5,
-    createdBy: "admin",
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-27T08:00:00Z",
-  },
-];
-
-/* ============================================
-   SERVICIO
-   ============================================ */
 
 class ReportService {
   private definitions: ReportDefinition[] = [...mockDefinitions];
@@ -264,9 +46,7 @@ class ReportService {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
 
-  // ============================================
   // DEFINICIONES DE REPORTE
-  // ============================================
 
   async getDefinitions(
     filters?: { type?: ReportType; category?: string; search?: string }
@@ -293,7 +73,7 @@ class ReportService {
       return filtered.sort((a, b) => b.usageCount - a.usageCount);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.reports.definitions, { params: filters as unknown as Record<string, string> });
   }
 
   async getDefinitionById(id: string): Promise<ReportDefinition | null> {
@@ -303,7 +83,7 @@ class ReportService {
       return this.definitions.find(d => d.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.definitions}/${id}`);
   }
 
   async createDefinition(data: CreateReportDefinitionDTO): Promise<ReportDefinition> {
@@ -334,7 +114,7 @@ class ReportService {
       return definition;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(API_ENDPOINTS.reports.definitions, data);
   }
 
   async updateDefinition(
@@ -364,7 +144,7 @@ class ReportService {
       return this.definitions[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.put(`${API_ENDPOINTS.reports.definitions}/${id}`, data);
   }
 
   async deleteDefinition(id: string): Promise<void> {
@@ -378,12 +158,10 @@ class ReportService {
       return;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.delete(`${API_ENDPOINTS.reports.definitions}/${id}`);
   }
 
-  // ============================================
   // PLANTILLAS
-  // ============================================
 
   async getTemplates(type?: ReportType): Promise<ReportTemplate[]> {
     await this.simulateDelay();
@@ -398,7 +176,7 @@ class ReportService {
       return filtered;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.reports.templates, { params: type ? { type } : undefined });
   }
 
   async getTemplateById(id: string): Promise<ReportTemplate | null> {
@@ -408,12 +186,10 @@ class ReportService {
       return this.templates.find(t => t.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.templates}/${id}`);
   }
 
-  // ============================================
   // GENERACIÓN DE REPORTES
-  // ============================================
 
   async generateReport(request: GenerateReportRequest): Promise<GeneratedReport> {
     await this.simulateDelay(500);
@@ -473,7 +249,7 @@ class ReportService {
       return report;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(API_ENDPOINTS.reports.generated, request);
   }
 
   async getGeneratedReports(
@@ -524,7 +300,7 @@ class ReportService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.reports.generated, { params: { ...filters, page, pageSize } as unknown as Record<string, string> });
   }
 
   async getReportById(id: string): Promise<GeneratedReport | null> {
@@ -534,7 +310,7 @@ class ReportService {
       return this.generatedReports.find(r => r.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.generated}/${id}`);
   }
 
   async getReportStatus(id: string): Promise<ReportStatus> {
@@ -545,7 +321,7 @@ class ReportService {
       return report?.status || "failed";
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.generated}/${id}/status`);
   }
 
   async downloadReport(id: string): Promise<{ url: string; filename: string }> {
@@ -563,12 +339,8 @@ class ReportService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.generated}/${id}/download`);
   }
-
-  // ============================================
-  // PROGRAMACIÓN DE REPORTES
-  // ============================================
 
   async getSchedules(): Promise<ReportSchedule[]> {
     await this.simulateDelay();
@@ -577,7 +349,7 @@ class ReportService {
       return [...this.schedules];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.reports.schedules);
   }
 
   async getScheduleById(id: string): Promise<ReportSchedule | null> {
@@ -587,7 +359,7 @@ class ReportService {
       return this.schedules.find(s => s.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.schedules}/${id}`);
   }
 
   async createSchedule(data: CreateReportScheduleDTO): Promise<ReportSchedule> {
@@ -622,7 +394,7 @@ class ReportService {
       return schedule;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(API_ENDPOINTS.reports.schedules, data);
   }
 
   async updateSchedule(id: string, data: Partial<CreateReportScheduleDTO>): Promise<ReportSchedule> {
@@ -646,7 +418,7 @@ class ReportService {
       return this.schedules[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.put(`${API_ENDPOINTS.reports.schedules}/${id}`, data);
   }
 
   async toggleSchedule(id: string): Promise<ReportSchedule> {
@@ -665,7 +437,7 @@ class ReportService {
       return this.schedules[index];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch(`${API_ENDPOINTS.reports.schedules}/${id}/toggle`);
   }
 
   async deleteSchedule(id: string): Promise<void> {
@@ -679,7 +451,7 @@ class ReportService {
       return;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.delete(`${API_ENDPOINTS.reports.schedules}/${id}`);
   }
 
   async runScheduleNow(id: string): Promise<GeneratedReport> {
@@ -696,7 +468,7 @@ class ReportService {
       });
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(`${API_ENDPOINTS.reports.schedules}/${id}/run`);
   }
 
   private calculateNextRun(data: CreateReportScheduleDTO): string {
@@ -711,10 +483,6 @@ class ReportService {
 
     return next.toISOString();
   }
-
-  // ============================================
-  // DATOS DE REPORTES
-  // ============================================
 
   async getOperationalData(
     startDate: string,
@@ -752,7 +520,7 @@ class ReportService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.generated}/operational`, { params: { startDate, endDate } });
   }
 
   async getFinancialData(
@@ -804,12 +572,8 @@ class ReportService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.generated}/financial`, { params: { startDate, endDate } });
   }
-
-  // ============================================
-  // ESTADÍSTICAS
-  // ============================================
 
   async getUsageStats(): Promise<ReportUsageStats> {
     await this.simulateDelay(300);
@@ -856,7 +620,7 @@ class ReportService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.generated}/usage-stats`);
   }
 
   async getReportCategories(): Promise<string[]> {
@@ -867,7 +631,7 @@ class ReportService {
       return Array.from(categories);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.reports.definitions}/categories`);
   }
 }
 

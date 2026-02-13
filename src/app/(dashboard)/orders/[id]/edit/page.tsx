@@ -1,21 +1,11 @@
-/**
- * @fileoverview Página de edición de orden
- * @module app/(dashboard)/orders/[id]/edit/page
- * @description Edición de una orden existente
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package } from 'lucide-react';
 
-// Hooks
 import { useOrder, useOrders } from '@/hooks/useOrders';
 
-// Tipos
 import type { CreateOrderDTO } from '@/types/order';
 
 // Componentes
@@ -32,17 +22,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface OrderEditPageProps {
   params: Promise<{ id: string }>;
 }
 
-// ============================================
 // COMPONENTE SKELETON
-// ============================================
 
 function OrderEditSkeleton() {
   return (
@@ -68,19 +52,15 @@ function OrderEditSkeleton() {
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export default function OrderEditPage({ params }: OrderEditPageProps) {
   const router = useRouter();
   const { id } = use(params);
   
-  // Hooks
   const { order, isLoading: orderLoading, error: orderError } = useOrder(id);
   const { updateOrder } = useOrders();
   
-  // Estado
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);

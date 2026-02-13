@@ -1,12 +1,3 @@
-/**
- * @fileoverview Validadores para Conductores
- * 
- * Incluye validación de licencias, documentos, exámenes médicos
- * y compatibilidad licencia-vehículo según normativa peruana MTC.
- * 
- * @module lib/validators/driver-validators
- */
-
 import { z } from "zod";
 import type { 
   LicenseCategory, 
@@ -22,9 +13,6 @@ import type {
 type DocumentType = DriverDocumentType;
 import type { VehicleType } from "@/types/models/vehicle";
 
-/* ============================================
-   CONSTANTES DE VALIDACIÓN
-   ============================================ */
 
 /** Categorías de licencia válidas en Perú */
 export const LICENSE_CATEGORIES: LicenseCategory[] = [
@@ -92,9 +80,6 @@ export const REQUIRED_CERTIFICATIONS: Record<string, CertificationType[]> = {
   "customer_facing": ["customer_service", "sst_induction"],
 };
 
-/* ============================================
-   SCHEMAS ZOD - DATOS BÁSICOS
-   ============================================ */
 
 /**
  * Schema para número de documento peruano
@@ -168,9 +153,6 @@ export const driverLicenseSchema = z.object({
   lastVerificationDate: z.string().optional(),
 });
 
-/* ============================================
-   SCHEMAS ZOD - EXÁMENES MÉDICOS
-   ============================================ */
 
 /**
  * Schema para restricción médica
@@ -230,9 +212,6 @@ export const psychologicalExamSchema = z.object({
   observations: z.string().optional(),
 });
 
-/* ============================================
-   SCHEMAS ZOD - CERTIFICACIONES
-   ============================================ */
 
 /**
  * Schema para certificación de capacitación
@@ -252,9 +231,6 @@ export const trainingCertificationSchema = z.object({
   isRequired: z.boolean().default(false),
 });
 
-/* ============================================
-   SCHEMAS ZOD - ANTECEDENTES
-   ============================================ */
 
 /**
  * Schema para antecedentes policiales
@@ -282,9 +258,6 @@ export const criminalRecordSchema = z.object({
   observations: z.string().optional(),
 });
 
-/* ============================================
-   SCHEMAS ZOD - LÍMITES DE CONDUCCIÓN
-   ============================================ */
 
 /**
  * Schema para límites de conducción
@@ -299,9 +272,6 @@ export const drivingLimitsSchema = z.object({
   nightEndTime: z.string().optional(),
 });
 
-/* ============================================
-   SCHEMA PRINCIPAL - CONDUCTOR
-   ============================================ */
 
 /**
  * Schema completo para crear/editar conductor
@@ -342,7 +312,6 @@ export const driverSchema = z.object({
   emergencyContact: emergencyContactSchema,
   additionalEmergencyContacts: z.array(emergencyContactSchema).optional(),
 
-  // Estado
   availability: z.enum(DRIVER_AVAILABILITY_STATES as [DriverAvailability, ...DriverAvailability[]]).default("available"),
   unavailabilityReason: z.string().optional(),
   expectedReturnDate: z.string().optional(),
@@ -368,9 +337,6 @@ export const driverSchema = z.object({
  */
 export const updateDriverSchema = driverSchema.partial();
 
-/* ============================================
-   FUNCIONES DE VALIDACIÓN
-   ============================================ */
 
 /**
  * Valida si una licencia está vigente

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Grid de paneles de vehículos
- * 
- * @module components/monitoring/multi-window/multi-window-grid
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -12,7 +6,7 @@ import { VehiclePanel } from "./vehicle-panel";
 import type { VehiclePanel as VehiclePanelType, MultiWindowGridConfig, TrackedVehicle } from "@/types/monitoring";
 
 interface MultiWindowGridProps {
-  /** Lista de paneles */
+  
   panels: VehiclePanelType[];
   /** Mapa de vehículos */
   vehicles: Map<string, TrackedVehicle>;
@@ -53,7 +47,6 @@ export function MultiWindowGrid({
   onRemovePanel,
   className,
 }: MultiWindowGridProps) {
-  // Estado vacío
   if (panels.length === 0) {
     return (
       <div className={cn("flex flex-col items-center justify-center py-16", className)}>

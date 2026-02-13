@@ -1,9 +1,3 @@
-/**
- * @fileoverview Componente de paginación genérico reutilizable
- * 
- * @module components/shared/pagination
- */
-
 "use client";
 
 import { Button } from "@/components/ui/button";

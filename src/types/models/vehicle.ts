@@ -1,18 +1,5 @@
-/**
- * @fileoverview Modelos del módulo MAESTRO - Vehículos
- * 
- * Define las estructuras de datos para la gestión completa de vehículos
- * incluyendo documentación legal, seguros, mantenimiento, GPS y
- * certificaciones según normativa peruana (MTC/SUTRAN).
- * 
- * @module types/models/vehicle
- */
-
 import { ActivatableEntity, RequiredDocument, ValidationChecklist } from "@/types/common";
 
-/* ============================================
-   TIPOS BASE Y ENUMERACIONES
-   ============================================ */
 
 /**
  * Tipo de vehículo según configuración
@@ -88,9 +75,6 @@ export type FuelType =
  */
 export type TransmissionType = "manual" | "automatic" | "semi_automatic";
 
-/* ============================================
-   ESPECIFICACIONES TÉCNICAS
-   ============================================ */
 
 /**
  * Especificaciones técnicas del vehículo
@@ -114,7 +98,7 @@ export interface VehicleSpecs {
   axles: number;
   /** Número de ruedas */
   wheels: number;
-  /** Tipo de combustible */
+  
   fuelType: FuelType;
   /** Capacidad del tanque (galones) */
   fuelTankCapacity: number;
@@ -167,9 +151,6 @@ export interface VehicleCapacity {
   };
 }
 
-/* ============================================
-   DOCUMENTACIÓN LEGAL
-   ============================================ */
 
 /**
  * Tarjeta de propiedad vehicular
@@ -208,7 +189,7 @@ export type InsuranceType =
 export interface InsurancePolicy {
   /** ID único */
   id: string;
-  /** Tipo de seguro */
+  
   type: InsuranceType;
   /** Número de póliza */
   policyNumber: string;
@@ -253,7 +234,7 @@ export interface TechnicalInspection {
   certificateNumber: string;
   /** Fecha de inspección */
   inspectionDate: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Resultado */
   result: InspectionResult;
@@ -299,7 +280,7 @@ export interface OperatingCertificate {
   modality?: string;
   /** Fecha de emisión */
   issueDate: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Ámbito de operación */
   operationScope: "nacional" | "regional" | "urbano";
@@ -311,9 +292,6 @@ export interface OperatingCertificate {
   verificationStatus: "pending" | "verified" | "rejected";
 }
 
-/* ============================================
-   GPS Y TELEMETRÍA
-   ============================================ */
 
 /**
  * Dispositivo GPS instalado
@@ -321,7 +299,7 @@ export interface OperatingCertificate {
 export interface GPSDevice {
   /** ID único */
   id: string;
-  /** ID del dispositivo */
+  
   deviceId: string;
   /** IMEI */
   imei: string;
@@ -341,7 +319,7 @@ export interface GPSDevice {
   certificationExpiry: string;
   /** Número de homologación MTC */
   homologationNumber: string;
-  /** Estado del dispositivo */
+  
   status: "active" | "inactive" | "malfunction" | "removed";
   /** Última señal recibida */
   lastSignalDate?: string;
@@ -373,9 +351,6 @@ export interface VehicleLocation {
   address?: string;
 }
 
-/* ============================================
-   MANTENIMIENTO
-   ============================================ */
 
 /**
  * Tipo de mantenimiento
@@ -406,13 +381,13 @@ export interface MaintenanceRecord {
   id: string;
   /** ID del vehículo */
   vehicleId?: string;
-  /** Tipo de mantenimiento */
+  
   type: MaintenanceType;
-  /** Estado del mantenimiento */
+  
   status?: MaintenanceStatus;
   /** Fecha programada */
   scheduledDate?: string;
-  /** Fecha de inicio */
+  
   startDate?: string;
   /** Fecha de finalización */
   completionDate?: string;
@@ -462,7 +437,7 @@ export interface MaintenanceRecord {
   warrantyEndDate?: string;
   /** Notas adicionales */
   notes?: string;
-  /** Fecha de registro */
+  
   createdAt?: string;
   /** Fecha de actualización */
   updatedAt?: string;
@@ -480,7 +455,7 @@ export interface MaintenanceWorkItem {
   category?: string;
   /** Tipo: repuesto o mano de obra */
   type?: "part" | "labor";
-  /** Estado del item */
+  
   status?: "pending" | "in_progress" | "completed";
   /** Cantidad */
   quantity?: number;
@@ -506,7 +481,7 @@ export interface MaintenanceSchedule {
   vehicleId?: string;
   /** Tipo de programación */
   type?: string;
-  /** Nombre del mantenimiento */
+  
   name?: string;
   /** Descripción */
   description?: string;
@@ -536,13 +511,10 @@ export interface MaintenanceSchedule {
   isActive?: boolean;
   /** Costo estimado */
   estimatedCost?: number;
-  /** Lista de trabajos */
+  
   workItems?: string[];
 }
 
-/* ============================================
-   CONSUMO Y RENDIMIENTO
-   ============================================ */
 
 /**
  * Registro de carga de combustible
@@ -550,7 +522,7 @@ export interface MaintenanceSchedule {
 export interface FuelRecord {
   /** ID único */
   id: string;
-  /** Fecha de carga */
+  
   date: string;
   /** Kilometraje */
   mileage: number;
@@ -564,7 +536,7 @@ export interface FuelRecord {
   pricePerUnit: number;
   /** Estación/proveedor */
   station: string;
-  /** Tipo de combustible */
+  
   fuelType: FuelType;
   /** Tanque lleno */
   fullTank: boolean;
@@ -597,9 +569,6 @@ export interface VehiclePerformanceMetrics {
   };
 }
 
-/* ============================================
-   INCIDENTES Y SINIESTROS
-   ============================================ */
 
 /**
  * Tipo de incidente vehicular
@@ -622,7 +591,7 @@ export type VehicleIncidentType =
 export interface VehicleIncident {
   /** ID único */
   id: string;
-  /** Tipo de incidente */
+  
   type: VehicleIncidentType;
   /** Severidad */
   severity: "low" | "medium" | "high" | "critical";
@@ -638,7 +607,7 @@ export interface VehicleIncident {
   description: string;
   /** ID del conductor al momento del incidente */
   driverId?: string;
-  /** Nombre del conductor */
+  
   driverName?: string;
   /** ID de la orden relacionada */
   orderId?: string;
@@ -650,23 +619,20 @@ export interface VehicleIncident {
   actualCost?: number;
   /** Número de siniestro (seguro) */
   claimNumber?: string;
-  /** Estado del reclamo */
+  
   claimStatus?: "pending" | "approved" | "rejected" | "paid";
   /** Acción tomada */
   actionTaken?: string;
-  /** Estado del incidente */
+  
   status: "open" | "investigating" | "resolved" | "closed";
   /** Archivos adjuntos (fotos, reportes) */
   attachments?: string[];
-  /** Fecha de registro */
+  
   createdAt: string;
   /** Fecha de resolución */
   resolvedAt?: string;
 }
 
-/* ============================================
-   CERTIFICACIONES ESPECIALES
-   ============================================ */
 
 /**
  * Certificación especial del vehículo
@@ -692,7 +658,7 @@ export interface VehicleCertification {
   certifyingEntity: string;
   /** Fecha de emisión */
   issueDate: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Es obligatorio */
   isRequired: boolean;
@@ -702,9 +668,6 @@ export interface VehicleCertification {
   observations?: string;
 }
 
-/* ============================================
-   ENTIDAD PRINCIPAL: VEHÍCULO
-   ============================================ */
 
 /**
  * Entidad Vehículo - Modelo completo
@@ -802,7 +765,7 @@ export interface Vehicle extends ActivatableEntity {
   /* --- Asignaciones --- */
   /** ID del operador logístico propietario */
   operatorId?: string;
-  /** Nombre del operador */
+  
   operatorName?: string;
   /** ID del conductor asignado actualmente */
   currentDriverId?: string;
@@ -826,9 +789,6 @@ export interface Vehicle extends ActivatableEntity {
   tags?: string[];
 }
 
-/* ============================================
-   TIPOS PARA CREACIÓN Y ACTUALIZACIÓN
-   ============================================ */
 
 /**
  * Datos para crear un nuevo vehículo
@@ -850,9 +810,6 @@ export type CreateVehicleDTO = Omit<Vehicle,
  */
 export type UpdateVehicleDTO = Partial<CreateVehicleDTO>;
 
-/* ============================================
-   ESTADÍSTICAS
-   ============================================ */
 
 /**
  * Estadísticas de vehículos
@@ -890,11 +847,11 @@ export interface VehicleDocumentAlert {
   vehicleId: string;
   /** Placa del vehículo */
   vehiclePlate: string;
-  /** Tipo de documento */
+  
   documentType: string;
-  /** Nombre del documento */
+  
   documentName: string;
-  /** Fecha de vencimiento */
+  
   expiryDate: string;
   /** Días restantes */
   daysRemaining: number;
@@ -910,7 +867,7 @@ export interface MaintenanceAlert {
   vehicleId: string;
   /** Placa */
   vehiclePlate: string;
-  /** Tipo de mantenimiento */
+  
   maintenanceType: string;
   /** Descripción */
   description: string;
@@ -923,4 +880,4 @@ export interface MaintenanceAlert {
   /** Nivel de urgencia */
   urgencyLevel: "normal" | "soon" | "overdue";
 }
-
+

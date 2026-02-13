@@ -28,7 +28,7 @@ import {
   Download,
   ArrowLeft,
 } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { MaintenanceSchedule, Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -71,6 +71,7 @@ const statusConfig = {
 } as const;
 
 export default function PreventiveMaintenancePage() {
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(true);
   const [schedules, setSchedules] = useState<MaintenanceSchedule[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -83,8 +84,8 @@ export default function PreventiveMaintenancePage() {
     try {
       setLoading(true);
       const [schedulesData, vehiclesData] = await Promise.all([
-        maintenanceService.getMaintenanceSchedules(),
-        maintenanceService.getVehicles(),
+        maintenance.getMaintenanceSchedules(),
+        maintenance.getVehicles(),
       ]);
       setSchedules(schedulesData);
       setVehicles(vehiclesData);

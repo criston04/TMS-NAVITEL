@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de tarjeta de orden para lista
- * @module components/orders/OrderCard
- * @description Tarjeta con información resumida de una orden.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useMemo } from 'react';
@@ -28,10 +20,6 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 /**
  * Props del componente OrderCard
  */
@@ -51,10 +39,6 @@ interface OrderCardProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// UTILIDADES
-// ============================================
 
 /**
  * Configuración de badges por estado
@@ -173,9 +157,7 @@ function getTimeRemaining(targetDate: Date): { text: string; isOverdue: boolean 
   return { text: `${diffHours}h restantes`, isOverdue: false };
 }
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 /**
  * Tarjeta de orden para visualización en lista

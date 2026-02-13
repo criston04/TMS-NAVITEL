@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modelos del módulo MAESTRO - Productos
- * 
- * @module types/models/product
- */
-
 import { BaseEntity, EntityStatus } from "@/types/common";
 
 /**
@@ -53,7 +47,7 @@ export interface ProductDimensions {
 export interface Product extends BaseEntity {
   /** SKU único */
   sku: string;
-  /** Nombre del producto */
+  
   name: string;
   /** Descripción */
   description?: string;

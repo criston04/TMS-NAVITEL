@@ -1,8 +1,3 @@
-/**
- * @fileoverview Componente Dialog basado en Radix UI
- * @module components/ui/dialog
- */
-
 'use client';
 
 import * as React from 'react';

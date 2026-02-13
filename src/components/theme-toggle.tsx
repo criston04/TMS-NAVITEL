@@ -1,18 +1,3 @@
-/**
- * @fileoverview Componente de toggle para cambio de tema
- * 
- * Permite al usuario cambiar entre tema claro, oscuro y sistema.
- * Utiliza next-themes para la gestión del tema.
- * 
- * @module components/theme-toggle
- * @requires react
- * @requires next-themes
- * @requires lucide-react
- * 
- * @example
- * <ThemeToggle />
- */
-
 "use client";
 
 import * as React from "react";

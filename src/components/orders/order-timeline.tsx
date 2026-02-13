@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de línea de tiempo de orden
- * @module components/orders/OrderTimeline
- * @description Visualización de hitos y eventos de una orden.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useMemo } from 'react';
@@ -21,10 +13,6 @@ import {
 } from 'lucide-react';
 import type { Order, OrderMilestone, MilestoneStatus } from '@/types/order';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 /**
  * Props del componente OrderTimeline
@@ -59,10 +47,6 @@ interface TimelineItemProps {
   /** Callback al click */
   onClick?: (milestone: OrderMilestone) => void;
 }
-
-// ============================================
-// CONFIGURACIÓN
-// ============================================
 
 /**
  * Configuración de estados de hitos
@@ -126,10 +110,6 @@ const MILESTONE_TYPE_ICONS: Record<OrderMilestone['type'], typeof Package> = {
   destination: MapPin,
 };
 
-// ============================================
-// UTILIDADES
-// ============================================
-
 /**
  * Formatea una hora
  * @param date - Fecha a formatear
@@ -166,9 +146,7 @@ function calculateDelay(planned: Date, actual: Date): number {
   return Math.round((new Date(actual).getTime() - new Date(planned).getTime()) / (1000 * 60));
 }
 
-// ============================================
 // COMPONENTE TIMELINE ITEM
-// ============================================
 
 /**
  * Item individual del timeline
@@ -311,9 +289,7 @@ function TimelineItem({
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 /**
  * Línea de tiempo de hitos de una orden

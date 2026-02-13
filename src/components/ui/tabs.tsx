@@ -1,8 +1,3 @@
-/**
- * @fileoverview Componente Tabs basado en Radix UI
- * @module components/ui/tabs
- */
-
 'use client';
 
 import * as React from 'react';

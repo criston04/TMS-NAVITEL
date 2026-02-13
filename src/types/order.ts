@@ -1,12 +1,3 @@
-/**
- * @fileoverview Tipos e interfaces para el módulo de Órdenes
- * @module types/order
- * @description Define todas las estructuras de datos relacionadas con órdenes,
- * incluyendo estados, hitos, filtros y datos de cierre.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type { Customer } from './models/customer';
 import type { Driver } from './models/driver';
 import type { Vehicle, VehicleType } from './models/vehicle';
@@ -87,7 +78,7 @@ export interface OrderMilestone {
   geofenceId: string;
   /** Nombre de la geocerca/hito */
   geofenceName: string;
-  /** Tipo de hito */
+  
   type: 'origin' | 'waypoint' | 'destination';
   /** Orden de secuencia en la ruta */
   sequence: number;
@@ -127,7 +118,7 @@ export interface OrderMilestone {
 export interface OrderCargo {
   /** Descripción de la carga */
   description: string;
-  /** Tipo de carga */
+  
   type: CargoType;
   /** Peso en kilogramos */
   weightKg: number;
@@ -224,7 +215,7 @@ export interface DeviationReason {
 export interface OrderAttachment {
   /** ID único */
   id: string;
-  /** Nombre del archivo */
+  
   fileName: string;
   /** Tipo MIME */
   mimeType: string;
@@ -232,7 +223,7 @@ export interface OrderAttachment {
   sizeBytes: number;
   /** URL de acceso */
   url: string;
-  /** Fecha de subida */
+  
   uploadedAt: string;
   /** Usuario que subió */
   uploadedBy: string;
@@ -251,11 +242,11 @@ export interface OrderStatusHistory {
   fromStatus: OrderStatus;
   /** Estado nuevo */
   toStatus: OrderStatus;
-  /** Fecha del cambio */
+  
   changedAt: string;
   /** Usuario que realizó el cambio */
   changedBy: string;
-  /** Nombre del usuario */
+  
   changedByName: string;
   /** Motivo del cambio (opcional) */
   reason?: string;
@@ -270,13 +261,13 @@ export interface Order {
   id: string;
   /** Número de orden (visible al usuario) */
   orderNumber: string;
-  /** ID del cliente */
+  
   customerId: string;
   /** Datos del cliente (populated) */
   customer?: Pick<Customer, 'id' | 'name' | 'code' | 'email'>;
   /** ID del transportista asignado */
   carrierId?: string;
-  /** Nombre del transportista */
+  
   carrierName?: string;
   /** ID del vehículo asignado */
   vehicleId?: string;
@@ -298,7 +289,7 @@ export interface Order {
   gpsOperatorName?: string;
   /** ID del workflow asignado */
   workflowId?: string;
-  /** Nombre del workflow */
+  
   workflowName?: string;
   /** Estado actual de la orden */
   status: OrderStatus;
@@ -414,9 +405,9 @@ export interface OrderFilters {
 export interface OrdersResponse {
   /** Lista de órdenes */
   data: Order[];
-  /** Total de registros */
+  
   total: number;
-  /** Página actual */
+  
   page: number;
   /** Tamaño de página */
   pageSize: number;
@@ -507,7 +498,7 @@ export interface BulkSendResult {
   batchId: string;
   /** Total de órdenes en el batch */
   totalOrders: number;
-  /** Estado del batch */
+  
   status: 'queued' | 'processing' | 'completed' | 'failed';
   /** Progreso (0-100) */
   progress: number;
@@ -517,7 +508,7 @@ export interface BulkSendResult {
     status: 'success' | 'error';
     message?: string;
   }>;
-  /** Fecha de inicio */
+  
   startedAt: string;
   /** Fecha de finalización */
   completedAt?: string;
@@ -528,7 +519,7 @@ export interface BulkSendResult {
  * @interface OrderRealtimeEvent
  */
 export interface OrderRealtimeEvent {
-  /** Tipo de evento */
+  
   type: 'status_change' | 'milestone_update' | 'location_update' | 'sync_update';
   /** ID de la orden afectada */
   orderId: string;
@@ -543,10 +534,6 @@ export interface OrderRealtimeEvent {
   timestamp: string;
 }
 
-// ============================================
-// TIPOS DE CONEXIÓN CON OTROS MÓDULOS
-// ============================================
-
 /**
  * Información del workflow conectado a la orden
  * @interface OrderWorkflowInfo
@@ -554,7 +541,7 @@ export interface OrderRealtimeEvent {
 export interface OrderWorkflowInfo {
   /** ID del workflow asignado */
   workflowId: string;
-  /** Nombre del workflow */
+  
   workflowName: string;
   /** Código del workflow */
   workflowCode: string;
@@ -564,7 +551,7 @@ export interface OrderWorkflowInfo {
   currentStepName?: string;
   /** Índice del paso actual (1-based) */
   currentStepIndex?: number;
-  /** Total de pasos */
+  
   totalSteps: number;
   /** Porcentaje de avance en el workflow */
   workflowProgress: number;
@@ -591,7 +578,7 @@ export interface OrderSchedulingInfo {
   vehiclePlate?: string;
   /** ID del conductor asignado */
   driverId?: string;
-  /** Nombre del conductor */
+  
   driverName?: string;
   /** Tiene conflictos de programación */
   hasConflicts: boolean;

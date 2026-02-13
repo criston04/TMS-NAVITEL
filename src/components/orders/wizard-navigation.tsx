@@ -1,20 +1,8 @@
-/**
- * @fileoverview Navegación del wizard para crear órdenes
- * @module components/orders/wizard-navigation
- * @description Componente de stepper y navegación entre pasos del wizard.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { Check, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 export interface WizardStep {
   id: string;
@@ -43,9 +31,7 @@ interface WizardNavigationProps {
   onCancel?: () => void;
 }
 
-// ============================================
 // COMPONENTE STEPPER
-// ============================================
 
 function Stepper({ 
   steps, 
@@ -150,9 +136,7 @@ function Stepper({
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export function WizardNavigation({
   steps,

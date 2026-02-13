@@ -1,9 +1,3 @@
-/**
- * @fileoverview Fila de la tabla de retransmisión
- * 
- * @module components/monitoring/retransmission/retransmission-row
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

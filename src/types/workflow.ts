@@ -1,13 +1,4 @@
 /**
- * @fileoverview Tipos e interfaces para Workflows configurables
- * @module types/workflow
- * @description Define estructuras para workflows dinámicos que pueden ser
- * configurados por el usuario administrador.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-/**
  * Estados posibles de un workflow
  * @enum {string}
  */
@@ -115,7 +106,7 @@ export interface WorkflowNotification {
 export interface WorkflowStep {
   /** ID único del paso */
   id: string;
-  /** Nombre del paso */
+  
   name: string;
   /** Descripción */
   description?: string;
@@ -163,11 +154,11 @@ export interface WorkflowStep {
  * @interface WorkflowCustomField
  */
 export interface WorkflowCustomField {
-  /** ID del campo */
+  
   id: string;
   /** Nombre/etiqueta del campo */
   label: string;
-  /** Tipo de dato */
+  
   type: 'text' | 'number' | 'date' | 'select' | 'checkbox' | 'file';
   /** Es obligatorio */
   required: boolean;
@@ -222,17 +213,17 @@ export interface EscalationRule {
 export interface Workflow {
   /** ID único del workflow */
   id: string;
-  /** Nombre del workflow */
+  
   name: string;
   /** Descripción */
   description: string;
   /** Código único (para referencia) */
   code: string;
-  /** Estado del workflow */
+  
   status: WorkflowStatus;
   /** Versión del workflow */
   version: number;
-  /** Lista de pasos */
+  
   steps: WorkflowStep[];
   /** Reglas de escalamiento */
   escalationRules: EscalationRule[];
@@ -285,7 +276,7 @@ export interface UpdateWorkflowDTO extends Partial<CreateWorkflowDTO> {
  * @interface WorkflowProgress
  */
 export interface WorkflowProgress {
-  /** ID del workflow */
+  
   workflowId: string;
   /** ID de la orden */
   orderId: string;
@@ -293,7 +284,7 @@ export interface WorkflowProgress {
   currentStepId: string;
   /** Índice del paso actual */
   currentStepIndex: number;
-  /** Total de pasos */
+  
   totalSteps: number;
   /** Pasos completados */
   completedSteps: string[];

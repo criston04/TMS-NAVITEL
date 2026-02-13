@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de estadísticas operacionales del cliente
- * 
- * Muestra métricas de rendimiento y operaciones del cliente
- * 
- * @module components/customers/customer-operational-stats
- */
-
 "use client";
 
 import { useMemo } from "react";

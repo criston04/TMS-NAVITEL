@@ -1,12 +1,3 @@
-/**
- * @fileoverview Servicio para gestión de Geocercas
- * 
- * Principio SRP: Solo maneja operaciones de geocercas.
- * Principio OCP: Extiende BaseService sin modificarlo.
- * 
- * @module services/master/geofences.service
- */
-
 import { BulkService } from "@/services/base.service";
 import { 
   Geofence, 

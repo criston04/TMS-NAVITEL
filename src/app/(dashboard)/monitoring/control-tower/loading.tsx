@@ -1,8 +1,3 @@
-/**
- * @fileoverview Loading skeleton para Torre de Control
- * @module app/(dashboard)/monitoring/control-tower/loading
- */
-
 export default function ControlTowerLoading() {
   return (
     <div className="flex h-full w-full">

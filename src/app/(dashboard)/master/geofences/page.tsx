@@ -289,7 +289,6 @@ export default function GeofencesPage() {
     });
   };
 
-  // Geocercas a mostrar según tab
   const displayedGeofences = useMemo(() => {
     if (selectedTab === "selected") {
       return filteredGeofences.filter(g => selectedGeofences.has(g.id));
@@ -597,7 +596,6 @@ export default function GeofencesPage() {
             <MapPin className="h-5 w-5" />
           </button>
         )}
-
 
         <ConfirmDialog
           open={!!deleteId}

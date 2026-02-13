@@ -1,12 +1,3 @@
-/**
- * @fileoverview Validadores de documentos de identidad peruanos
- * 
- * Incluye validación de RUC, DNI, Carné de Extranjería y Pasaporte
- * con algoritmos oficiales de verificación.
- * 
- * @module lib/validators/document-validators
- */
-
 import { DocumentType } from "@/types/models";
 
 /**

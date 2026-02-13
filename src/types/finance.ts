@@ -1,15 +1,3 @@
-/**
- * @fileoverview Tipos para el módulo de Finanzas
- * @module types/finance
- * @description Define las estructuras de datos para facturas, pagos,
- * costos de transporte, tarifas y análisis financiero.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-/* ============================================
-   ENUMERACIONES
-   ============================================ */
 
 /**
  * Estado de una factura
@@ -86,9 +74,6 @@ export type RateCategory =
   | "pallet"        // Por pallet
   | "custom";       // Personalizada
 
-/* ============================================
-   INTERFACES PRINCIPALES
-   ============================================ */
 
 /**
  * Ítem de línea en factura
@@ -233,7 +218,6 @@ export interface TransportCost {
   periodStart?: string;
   periodEnd?: string;
   
-  // Estado
   isReimbursable: boolean;
   isApproved: boolean;
   approvedBy?: string;
@@ -426,9 +410,6 @@ export interface CashFlowSummary {
   }[];
 }
 
-/* ============================================
-   DTOs Y FILTROS
-   ============================================ */
 
 /**
  * DTO para crear factura
@@ -532,9 +513,6 @@ export interface CostFilters {
   isReimbursable?: boolean;
 }
 
-/* ============================================
-   ESTADÍSTICAS
-   ============================================ */
 
 /**
  * Estadísticas generales de finanzas

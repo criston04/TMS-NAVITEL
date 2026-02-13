@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para integración de workflows con órdenes y programación
- * @module hooks/useWorkflowIntegration
- * @description Proporciona métodos para conectar workflows con otros módulos
- * siguiendo el patrón Container/Presentational.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useCallback } from 'react';
 import { moduleConnectorService } from '@/services/integration';
 import type { 
@@ -17,16 +8,10 @@ import type { CreateOrderDTO, Order } from '@/types/order';
 import type { ScheduledOrder } from '@/types/scheduling';
 import type { WorkflowStep } from '@/types/workflow';
 
-// ============================================
-// TIPOS DEL HOOK
-// ============================================
-
 interface UseWorkflowIntegrationReturn {
-  // Estado
   isLoading: boolean;
   error: string | null;
   
-  // Métodos de Orders
   autoAssignWorkflow: (orderData: Partial<CreateOrderDTO> | Partial<Order>) => Promise<WorkflowAssignmentResult>;
   prepareOrderWithWorkflow: (orderData: CreateOrderDTO) => Promise<{
     enrichedData: CreateOrderDTO;
@@ -34,38 +19,21 @@ interface UseWorkflowIntegrationReturn {
     warnings: string[];
   }>;
   
-  // Métodos de Scheduling
   validateScheduling: (scheduledOrder: Partial<ScheduledOrder>) => Promise<SchedulingValidationResult>;
   getWorkflowDuration: (workflowId: string) => Promise<number | null>;
   getWorkflowSteps: (workflowId: string) => Promise<WorkflowStep[] | null>;
   
-  // Métodos de Geofences
   validateWorkflowGeofences: (workflowId: string) => Promise<{
     valid: boolean;
     missingGeofences: string[];
   }>;
   
-  // Utilidades
   clearError: () => void;
 }
-
-// ============================================
-// HOOK IMPLEMENTATION
-// ============================================
 
 /**
  * Hook para integración de workflows con otros módulos del TMS
  * 
- * @example
- * ```tsx
- * const { autoAssignWorkflow, validateScheduling, isLoading } = useWorkflowIntegration();
- * 
- * // Auto-asignar workflow al crear orden
- * const result = await autoAssignWorkflow({ customerId: 'cust-001', cargo: { type: 'refrigerated' } });
- * 
- * // Validar programación
- * const validation = await validateScheduling({ workflowId: 'wf-001', estimatedDuration: 4 });
- * ```
  */
 export function useWorkflowIntegration(): UseWorkflowIntegrationReturn {
   const [isLoading, setIsLoading] = useState(false);
@@ -238,17 +206,9 @@ export function useWorkflowIntegration(): UseWorkflowIntegrationReturn {
   };
 }
 
-// ============================================
-// HOOK DE CONEXIÓN SIMPLIFICADO
-// ============================================
-
 /**
  * Hook simplificado para obtener info de workflow de una orden
  * 
- * @example
- * ```tsx
- * const { workflowInfo, isLoading } = useOrderWorkflowInfo(order.workflowId);
- * ```
  */
 export function useOrderWorkflowInfo(workflowId: string | undefined) {
   const [workflowInfo, setWorkflowInfo] = useState<{

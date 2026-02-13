@@ -1,18 +1,5 @@
-/**
- * @fileoverview Re-export de todos los servicios
- * 
- * Facilita importaciones y mantiene bajo acoplamiento.
- * 
- * @module services
- * 
- * @example
- * import { customersService, driversService, unifiedWorkflowService } from "@/services";
- */
-
-// Servicios del módulo MAESTRO
 export * from "./master";
 
-// Servicios de Órdenes
 export * from "./orders";
 
 // Servicio unificado de Workflows (conectado con geocercas, órdenes, programación)
@@ -26,11 +13,39 @@ export {
   type OrderWorkflowProgress,
 } from "./workflow.service";
 
-// Servicios de Monitoreo
 export * from "./monitoring";
 
-// Servicios de Integración
 export * from "./integration";
+
+// Servicio de Finanzas
+export { financeService } from "./finance.service";
+
+// Servicio de Notificaciones
+export { notificationService } from "./notification.service";
+
+// Servicio de Reportes
+export { reportService } from "./report.service";
+
+// Servicio de Configuración
+export { settingsService } from "./settings.service";
+
+// Servicio de Programación
+export { schedulingService } from "./scheduling-service";
+
+// Servicio de Geocodificación
+export { geocodingService } from "./geocoding.service";
+
+// Servicio de Mantenimiento
+export * from "./maintenance";
+
+// Servicio de Rutas (OSRM)
+export { routingService } from "./routing.service";
+
+// Servicio de Reportes PDF
+export { pdfReportService } from "./pdf-report.service";
+
+// Servicio de Recordatorios
+export { reminderService } from "./reminder.service";
 
 // Base service para extensión
 export { BaseService, BulkService } from "./base.service";

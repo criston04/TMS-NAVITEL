@@ -1,15 +1,6 @@
-/**
- * @fileoverview Servicio de Historial de Auditoría
- * 
- * Registra todas las acciones realizadas sobre conductores y vehículos
- * para cumplir con requisitos de trazabilidad.
- * 
- * @module services/master/audit.service
- */
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 export type AuditEntityType = "driver" | "vehicle" | "assignment" | "document";
 
@@ -69,9 +60,6 @@ export interface AuditStats {
   recentActivity: AuditEntry[];
 }
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
 
 const mockAuditEntries: AuditEntry[] = [
   {
@@ -206,12 +194,14 @@ const mockAuditEntries: AuditEntry[] = [
   },
 ];
 
-/* ============================================
-   SERVICIO
-   ============================================ */
 
 class AuditService {
+  private readonly useMocks: boolean;
   private entries: AuditEntry[] = [...mockAuditEntries];
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Simula delay de red
@@ -231,6 +221,10 @@ class AuditService {
    * Registra una nueva entrada de auditoría
    */
   async log(entry: Omit<AuditEntry, "id" | "timestamp">): Promise<AuditEntry> {
+    if (!this.useMocks) {
+      return apiClient.post<AuditEntry>(API_ENDPOINTS.master.audit, entry);
+    }
+
     const newEntry: AuditEntry = {
       ...entry,
       id: this.generateId(),
@@ -249,6 +243,10 @@ class AuditService {
    * Obtiene entradas de auditoría con filtros
    */
   async getEntries(filters?: AuditFilters): Promise<AuditEntry[]> {
+    if (!this.useMocks) {
+      return apiClient.get<AuditEntry[]>(API_ENDPOINTS.master.audit, { params: filters as unknown as Record<string, string> });
+    }
+
     await this.simulateDelay(200);
 
     let result = [...this.entries];
@@ -287,6 +285,10 @@ class AuditService {
    * Obtiene el historial de una entidad específica
    */
   async getEntityHistory(entityType: AuditEntityType, entityId: string): Promise<AuditEntry[]> {
+    if (!this.useMocks) {
+      return apiClient.get<AuditEntry[]>(`${API_ENDPOINTS.master.audit}/entity/${entityType}/${entityId}`);
+    }
+
     return this.getEntries({ entityType, entityId });
   }
 
@@ -294,6 +296,10 @@ class AuditService {
    * Obtiene estadísticas de auditoría
    */
   async getStats(): Promise<AuditStats> {
+    if (!this.useMocks) {
+      return apiClient.get<AuditStats>(`${API_ENDPOINTS.master.audit}/stats`);
+    }
+
     await this.simulateDelay(100);
 
     const entriesByAction: Record<string, number> = {};

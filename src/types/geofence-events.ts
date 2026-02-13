@@ -1,15 +1,3 @@
-/**
- * @fileoverview Tipos para Eventos de Geocerca
- * @module types/geofence-events
- * @description Define las estructuras para persistir eventos de entrada/salida
- * de geocercas y análisis de permanencia.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-/* ============================================
-   TIPOS BASE
-   ============================================ */
 
 /**
  * Tipo de evento de geocerca
@@ -21,9 +9,6 @@ export type GeofenceEventType = "entry" | "exit" | "dwell";
  */
 export type GeofenceEventStatus = "active" | "completed" | "cancelled";
 
-/* ============================================
-   INTERFACES
-   ============================================ */
 
 /**
  * Evento de geocerca
@@ -43,7 +28,7 @@ export interface GeofenceEvent {
   vehiclePlate: string;
   /** ID del conductor (si aplica) */
   driverId?: string;
-  /** Nombre del conductor */
+  
   driverName?: string;
   /** ID de la orden (si aplica) */
   orderId?: string;
@@ -51,9 +36,9 @@ export interface GeofenceEvent {
   orderNumber?: string;
   /** ID del hito de la orden (si aplica) */
   milestoneId?: string;
-  /** Tipo de evento */
+  
   eventType: GeofenceEventType;
-  /** Estado del evento */
+  
   status: GeofenceEventStatus;
   /** Timestamp del evento */
   timestamp: string;
@@ -136,7 +121,7 @@ export interface GeofenceEventFilters {
  * Estadísticas de eventos de geocerca
  */
 export interface GeofenceEventStats {
-  /** Total de eventos */
+  
   totalEvents: number;
   /** Entradas */
   entries: number;

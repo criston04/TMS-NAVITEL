@@ -1,15 +1,3 @@
-/**
- * @fileoverview Tipos para el módulo de Configuración del Sistema
- * @module types/settings
- * @description Define las estructuras de datos para configuración del TMS,
- * incluyendo ajustes generales, permisos, roles e integraciones.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-/* ============================================
-   ENUMERACIONES
-   ============================================ */
 
 /**
  * Categoría de configuración
@@ -51,9 +39,6 @@ export type PermissionLevel = "none" | "read" | "write" | "admin";
  */
 export type IntegrationStatus = "active" | "inactive" | "error" | "pending";
 
-/* ============================================
-   INTERFACES PRINCIPALES
-   ============================================ */
 
 /**
  * Definición de configuración individual
@@ -67,7 +52,6 @@ export interface SettingDefinition {
   defaultValue: unknown;
   currentValue: unknown;
   
-  // Validación
   required?: boolean;
   min?: number;
   max?: number;
@@ -405,7 +389,6 @@ export interface Integration {
   type: "gps" | "erp" | "crm" | "payment" | "maps" | "sms" | "email" | "webhook" | "other";
   status: IntegrationStatus;
   
-  // Configuración
   config: Record<string, unknown>;
   credentials?: Record<string, string>;
   
@@ -413,7 +396,6 @@ export interface Integration {
   baseUrl?: string;
   webhookUrl?: string;
   
-  // Estado
   lastSyncAt?: string;
   lastErrorAt?: string;
   lastError?: string;
@@ -446,9 +428,6 @@ export interface AuditLogEntry {
   userAgent?: string;
 }
 
-/* ============================================
-   DTOs Y FILTROS
-   ============================================ */
 
 /**
  * Actualizar configuración
@@ -495,9 +474,6 @@ export interface AuditLogFilters {
   search?: string;
 }
 
-/* ============================================
-   ESTADÍSTICAS
-   ============================================ */
 
 /**
  * Resumen de configuración del sistema

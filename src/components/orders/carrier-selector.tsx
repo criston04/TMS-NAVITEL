@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente selector de transportista/carrier
- * @module components/orders/CarrierSelector
- * @description Permite seleccionar un operador logístico (transportista)
- * para asignar a una orden.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useMemo } from 'react';
@@ -35,10 +26,6 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface CarrierSelectorProps {
   /** ID del transportista seleccionado */
   selectedCarrierId: string | null;
@@ -55,10 +42,6 @@ interface CarrierSelectorProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// HELPERS
-// ============================================
 
 /**
  * Obtiene el color del badge de estado
@@ -84,9 +67,7 @@ function getStatusLabel(status: string): string {
   }
 }
 
-// ============================================
 // COMPONENTE DE INFO DEL CARRIER
-// ============================================
 
 interface CarrierInfoCardProps {
   carrier: Operator;
@@ -161,9 +142,7 @@ function CarrierInfoCard({ carrier }: CarrierInfoCardProps) {
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 function CarrierSelectorComponent({
   selectedCarrierId,

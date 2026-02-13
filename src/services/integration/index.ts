@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel export para servicios de integración
- * @module services/integration
- */
-
 export {
   moduleConnectorService,
   ModuleConnectorService,

@@ -20,8 +20,8 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ClipboardCheck, ArrowLeft, Save } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
-import type { Vehicle } from '@/types/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
+import type { Vehicle, InspectionType } from '@/types/maintenance';
 import Link from 'next/link';
 
 const inspectionTypeOptions = [
@@ -58,6 +58,7 @@ const checklistItems = [
 
 export default function NewInspectionPage() {
   const router = useRouter();
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
@@ -76,7 +77,7 @@ export default function NewInspectionPage() {
 
   const loadVehicles = async () => {
     try {
-      const data = await maintenanceService.getVehicles();
+      const data = await maintenance.getVehicles();
       setVehicles(data);
     } catch (error) {
       console.error('Error loading vehicles:', error);
@@ -102,9 +103,9 @@ export default function NewInspectionPage() {
         status = 'completed'; // Si no falla muchos, se considera completada
       }
 
-      await maintenanceService.createInspection({
+      await maintenance.createInspection({
         vehicleId: formData.vehicleId,
-        type: formData.inspectionType,
+        type: formData.inspectionType as InspectionType,
         performedByName: formData.inspectorName,
         performedBy: 'system', // User ID
         performedDate: formData.inspectionDate,

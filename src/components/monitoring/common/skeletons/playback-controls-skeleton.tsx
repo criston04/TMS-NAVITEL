@@ -1,9 +1,3 @@
-/**
- * @fileoverview Skeleton para controles de reproducción
- * 
- * @module components/monitoring/common/skeletons/playback-controls-skeleton
- */
-
 import { cn } from "@/lib/utils";
 
 interface PlaybackControlsSkeletonProps {

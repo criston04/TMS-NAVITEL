@@ -1,10 +1,3 @@
-/**
- * @fileoverview Hook para reproducción de rutas históricas
- * 
- * @module hooks/monitoring/use-route-playback
- * @description Maneja la reproducción animada de rutas con controles de velocidad
- */
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -48,7 +41,7 @@ export interface UseRoutePlaybackState {
   progress: number;
   /** Tiempo formateado del punto actual */
   currentTime: string;
-  /** Total de puntos */
+  
   totalPoints: number;
 }
 
@@ -105,21 +98,6 @@ function formatTime(timestamp: string): string {
 /**
  * Hook para reproducción de rutas históricas
  * 
- * @example
- * ```tsx
- * const { 
- *   isPlaying, 
- *   currentPoint, 
- *   progress,
- *   play,
- *   pause,
- *   setSpeed,
- *   seekTo 
- * } = useRoutePlayback({
- *   points: route.points,
- *   onPointChange: (point) => console.log("Point:", point),
- * });
- * ```
  */
 export function useRoutePlayback(
   options: UseRoutePlaybackOptions
@@ -131,7 +109,6 @@ export function useRoutePlayback(
     initialSpeed = 1,
   } = options;
 
-  // Estado
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -328,7 +305,6 @@ export function useRoutePlayback(
   }), [isPlaying, isPaused, currentIndex, speed, progress, currentPoint]);
 
   return useMemo(() => ({
-    // Estado
     playbackState,
     isPlaying,
     isPaused,
@@ -338,7 +314,6 @@ export function useRoutePlayback(
     progress,
     currentTime,
     totalPoints,
-    // Acciones
     play,
     pause,
     stop,

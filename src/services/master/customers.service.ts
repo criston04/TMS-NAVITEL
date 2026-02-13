@@ -1,11 +1,3 @@
-/**
- * @fileoverview Servicio de Clientes - TMS Navitel
- * 
- * Servicio completo con CRUD, filtros avanzados, export/import
- * 
- * @module services/master/customers.service
- */
-
 import { BulkService } from "@/services/base.service";
 import { API_ENDPOINTS } from "@/config/api.config";
 import { 
@@ -32,9 +24,6 @@ function generateCustomerCode(): string {
 /**
  * Servicio para gestión de Clientes
  * 
- * @example
- * const customers = await customersService.getAll({ page: 1, search: "alicorp" });
- * const customer = await customersService.getById("cust-001");
  */
 class CustomersService extends BulkService<Customer> {
   constructor() {
@@ -157,7 +146,6 @@ class CustomersService extends BulkService<Customer> {
       const active = this.mockData.filter((c) => c.status === "active").length;
       const inactive = this.mockData.filter((c) => c.status === "inactive").length;
 
-      // Clientes nuevos este mes
       const thisMonth = new Date();
       thisMonth.setDate(1);
       thisMonth.setHours(0, 0, 0, 0);
@@ -171,6 +159,8 @@ class CustomersService extends BulkService<Customer> {
         premium: 0,
         vip: 0,
         wholesale: 0,
+        corporate: 0,
+        government: 0,
       };
       this.mockData.forEach(c => {
         const cat = c.category || "standard";
@@ -527,7 +517,6 @@ class CustomersService extends BulkService<Customer> {
     if (this.useMocks) {
       await this.simulateDelay(300);
 
-      // Importar servicio de órdenes dinámicamente para evitar dependencias circulares
       const { orderService } = await import("@/services/orders");
       
       // Obtener órdenes del cliente

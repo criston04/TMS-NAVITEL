@@ -1,8 +1,3 @@
-/**
- * @fileoverview Gráfico de rentabilidad
- * @module components/finance/profitability-chart
- */
-
 "use client";
 
 import {
@@ -27,7 +22,6 @@ interface ProfitabilityChartProps {
   showTrend?: boolean;
 }
 
-// Datos mock para el gráfico de tendencia
 const trendData = [
   { month: "Ene", revenue: 150000, costs: 95000, profit: 55000 },
   { month: "Feb", revenue: 165000, costs: 100000, profit: 65000 },
@@ -93,7 +87,6 @@ export function ProfitabilityChart({ data, showTrend }: ProfitabilityChartProps)
     );
   }
 
-  // Datos del análisis para gráfico de barras
   const chartData = [
     {
       name: "Ingresos",

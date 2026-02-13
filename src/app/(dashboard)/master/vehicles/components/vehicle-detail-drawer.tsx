@@ -1,12 +1,3 @@
-/**
- * @fileoverview Drawer de Detalle de Vehículo
- * 
- * Panel lateral que muestra información completa del vehículo
- * con pestañas para diferentes secciones.
- * 
- * @module app/(dashboard)/master/vehicles/components/vehicle-detail-drawer
- */
-
 "use client";
 
 import * as React from "react";
@@ -51,9 +42,6 @@ import {
 } from "@/types/models/vehicle";
 import { getDaysUntilExpiry, getExpiryAlertLevel } from "@/lib/validators/driver-validators";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 interface VehicleDetailDrawerProps {
   open: boolean;
@@ -65,9 +53,6 @@ interface VehicleDetailDrawerProps {
   onScheduleMaintenance?: (vehicle: Vehicle) => void;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; textColor: string; bgLight: string; description: string }> = {
   active: { label: "Activo", color: "bg-green-500", textColor: "text-green-700", bgLight: "bg-green-50", description: "Operando normalmente" },
@@ -103,9 +88,6 @@ const BODY_TYPES: Record<string, string> = {
   box: "Caja Cerrada",
 };
 
-/* ============================================
-   COMPONENTES AUXILIARES
-   ============================================ */
 
 function InfoRow({ 
   icon: Icon, 
@@ -254,9 +236,6 @@ function FuelHistoryItem({ record }: { record: FuelRecord }) {
   );
 }
 
-/* ============================================
-   COMPONENTE PRINCIPAL
-   ============================================ */
 
 export function VehicleDetailDrawer({
   open,

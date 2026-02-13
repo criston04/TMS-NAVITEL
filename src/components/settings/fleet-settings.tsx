@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de flota
- * @module components/settings/fleet-settings
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

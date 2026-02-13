@@ -1,12 +1,3 @@
-/**
- * @fileoverview Editor de milestones para órdenes
- * @module components/orders/MilestoneEditor
- * @description Permite editar y gestionar milestones generados desde workflow
- * con opción de agregar waypoints adicionales.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState, useCallback, useMemo } from 'react';
@@ -40,10 +31,6 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 export interface MilestoneFormData {
   id: string;
   geofenceId: string;
@@ -60,7 +47,7 @@ export interface MilestoneFormData {
 }
 
 interface MilestoneEditorProps {
-  /** Lista de milestones */
+  
   milestones: MilestoneFormData[];
   /** Lista de geocercas disponibles */
   geofences: Geofence[];
@@ -73,10 +60,6 @@ interface MilestoneEditorProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// HELPERS
-// ============================================
 
 /**
  * Genera un ID único para milestone
@@ -107,9 +90,7 @@ function getMilestoneTypeLabel(type: 'origin' | 'waypoint' | 'destination'): str
   }
 }
 
-// ============================================
 // COMPONENTE DE MILESTONE INDIVIDUAL
-// ============================================
 
 interface MilestoneItemProps {
   milestone: MilestoneFormData;
@@ -301,9 +282,7 @@ function MilestoneItem({
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 function MilestoneEditorComponent({
   milestones,

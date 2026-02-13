@@ -1,8 +1,3 @@
-/**
- * @fileoverview Lista de reportes generados
- * @module components/reports/generated-reports-list
- */
-
 "use client";
 
 import { useState } from "react";

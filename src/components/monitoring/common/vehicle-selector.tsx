@@ -1,8 +1,3 @@
-/**
- * @fileoverview Vehicle selector component
- * @module components/monitoring/common/vehicle-selector
- */
-
 "use client";
 
 import { useState, useMemo } from "react";

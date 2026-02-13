@@ -1,8 +1,3 @@
-/**
- * @fileoverview Componente para gestión de hitos/milestones en workflows
- * @module components/workflows/workflow-milestones
- */
-
 'use client';
 
 import { type FC, useState, useCallback, useMemo } from 'react';

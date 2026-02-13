@@ -1,11 +1,3 @@
-/**
- * @fileoverview Logo de GT ANTARES LOGISTICS
- * @module components/brand/antares-logo
- * @description Logo del cliente/tenant ANTARES LOGISTICS con estrella de 8 puntas
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { cn } from "@/lib/utils";
 
 interface AntaresLogoProps {

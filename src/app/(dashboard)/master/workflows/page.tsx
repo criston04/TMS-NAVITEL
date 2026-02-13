@@ -1,10 +1,3 @@
-/**
- * @fileoverview Página de gestión de Workflows
- * @module app/(dashboard)/master/workflows/page
- * @description Permite crear, editar, duplicar y gestionar workflows
- * Integración mediante Layout Master-Detail (Split View)
- */
-
 'use client';
 
 import { PageWrapper } from '@/components/page-wrapper';

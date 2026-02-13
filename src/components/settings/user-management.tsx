@@ -1,8 +1,3 @@
-/**
- * @fileoverview Gestión de usuarios del sistema
- * @module components/settings/user-management
- */
-
 "use client";
 
 import { useState } from "react";
@@ -88,7 +83,6 @@ const statusConfig = {
   pending: { label: "Pendiente", color: "bg-amber-100 text-amber-800", icon: Mail },
 };
 
-// Mock data
 const mockUsers: User[] = [
   {
     id: "1",

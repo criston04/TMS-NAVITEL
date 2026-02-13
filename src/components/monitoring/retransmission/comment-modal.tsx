@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modal para editar comentarios de retransmisión
- * 
- * @module components/monitoring/retransmission/comment-modal
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

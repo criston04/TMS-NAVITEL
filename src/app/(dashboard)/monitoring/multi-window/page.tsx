@@ -1,8 +1,3 @@
-/**
- * @fileoverview Página de Multiventana
- * @module app/(dashboard)/monitoring/multi-window/page
- */
-
 "use client";
 
 import dynamic from "next/dynamic";

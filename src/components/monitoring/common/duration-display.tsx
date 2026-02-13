@@ -1,9 +1,3 @@
-/**
- * @fileoverview Componente para mostrar duración formateada
- * 
- * @module components/monitoring/common/duration-display
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

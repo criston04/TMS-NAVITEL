@@ -1,15 +1,3 @@
-/**
- * @fileoverview Tipos para el módulo de Reportes
- * @module types/report
- * @description Define las estructuras de datos para generación y gestión
- * de reportes del TMS, incluyendo plantillas, formatos y programación.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-/* ============================================
-   ENUMERACIONES
-   ============================================ */
 
 /**
  * Tipo de reporte
@@ -61,9 +49,6 @@ export type ReportStatus =
   | "failed"      // Fallido
   | "expired";    // Expirado
 
-/* ============================================
-   INTERFACES PRINCIPALES
-   ============================================ */
 
 /**
  * Filtro de reporte
@@ -173,7 +158,6 @@ export interface ReportTemplate {
   description?: string;
   type: ReportType;
   
-  // Configuración base
   definition: Partial<ReportDefinition>;
   
   // Parámetros requeridos
@@ -239,7 +223,6 @@ export interface ReportSchedule {
   name: string;
   description?: string;
   
-  // Programación
   frequency: ScheduleFrequency;
   dayOfWeek?: number;     // 0-6 (Domingo-Sábado)
   dayOfMonth?: number;    // 1-31
@@ -258,7 +241,6 @@ export interface ReportSchedule {
   recipients: string[];   // Emails
   sendEmpty: boolean;     // Enviar aunque no haya datos
   
-  // Estado
   isActive: boolean;
   lastRunAt?: string;
   nextRunAt?: string;
@@ -309,7 +291,6 @@ export interface KPIWidget {
     height: number;
   };
   
-  // Configuración según tipo
   config: {
     // Métrica
     metric?: {
@@ -348,9 +329,6 @@ export interface KPIWidget {
   refreshInterval?: number;
 }
 
-/* ============================================
-   DTOs Y FILTROS
-   ============================================ */
 
 /**
  * Solicitud de generación de reporte
@@ -419,9 +397,6 @@ export interface GeneratedReportFilters {
   endDate?: string;
 }
 
-/* ============================================
-   ESTADÍSTICAS
-   ============================================ */
 
 /**
  * Estadísticas de uso de reportes
@@ -452,7 +427,6 @@ export interface ReportUsageStats {
  * Datos pre-calculados para reportes operacionales
  */
 export interface OperationalReportData {
-  // Órdenes
   totalOrders: number;
   completedOrders: number;
   pendingOrders: number;
@@ -465,13 +439,11 @@ export interface OperationalReportData {
   onTimeRate: number;
   avgDeliveryTime: number; // minutos
   
-  // Vehículos
   activeVehicles: number;
   utilizationRate: number;
   totalKmTraveled: number;
   avgKmPerVehicle: number;
   
-  // Conductores
   activeDrivers: number;
   avgOrdersPerDriver: number;
   topDrivers: { driverId: string; name: string; orders: number }[];

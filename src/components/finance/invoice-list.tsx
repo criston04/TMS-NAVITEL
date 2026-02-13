@@ -1,8 +1,3 @@
-/**
- * @fileoverview Lista de facturas
- * @module components/finance/invoice-list
- */
-
 "use client";
 
 import { useState } from "react";

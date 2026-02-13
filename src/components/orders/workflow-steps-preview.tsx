@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente de vista previa de pasos del workflow
- * @module components/orders/WorkflowStepsPreview
- * @description Muestra los pasos de un workflow en formato timeline
- * con información detallada de cada paso.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useMemo } from 'react';
@@ -37,10 +28,6 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface WorkflowStepsPreviewProps {
   /** Pasos del workflow */
   steps: WorkflowStep[];
@@ -53,10 +40,6 @@ interface WorkflowStepsPreviewProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// CONFIGURACIÓN
-// ============================================
 
 /**
  * Configuración de iconos y colores por tipo de acción
@@ -113,10 +96,6 @@ const ACTION_CONFIG: Record<WorkflowStepAction, {
   },
 };
 
-// ============================================
-// HELPERS
-// ============================================
-
 /**
  * Formatea duración en minutos a texto legible
  */
@@ -147,9 +126,7 @@ function getIndicatorColor(type: 'origin' | 'waypoint' | 'destination'): string 
   }
 }
 
-// ============================================
 // COMPONENTE DE PASO INDIVIDUAL
-// ============================================
 
 interface StepItemProps {
   step: WorkflowStep;
@@ -276,9 +253,7 @@ function StepItem({ step, index, totalSteps, isCompact, isCurrent }: StepItemPro
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 function WorkflowStepsPreviewComponent({
   steps,
@@ -373,9 +348,7 @@ function WorkflowStepsPreviewComponent({
  */
 export const WorkflowStepsPreview = memo(WorkflowStepsPreviewComponent);
 
-// ============================================
 // COMPONENTE CARD WRAPPER
-// ============================================
 
 interface WorkflowStepsCardProps extends WorkflowStepsPreviewProps {
   title?: string;

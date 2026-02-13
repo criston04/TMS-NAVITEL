@@ -1,12 +1,3 @@
-/**
- * @fileoverview Modal de asignación de orden
- * @module components/scheduling/AssignmentModal
- * @description Modal para asignar vehículo y conductor a una orden,
- * con validaciones HOS, sugerencias automáticas y detección de conflictos.
- * @author TMS-NAVITEL
- * @version 2.2.1 (Compact UI)
- */
-
 'use client';
 
 import React, { memo, useState, useEffect, useMemo, useCallback, type FC } from 'react';
@@ -42,10 +33,6 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 interface SchedulingVehicle {
   id: string;
@@ -89,10 +76,6 @@ interface AssignmentModalProps {
   className?: string;
 }
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
 /**
  * Returns the appropriate CSS classes for priority badge styling
  */
@@ -121,9 +104,7 @@ function getPriorityLabel(priority: string): string {
   }
 }
 
-// ============================================
 // SUBCOMPONENTES
-// ============================================
 
 interface SuggestionChipProps {
   suggestion: ResourceSuggestion;
@@ -231,9 +212,7 @@ const ConflictAlert: FC<Readonly<ConflictAlertProps>> = memo(function ConflictAl
   );
 });
 
-// ============================================
 // RENDER HELPERS
-// ============================================
 
 /**
  * Renders the suggestions section of the modal
@@ -322,9 +301,7 @@ function renderSuggestionsSection({
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function AssignmentModal({
   open,
@@ -367,7 +344,6 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
     return date.toTimeString().slice(0, 5);
   };
 
-  // Estado del formulario con valores iniciales
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(getInitialVehicleId);
   const [selectedDriverId, setSelectedDriverId] = useState<string>(getInitialDriverId);
   const [scheduledDate, setScheduledDate] = useState<string>(getInitialDate);
@@ -463,7 +439,6 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
     setShowSuggestions(prev => !prev);
   }, []);
 
-  // Validación del formulario
   const canSubmit = useMemo(() => {
     if (!selectedVehicleId || !selectedDriverId || !scheduledDate) return false;
     if (featureFlags?.enableHOSValidation && hosValidation && !hosValidation.isValid) return false;

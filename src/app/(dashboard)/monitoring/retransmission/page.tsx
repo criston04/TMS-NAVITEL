@@ -1,8 +1,3 @@
-/**
- * @fileoverview Página de Retransmisión
- * @module app/(dashboard)/monitoring/retransmission/page
- */
-
 "use client";
 
 import dynamic from "next/dynamic";

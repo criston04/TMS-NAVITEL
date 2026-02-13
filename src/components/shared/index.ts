@@ -1,8 +1,3 @@
-/**
- * @fileoverview Exportaciones de componentes compartidos
- * @module components/shared
- */
-
 export { Pagination } from './pagination';
 export { ViewToggle, type ViewMode } from './view-toggle';
 export { BulkDeleteDialog } from './bulk-delete-dialog';

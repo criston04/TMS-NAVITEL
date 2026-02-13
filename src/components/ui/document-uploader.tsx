@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente de Carga de Documentos Reutilizable
- * 
- * Componente genérico para gestionar la carga de documentos con
- * preview, validación de tipos y tamaño, y feedback visual.
- * 
- * @module components/ui/document-uploader
- */
-
 "use client";
 
 import * as React from "react";
@@ -33,9 +24,6 @@ import {
   Trash2,
 } from "lucide-react";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 /**
  * Archivo con metadata
@@ -97,9 +85,6 @@ export interface DocumentUploaderProps {
   required?: boolean;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 const ACCEPT_TYPES: Record<DocumentType, Accept> = {
   pdf: { "application/pdf": [".pdf"] },
@@ -133,9 +118,6 @@ const getFileIcon = (mimeType: string) => {
   return File;
 };
 
-/* ============================================
-   COMPONENTE PRINCIPAL
-   ============================================ */
 
 export function DocumentUploader({
   documentType = "all",

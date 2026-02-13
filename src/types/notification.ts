@@ -1,14 +1,3 @@
-/**
- * @fileoverview Tipos para el Sistema de Notificaciones
- * @module types/notification
- * @description Define las estructuras de datos para notificaciones del sistema.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-/* ============================================
-   TIPOS BASE
-   ============================================ */
 
 /**
  * Tipo de notificación
@@ -44,9 +33,6 @@ export type NotificationStatus =
   | "failed"          // Falló el envío
   | "cancelled";      // Cancelada
 
-/* ============================================
-   INTERFACES
-   ============================================ */
 
 /**
  * Notificación del sistema
@@ -88,7 +74,7 @@ export interface SystemNotification {
   createdAt: string;
   /** Fecha de envío */
   sentAt?: string;
-  /** Fecha de lectura */
+  
   readAt?: string;
   /** Fecha de expiración */
   expiresAt?: string;
@@ -100,7 +86,7 @@ export interface SystemNotification {
  * Preferencias de notificación del usuario
  */
 export interface NotificationPreferences {
-  /** ID del usuario */
+  
   userId: string;
   /** Canales habilitados por categoría */
   channels: {
@@ -191,7 +177,7 @@ export interface NotificationFilters {
  * Estadísticas de notificaciones
  */
 export interface NotificationStats {
-  /** Total de notificaciones */
+  
   total: number;
   /** No leídas */
   unread: number;

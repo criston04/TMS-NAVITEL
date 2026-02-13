@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel exports para componentes de scheduling
- * @module components/scheduling
- */
-
 export { SchedulingLayout } from './scheduling-layout';
 export { SchedulingSidebar } from './scheduling-sidebar';
 export { SchedulingCalendar } from './scheduling-calendar';

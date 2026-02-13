@@ -1,9 +1,3 @@
-/**
- * @fileoverview Contenedor principal del módulo de retransmisión
- * 
- * @module components/monitoring/retransmission/retransmission-container
- */
-
 "use client";
 
 import { useState, useCallback } from "react";
@@ -28,7 +22,6 @@ interface RetransmissionContainerProps {
 export function RetransmissionContainer({
   className,
 }: RetransmissionContainerProps) {
-  // Estado del modal de comentarios
   const [commentModal, setCommentModal] = useState<{
     isOpen: boolean;
     record: RetransmissionRecord | null;
@@ -37,7 +30,6 @@ export function RetransmissionContainer({
     record: null,
   });
 
-  // Hook de retransmisión
   const {
     records,
     stats,

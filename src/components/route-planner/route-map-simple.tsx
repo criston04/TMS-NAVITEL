@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { Navigation, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Route, TransportOrder } from "@/types/route-planner";
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+const L = require('leaflet');
 
 // Fix para iconos de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -45,9 +47,12 @@ async function fetchOSRMRoute(coordinates: [number, number][]): Promise<[number,
 
 export function RouteMapSimple({ route, selectedOrders = [], showOrderMarkers = false }: RouteMapSimpleProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
-  const polylineRef = useRef<L.Polyline | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markersRef = useRef<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const polylineRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Inicializar mapa
@@ -139,7 +144,8 @@ export function RouteMapSimple({ route, selectedOrders = [], showOrderMarkers = 
       route.stops.forEach((stop, index) => {
         const latLng: [number, number] = [stop.coordinates[0], stop.coordinates[1]]; // [lat, lng]
 
-        let icon: L.DivIcon;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let icon: any;
 
         if (index === 0) {
           // Inicio (bandera verde)

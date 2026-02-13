@@ -1,11 +1,3 @@
-/**
- * @fileoverview Página de Gestión de Facturas
- * @module app/(dashboard)/invoices/page
- * @description Módulo completo para crear, editar y gestionar facturas
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -73,10 +65,6 @@ import { CreateInvoiceDialog } from "@/components/finance";
 import type { Invoice, InvoiceStatus } from "@/types/finance";
 import { cn } from "@/lib/utils";
 
-// ============================================
-// CONSTANTES Y HELPERS
-// ============================================
-
 const statusConfig: Record<InvoiceStatus, { label: string; color: string; icon: React.ElementType }> = {
   draft: { label: "Borrador", color: "bg-gray-100 text-gray-700", icon: FileText },
   pending: { label: "Pendiente", color: "bg-yellow-100 text-yellow-700", icon: Clock },
@@ -103,9 +91,7 @@ function formatDate(date: string): string {
   });
 }
 
-// ============================================
 // COMPONENTES
-// ============================================
 
 function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
   const config = statusConfig[status];
@@ -201,9 +187,7 @@ function InvoiceStatsCards({ invoices, loading }: { invoices: Invoice[]; loading
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export default function InvoicesPage() {
   const [showCreateInvoice, setShowCreateInvoice] = useState(false);

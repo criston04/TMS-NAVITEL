@@ -1,8 +1,3 @@
-/**
- * @fileoverview Cards de estadísticas financieras
- * @module components/finance/finance-stats-cards
- */
-
 "use client";
 
 import {

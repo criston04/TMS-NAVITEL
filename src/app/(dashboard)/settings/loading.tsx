@@ -1,8 +1,3 @@
-/**
- * @fileoverview Loading skeleton para la página de configuración
- * @module app/(dashboard)/settings/loading
- */
-
 import { PageWrapper } from "@/components/page-wrapper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";

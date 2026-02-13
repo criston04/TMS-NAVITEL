@@ -1,10 +1,3 @@
-/**
- * @fileoverview Hook para tracking de órdenes asociadas a vehículos
- * 
- * @module hooks/monitoring/use-tracked-order
- * @description Obtiene información de la orden activa de un vehículo
- */
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -17,7 +10,7 @@ import { trackingService } from "@/services/monitoring";
 export interface UseTrackedOrderState {
   /** Orden rastreada */
   order: TrackedOrder | null;
-  /** Lista de hitos */
+  
   milestones: TrackedMilestone[];
   /** Hito actual */
   currentMilestone: TrackedMilestone | null;
@@ -25,9 +18,9 @@ export interface UseTrackedOrderState {
   progress: number;
   /** Cantidad de hitos completados */
   completedCount: number;
-  /** Total de hitos */
+  
   totalCount: number;
-  /** Estado de carga */
+  
   isLoading: boolean;
   /** Error si ocurrió alguno */
   error: Error | null;
@@ -47,21 +40,10 @@ export interface UseTrackedOrderActions {
  * @param vehicleId - ID del vehículo
  * @returns Estado y acciones de la orden rastreada
  * 
- * @example
- * ```tsx
- * const { 
- *   order, 
- *   milestones, 
- *   currentMilestone, 
- *   progress,
- *   isLoading 
- * } = useTrackedOrder(vehicleId);
- * ```
  */
 export function useTrackedOrder(
   vehicleId: string | null | undefined
 ): UseTrackedOrderState & UseTrackedOrderActions {
-  // Estado
   const [order, setOrder] = useState<TrackedOrder | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -122,7 +104,6 @@ export function useTrackedOrder(
   }, [order, completedCount, totalCount]);
 
   return useMemo(() => ({
-    // Estado
     order,
     milestones,
     currentMilestone,
@@ -131,7 +112,6 @@ export function useTrackedOrder(
     totalCount,
     isLoading,
     error,
-    // Acciones
     refresh,
   }), [
     order,

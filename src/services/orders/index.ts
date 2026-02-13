@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel export para servicios de órdenes
- * @module services/orders
- */
-
 export { orderService, OrderService } from './OrderService';
 export type { IOrderService } from './OrderService';
 

@@ -1,57 +1,10 @@
-/**
- * @fileoverview Componente de mapa interactivo para visualización de flota
- * 
- * Muestra los vehículos en un mapa de Leaflet con marcadores personalizados,
- * popups informativos y animaciones de selección. Utiliza CartoDB Positron
- * como capa base para un estilo minimalista.
- * 
- * @module components/shared/fleet/fleet-map
- * @requires react
- * @requires leaflet
- * @requires @/types/fleet
- * 
- * @example
- * <FleetMap
- *   vehicles={vehicles}
- *   selectedVehicle={selected}
- *   onSelectVehicle={handleSelect}
- *   className="h-[600px]"
- * />
- */
-
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Vehicle } from "@/types/vehicle";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Vehicle } from "@/types/fleet";
 import { cn } from "@/lib/utils";
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Usar estilo con tiles gratuitos de OpenStreetMap
-const FREE_STYLE: mapboxgl.StyleSpecification = {
-  version: 8,
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors'
-    }
-  },
-  layers: [
-    {
-      id: 'osm-tiles',
-      type: 'raster',
-      source: 'osm',
-      minzoom: 0,
-      maxzoom: 19
-    }
-  ]
-};
+// Colores del mapa según estado
 
 interface FleetMapProps {
   readonly vehicles: Vehicle[];
@@ -87,11 +40,16 @@ export function FleetMap({
   className,
 }: FleetMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markersRef = useRef<Map<string, any>>(new Map());
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapInstanceRef = useRef<any>(null);
 
   const createVehicleIcon = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,7 +91,6 @@ export function FleetMap({
     []
   );
 
-  // Efecto para inicializar el mapa
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
@@ -152,7 +109,6 @@ export function FleetMap({
     setIsMapReady(true);
   }, []);
 
-  // Efecto para crear el mapa cuando el contenedor está listo
   useEffect(() => {
     if (!isMapReady || !mapRef.current || mapInstanceRef.current) return;
 
@@ -202,13 +158,15 @@ export function FleetMap({
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current.clear();
-      map.remove();
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
       mapRef.current = null;
       setIsLoaded(false);
     };
   }, []);
 
-  // Actualizar marcadores de vehículos
   useEffect(() => {
     if (!mapRef.current || !isLoaded || vehicles.length === 0) return;
 
@@ -225,57 +183,49 @@ export function FleetMap({
     });
 
     // Preparar bounds para ajustar vista
-    const bounds = new mapboxgl.LngLatBounds();
-    let hasValidCoords = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allLatLngs: any[] = [];
 
-    // Actualizar o crear marcadores
-    vehicles.forEach(vehicle => {
-      if (!vehicle.lastLocation) return;
-
-      const lngLat: [number, number] = [
-        vehicle.lastLocation.lng,
-        vehicle.lastLocation.lat
-      ];
-      bounds.extend(lngLat);
-      hasValidCoords = true;
-
-      const isSelected = selectedVehicle?.id === vehicle.id;
-      let existingMarker = markersRef.current.get(vehicle.id);
-
-      // Si el marcador ya existe, actualizarlo
-      if (existingMarker) {
-        existingMarker.setLngLat(lngLat);
-        
-        // Actualizar elemento si cambió la selección
-        const el = existingMarker.getElement();
-        if (el) {
-          el.style.transform = isSelected ? 'scale(1.2)' : 'scale(1)';
-          el.style.zIndex = isSelected ? '1000' : '1';
-        }
-      } else {
-        // Crear nuevo marcador
-        const el = createMarkerElement(vehicle, isSelected);
-        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(createPopupContent(vehicle));
-        
-        const marker = new mapboxgl.Marker({ element: el })
-          .setLngLat(lngLat)
-          .setPopup(popup)
-          .addTo(map);
-        
-        // Evento de click
-        el.addEventListener('click', () => {
-          onSelectVehicle(vehicle);
-        });
-        
-        markersRef.current.set(vehicle.id, marker);
+    vehicles.forEach((vehicle) => {
+      const lat = vehicle.location?.lat;
+      const lng = vehicle.location?.lng;
+      if (lat && lng) {
+        allLatLngs.push([lat, lng]);
       }
     });
 
     // Ajustar vista para mostrar todos los vehículos
-    if (hasValidCoords) {
-      map.fitBounds(bounds, { padding: 80, maxZoom: 15 });
+    if (allLatLngs.length > 0 && map) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leafletRef.current as any;
+      if (L) {
+        const bounds = L.latLngBounds(allLatLngs);
+        map.fitBounds(bounds, { padding: [80, 80], maxZoom: 15 });
+      }
     }
-  }, [vehicles, selectedVehicle, isLoaded, onSelectVehicle]);
+  }, [vehicles, isLoaded, createVehicleIcon, onSelectVehicle]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !selectedVehicle || !isLoaded) return;
+    const lat = selectedVehicle.location?.lat;
+    const lng = selectedVehicle.location?.lng;
+    if (lat && lng) {
+      mapInstanceRef.current.flyTo([lat, lng], 14, { duration: 0.8 });
+    }
+  }, [selectedVehicle, isLoaded]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isLoaded) return;
+    
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isLoaded]);
 
   return (
     <div className={cn("relative h-full w-full rounded-lg overflow-hidden", className)}>
@@ -293,81 +243,3 @@ export function FleetMap({
   );
 }
 
-// Crear elemento HTML para el marcador
-function createMarkerElement(vehicle: Vehicle, isSelected: boolean): HTMLDivElement {
-  const el = document.createElement('div');
-  el.style.width = '40px';
-  el.style.height = '40px';
-  el.style.cursor = 'pointer';
-  el.style.transition = 'transform 0.2s';
-  el.style.transform = isSelected ? 'scale(1.2)' : 'scale(1)';
-  el.style.zIndex = isSelected ? '1000' : '1';
-  
-  const color = statusColors[vehicle.status] || statusColors.available;
-  
-  el.innerHTML = `
-    <svg width="40" height="40" viewBox="0 0 40 40" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
-      <circle cx="20" cy="20" r="18" fill="${color}" stroke="white" stroke-width="3"/>
-      <g transform="translate(20, 20)">
-        <path d="M-6,-4 L-6,4 L6,4 L6,-4 Z M-4,-6 L4,-6 L4,-4 L-4,-4 Z" fill="white" stroke="white" stroke-width="1"/>
-        <circle cx="-4" cy="5" r="1.5" fill="white"/>
-        <circle cx="4" cy="5" r="1.5" fill="white"/>
-      </g>
-    </svg>
-  `;
-  
-  el.addEventListener('mouseenter', () => {
-    if (!isSelected) el.style.transform = 'scale(1.15)';
-  });
-  
-  el.addEventListener('mouseleave', () => {
-    if (!isSelected) el.style.transform = 'scale(1)';
-  });
-  
-  return el;
-}
-
-// Crear contenido del popup
-function createPopupContent(vehicle: Vehicle): string {
-  const status = statusLabels[vehicle.status] || statusLabels.available;
-  
-  return `
-    <div style="padding: 12px; min-width: 240px; font-family: system-ui, -apple-system, sans-serif;">
-      <div style="border-bottom: 2px solid ${status.color}; padding-bottom: 8px; margin-bottom: 10px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-          <p style="font-weight: 700; font-size: 15px; color: #1f2937; margin: 0;">
-            ${vehicle.plate}
-          </p>
-          <span style="background: ${status.color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-            ${status.label}
-          </span>
-        </div>
-        <p style="font-size: 12px; color: #6b7280; margin: 0;">
-          ${vehicle.brand} ${vehicle.model}
-        </p>
-      </div>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-        ${vehicle.fuelLevel !== undefined ? `
-        <div style="text-align: center; padding: 6px; background: #f3f4f6; border-radius: 6px;">
-          <p style="font-size: 10px; color: #6b7280; margin: 0 0 2px 0; text-transform: uppercase;">Combustible</p>
-          <p style="font-weight: 600; color: #1f2937; margin: 0; font-size: 13px;">${vehicle.fuelLevel}%</p>
-        </div>
-        ` : ''}
-        
-        ${vehicle.odometer !== undefined ? `
-        <div style="text-align: center; padding: 6px; background: #f3f4f6; border-radius: 6px;">
-          <p style="font-size: 10px; color: #6b7280; margin: 0 0 2px 0; text-transform: uppercase;">Kilometraje</p>
-          <p style="font-weight: 600; color: #1f2937; margin: 0; font-size: 13px;">${vehicle.odometer.toLocaleString()} km</p>
-        </div>
-        ` : ''}
-      </div>
-      
-      ${vehicle.lastLocation?.timestamp ? `
-      <p style="font-size: 10px; color: #9ca3af; margin-top: 8px; margin-bottom: 0; text-align: center;">
-        Última actualización: ${new Date(vehicle.lastLocation.timestamp).toLocaleString()}
-      </p>
-      ` : ''}
-    </div>
-  `;
-}

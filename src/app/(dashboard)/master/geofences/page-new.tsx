@@ -1,11 +1,3 @@
-/**
- * @fileoverview Página principal de Geocercas (versión mejorada)
- * 
- * Integra todos los hooks y componentes refactorizados.
- * 
- * @module app/(dashboard)/master/geofences/page
- */
-
 "use client";
 
 import { useState, useMemo, useRef, useEffect, useCallback, startTransition } from "react";
@@ -64,7 +56,6 @@ import { Geofence, GeofenceCategory } from "@/types/models/geofence";
 import { geofenceCategories, geofenceColors } from "@/mocks/master/geofences.mock";
 import { cn } from "@/lib/utils";
 
-// Importar mapa dinámicamente (SSR disabled) - usando forwardRef pattern
 const GeofencesMapNew = dynamic(
   async () => {
     const mod = await import("@/components/geofences/geofences-map-new");
@@ -114,7 +105,6 @@ const LAYER_ICONS: Record<MapLayerType, React.ElementType> = {
 function GeofencesPageContent() {
   const { success, error: showError } = useToast();
   
-  // Hook de geocercas
   const {
     geofences,
     filteredGeofences,
@@ -138,7 +128,6 @@ function GeofencesPageContent() {
     updateColorBatch,
   } = useGeofences({ autoLoad: true });
   
-  // Estado local
   const [showPanel, setShowPanel] = useState(true);
   const [selectedTab, setSelectedTab] = useState<"all" | "selected">("all");
   const [showDrawOptions, setShowDrawOptions] = useState(false);
@@ -196,7 +185,6 @@ function GeofencesPageContent() {
     setFilters({ search: searchQuery });
   }, [searchQuery, setFilters]);
   
-  // Geocercas a mostrar
   const displayedGeofences = useMemo(() => {
     if (selectedTab === "selected") {
       return filteredGeofences.filter((g) => selectedIds.has(g.id));

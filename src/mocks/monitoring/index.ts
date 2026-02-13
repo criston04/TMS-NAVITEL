@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel exports para mocks de Monitoreo
- * @module mocks/monitoring
- */
-
 export { gpsCompaniesMock } from "./gps-companies.mock";
 export { 
   retransmissionMock, 
@@ -16,3 +11,4 @@ export {
   historicalRoutesMock, 
   generateHistoricalRouteStats 
 } from "./historical-routes.mock";
+export { mockGeofenceEvents } from "./geofence-events.mock";

@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * @fileoverview Página de detalle de un cliente
- * 
- * @module app/(dashboard)/master/customers/[id]/page
- */
-
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -36,7 +30,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { customersService } from "@/services/master";
+import { useCustomerDetail } from "@/hooks/useCustomerDetail";
 import { Customer, CustomerCategory, CreateCustomerDTO, UpdateCustomerDTO } from "@/types/models";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
@@ -47,6 +41,8 @@ const CATEGORY_COLORS: Record<CustomerCategory, string> = {
   premium: "bg-blue-500",
   vip: "bg-amber-500",
   wholesale: "bg-purple-500",
+  corporate: "bg-indigo-500",
+  government: "bg-emerald-500",
 };
 
 const CATEGORY_LABELS: Record<CustomerCategory, string> = {
@@ -54,6 +50,8 @@ const CATEGORY_LABELS: Record<CustomerCategory, string> = {
   premium: "Premium",
   vip: "VIP",
   wholesale: "Mayorista",
+  corporate: "Corporativo",
+  government: "Gobierno",
 };
 
 function formatDate(date: string | undefined): string {
@@ -99,37 +97,29 @@ export default function CustomerDetailPage() {
   const { success, error: showError } = useToast();
   const customerId = params.id as string;
 
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    customer,
+    isLoading,
+    updateCustomer,
+    toggleStatus,
+    deleteCustomer,
+  } = useCustomerDetail(customerId);
+
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Cargar cliente
-  useEffect(() => {
-    const loadCustomer = async () => {
-      setIsLoading(true);
-      try {
-        const data = await customersService.getById(customerId);
-        setCustomer(data);
-      } catch {
-        showError("Error", "No se pudo cargar el cliente");
-        router.push("/master/customers");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadCustomer();
-  }, [customerId, router, showError]);
 
   const handleUpdate = async (data: CreateCustomerDTO | UpdateCustomerDTO) => {
     if (!customer) return;
     setIsSubmitting(true);
     try {
-      const updated = await customersService.updateCustomer(customer.id, data as UpdateCustomerDTO);
-      setCustomer(updated);
-      setIsFormModalOpen(false);
-      success("Actualizado", "Cliente actualizado correctamente");
+      const updated = await updateCustomer(data as UpdateCustomerDTO);
+      if (updated) {
+        setIsFormModalOpen(false);
+        success("Actualizado", "Cliente actualizado correctamente");
+      } else {
+        showError("Error", "No se pudo actualizar el cliente");
+      }
     } catch {
       showError("Error", "No se pudo actualizar el cliente");
     } finally {
@@ -140,9 +130,12 @@ export default function CustomerDetailPage() {
   const handleToggleStatus = async () => {
     if (!customer) return;
     try {
-      const updated = await customersService.toggleStatus(customer.id);
-      setCustomer(updated);
-      success("Estado cambiado", `Cliente ${updated.status === "active" ? "activado" : "desactivado"}`);
+      const updated = await toggleStatus();
+      if (updated) {
+        success("Estado cambiado", `Cliente ${updated.status === "active" ? "activado" : "desactivado"}`);
+      } else {
+        showError("Error", "No se pudo cambiar el estado");
+      }
     } catch {
       showError("Error", "No se pudo cambiar el estado");
     }
@@ -152,9 +145,13 @@ export default function CustomerDetailPage() {
     if (!customer) return;
     setIsSubmitting(true);
     try {
-      await customersService.deleteCustomer(customer.id);
-      success("Eliminado", "Cliente eliminado correctamente");
-      router.push("/master/customers");
+      const deleted = await deleteCustomer();
+      if (deleted) {
+        success("Eliminado", "Cliente eliminado correctamente");
+        router.push("/master/customers");
+      } else {
+        showError("Error", "No se pudo eliminar el cliente");
+      }
     } catch {
       showError("Error", "No se pudo eliminar el cliente");
     } finally {

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Lista de definiciones de reportes
- * @module components/reports/report-definitions-list
- */
-
 "use client";
 
 import { useState } from "react";

@@ -1,10 +1,3 @@
-/**
- * @fileoverview Hook para tracking de vehículos en tiempo real
- * 
- * @module hooks/monitoring/use-vehicle-tracking
- * @description Maneja conexión WebSocket y actualizaciones de posición en tiempo real
- */
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -46,7 +39,7 @@ export interface UseVehicleTrackingState {
   error: Error | null;
   /** Vehículo seleccionado */
   selectedVehicle: TrackedVehicle | null;
-  /** Filtros actuales */
+  
   filters: ControlTowerFilters;
 }
 
@@ -70,6 +63,8 @@ export interface UseVehicleTrackingActions {
   setFilters: (filters: ControlTowerFilters) => void;
   /** Refrescar lista de vehículos */
   refresh: () => Promise<void>;
+  /** Obtener lista de transportistas */
+  getCarriers: () => Promise<string[]>;
   /** Conectar al WebSocket */
   connect: () => void;
   /** Desconectar del WebSocket */
@@ -79,19 +74,6 @@ export interface UseVehicleTrackingActions {
 /**
  * Hook para tracking de vehículos en tiempo real
  * 
- * @example
- * ```tsx
- * const { 
- *   vehiclesList, 
- *   isConnected, 
- *   selectedVehicle,
- *   subscribeToVehicle,
- *   selectVehicle,
- *   centerOnVehicle 
- * } = useVehicleTracking({
- *   autoConnect: true,
- * });
- * ```
  */
 export function useVehicleTracking(
   options: UseVehicleTrackingOptions = {}
@@ -103,7 +85,6 @@ export function useVehicleTracking(
     onPositionUpdate,
   } = options;
 
-  // Estado
   const [vehicles, setVehicles] = useState<Map<string, TrackedVehicle>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -243,7 +224,6 @@ export function useVehicleTracking(
     await loadVehicles(filters);
   }, [loadVehicles, filters]);
 
-  // Configurar handlers de WebSocket
   useEffect(() => {
     const unsubscribeMessage = monitoringWebSocketService.onMessage(handleWebSocketMessage);
     
@@ -355,6 +335,11 @@ export function useVehicleTracking(
 
   // Derivar datos
   const vehiclesList = useMemo(() => Array.from(vehicles.values()), [vehicles]);
+
+  /** Obtiene la lista de transportistas desde el servicio */
+  const getCarriers = useCallback(async (): Promise<string[]> => {
+    return trackingService.getCarriers();
+  }, []);
   
   const selectedVehicle = useMemo(() => {
     if (!selectedVehicleId) return null;
@@ -362,7 +347,6 @@ export function useVehicleTracking(
   }, [selectedVehicleId, vehicles]);
 
   return useMemo(() => ({
-    // Estado
     vehicles,
     vehiclesList,
     isConnected,
@@ -370,7 +354,6 @@ export function useVehicleTracking(
     error,
     selectedVehicle,
     filters,
-    // Acciones
     subscribeToVehicle,
     unsubscribeFromVehicle,
     subscribeToVehicles,
@@ -379,6 +362,7 @@ export function useVehicleTracking(
     centerOnVehicle,
     setFilters,
     refresh,
+    getCarriers,
     connect,
     disconnect,
   }), [
@@ -397,6 +381,7 @@ export function useVehicleTracking(
     centerOnVehicle,
     setFilters,
     refresh,
+    getCarriers,
     connect,
     disconnect,
   ]);

@@ -1,9 +1,3 @@
-/**
- * @fileoverview Componente de filtros avanzados para clientes
- * 
- * @module components/customers/customer-filters
- */
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +29,7 @@ import {
 import { CustomerFilters, CustomerType, CustomerCategory } from "@/types/models";
 import { EntityStatus } from "@/types/common";
 import { cn } from "@/lib/utils";
+import { CATEGORY_FILTER_OPTIONS } from "@/config/customer-categories.config";
 
 interface CustomerFiltersProps {
   filters: CustomerFilters;
@@ -57,13 +52,7 @@ const TYPE_OPTIONS: { value: CustomerType | "all"; label: string; icon?: typeof 
   { value: "persona", label: "Personas", icon: User },
 ];
 
-const CATEGORY_OPTIONS: { value: CustomerCategory | "all"; label: string; color?: string }[] = [
-  { value: "all", label: "Todas las categorías" },
-  { value: "standard", label: "Estándar", color: "bg-slate-500" },
-  { value: "premium", label: "Premium", color: "bg-blue-500" },
-  { value: "vip", label: "VIP", color: "bg-amber-500" },
-  { value: "wholesale", label: "Mayorista", color: "bg-purple-500" },
-];
+const CATEGORY_OPTIONS = CATEGORY_FILTER_OPTIONS;
 
 const SORT_OPTIONS: { value: CustomerFilters["sortBy"]; label: string }[] = [
   { value: "name", label: "Nombre" },
@@ -119,7 +108,7 @@ export function CustomerFiltersComponent({
           value={filters.status || "all"}
           onValueChange={(value) => updateFilter("status", value as EntityStatus | "all")}
         >
-          <SelectTrigger className="w-full sm:w-[160px]">
+          <SelectTrigger className="w-full sm:w-40">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
@@ -153,8 +142,14 @@ export function CustomerFiltersComponent({
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80" align="end">
-            <div className="space-y-4">
+          <PopoverContent 
+            className="w-80" 
+            align="end" 
+            side="bottom" 
+            sideOffset={8}
+            collisionPadding={16}
+          >
+            <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
               <h4 className="font-medium">Filtros Avanzados</h4>
               
               <div className="space-y-3">

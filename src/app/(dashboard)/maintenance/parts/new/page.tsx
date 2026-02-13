@@ -19,12 +19,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Package, ArrowLeft, Save } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { PartCategory } from '@/types/maintenance';
 import Link from 'next/link';
 
 export default function NewPartPage() {
   const router = useRouter();
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     partNumber: '',
@@ -43,7 +44,7 @@ export default function NewPartPage() {
     setLoading(true);
 
     try {
-      await maintenanceService.createPart({
+      await maintenance.createPart({
         ...formData,
         category: formData.category as PartCategory,
         unit: 'pieza',

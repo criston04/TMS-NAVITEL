@@ -1,8 +1,3 @@
-/**
- * @fileoverview Selector de fecha y hora simplificado
- * @module components/monitoring/common/date-time-picker
- */
-
 "use client";
 
 import { useMemo } from "react";

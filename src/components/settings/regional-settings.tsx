@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración regional
- * @module components/settings/regional-settings
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

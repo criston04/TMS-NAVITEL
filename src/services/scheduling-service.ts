@@ -1,12 +1,3 @@
-/**
- * @fileoverview Servicio de programación de órdenes
- * @module services/scheduling-service
- * @description Encapsula toda la lógica de negocio y operaciones
- * relacionadas con la programación de órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type { Order } from '@/types/order';
 import type {
   ScheduledOrder,
@@ -28,10 +19,8 @@ import {
   type MockDriver,
 } from '@/mocks/scheduling';
 import { moduleConnectorService } from '@/services/integration';
-
-// ============================================
-// TIPOS
-// ============================================
+import { apiConfig, API_ENDPOINTS } from '@/config/api.config';
+import { apiClient } from '@/lib/api';
 
 export interface AssignmentPayload {
   orderId: string;
@@ -47,12 +36,15 @@ export interface SchedulingServiceResult<T> {
   error?: string;
 }
 
-// ============================================
 // SERVICIO DE PROGRAMACIÓN
-// ============================================
 
 class SchedulingService {
+  private readonly useMocks: boolean;
   private readonly simulateDelay = 500;
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Simula una llamada API con delay
@@ -65,6 +57,10 @@ class SchedulingService {
    * Obtiene las órdenes pendientes de programar
    */
   async getPendingOrders(): Promise<Order[]> {
+    if (!this.useMocks) {
+      return apiClient.get<Order[]>(`${API_ENDPOINTS.operations.scheduling}/pending-orders`);
+    }
+
     await this.delay();
     return generateMockPendingOrders(12);
   }
@@ -73,6 +69,10 @@ class SchedulingService {
    * Obtiene los vehículos disponibles
    */
   async getVehicles(): Promise<MockVehicle[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MockVehicle[]>(`${API_ENDPOINTS.operations.scheduling}/vehicles`);
+    }
+
     await this.delay(200);
     return MOCK_VEHICLES;
   }
@@ -81,6 +81,10 @@ class SchedulingService {
    * Obtiene los conductores disponibles
    */
   async getDrivers(): Promise<MockDriver[]> {
+    if (!this.useMocks) {
+      return apiClient.get<MockDriver[]>(`${API_ENDPOINTS.operations.scheduling}/drivers`);
+    }
+
     await this.delay(200);
     return MOCK_DRIVERS;
   }
@@ -89,6 +93,10 @@ class SchedulingService {
    * Obtiene los KPIs del módulo
    */
   async getKPIs(): Promise<SchedulingKPIs> {
+    if (!this.useMocks) {
+      return apiClient.get<SchedulingKPIs>(`${API_ENDPOINTS.operations.scheduling}/kpis`);
+    }
+
     await this.delay(300);
     return DEFAULT_KPIS;
   }
@@ -200,6 +208,10 @@ class SchedulingService {
    * Asigna recursos a una orden con validación de workflow
    */
   async assignOrder(payload: AssignmentPayload): Promise<SchedulingServiceResult<ScheduledOrder>> {
+    if (!this.useMocks) {
+      return apiClient.post<SchedulingServiceResult<ScheduledOrder>>(`${API_ENDPOINTS.operations.scheduling}/assign`, payload);
+    }
+
     await this.delay(800);
     
     try {
@@ -221,9 +233,7 @@ class SchedulingService {
         };
       }
 
-      // =============================================
       // CONEXIÓN CON WORKFLOWS (VALIDACIÓN)
-      // =============================================
       // Nota: En producción, se obtendría la orden completa con su workflowId
       // Por ahora validamos si se pasa la información
       const scheduledOrderPartial: Partial<ScheduledOrder> = {
@@ -251,7 +261,6 @@ class SchedulingService {
       if (recommendations.length > 0) {
         console.info('[SchedulingService] Recomendaciones:', recommendations);
       }
-      // =============================================
 
       // En producción aquí iría la llamada real a la API
       return {
@@ -276,6 +285,10 @@ class SchedulingService {
     warnings: string[];
     errors: string[];
   }> {
+    if (!this.useMocks) {
+      return apiClient.post<{ isValid: boolean; suggestedDuration: number | null; warnings: string[]; errors: string[] }>(`${API_ENDPOINTS.operations.scheduling}/validate-workflow`, { orderId: order.id });
+    }
+
     const result = await moduleConnectorService.validateSchedulingWithWorkflow(order);
     return {
       isValid: result.isValid,
@@ -293,6 +306,10 @@ class SchedulingService {
     totalDuration: number;
     requiredGeofences: string[];
   } | null> {
+    if (!this.useMocks) {
+      return apiClient.get<{ steps: number; totalDuration: number; requiredGeofences: string[] } | null>(`${API_ENDPOINTS.operations.scheduling}/workflow-info/${workflowId}`);
+    }
+
     const info = await moduleConnectorService.getWorkflowStepsForScheduling(workflowId);
     if (!info) return null;
     return {
@@ -305,7 +322,11 @@ class SchedulingService {
   /**
    * Obtiene sugerencias de recursos para una orden
    */
-  async getSuggestions(orderId: string, _date: Date): Promise<ResourceSuggestion[]> {
+  async getSuggestions(orderId: string, date: Date): Promise<ResourceSuggestion[]> {
+    if (!this.useMocks) {
+      return apiClient.get<ResourceSuggestion[]>(`${API_ENDPOINTS.operations.scheduling}/suggestions/${orderId}`, { params: { date: date.toISOString() } });
+    }
+
     await this.delay(600);
     return generateMockSuggestions(orderId);
   }
@@ -318,6 +339,10 @@ class SchedulingService {
     date: Date,
     estimatedDuration: number
   ): Promise<HOSValidationResult> {
+    if (!this.useMocks) {
+      return apiClient.post<HOSValidationResult>(`${API_ENDPOINTS.operations.scheduling}/validate-hos`, { driverId, date: date.toISOString(), estimatedDuration });
+    }
+
     await this.delay(400);
     
     const driver = findDriverById(driverId);
@@ -362,6 +387,10 @@ class SchedulingService {
     scheduledDate: Date,
     existingOrders: ScheduledOrder[]
   ): Promise<ScheduleConflict[]> {
+    if (!this.useMocks) {
+      return apiClient.post<ScheduleConflict[]>(`${API_ENDPOINTS.operations.scheduling}/detect-conflicts`, { orderId, vehicleId, driverId, scheduledDate: scheduledDate.toISOString() });
+    }
+
     await this.delay(300);
     
     const conflicts: ScheduleConflict[] = [];
@@ -430,5 +459,4 @@ class SchedulingService {
   }
 }
 
-// Exportar instancia singleton
 export const schedulingService = new SchedulingService();

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Componente Select basado en Radix UI
- * @module components/ui/select
- */
-
 'use client';
 
 import * as React from 'react';

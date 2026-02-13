@@ -1,13 +1,4 @@
 /**
- * @fileoverview Tipos TypeScript para el módulo de flota
- * 
- * Define todas las interfaces y tipos relacionados con
- * la gestión de vehículos, ubicaciones y tracking.
- * 
- * @module types/fleet
- */
-
-/**
  * Estado de un evento de tracking
  * @typedef TrackingEventStatus
  */

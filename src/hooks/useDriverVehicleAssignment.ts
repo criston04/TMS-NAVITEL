@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook de Asignación Conductor-Vehículo
- * 
- * Hook para gestionar la asignación de conductores a vehículos
- * con validación de compatibilidad según normativa MTC Perú.
- * 
- * @module hooks/useDriverVehicleAssignment
- */
-
 "use client";
 
 import * as React from "react";
@@ -21,9 +12,6 @@ import {
   AssignmentHistory,
 } from "@/services/master/assignment.service";
 
-/* ============================================
-   TIPOS
-   ============================================ */
 
 export interface UseAssignmentOptions {
   autoLoad?: boolean;
@@ -32,19 +20,16 @@ export interface UseAssignmentOptions {
 }
 
 export interface UseAssignmentReturn {
-  // Estado
   assignments: Assignment[];
   isLoading: boolean;
   error: string | null;
   stats: AssignmentStats | null;
 
-  // Acciones CRUD
   loadAssignments: () => Promise<void>;
   createAssignment: (request: AssignmentRequest) => Promise<Assignment>;
   unassign: (assignmentId: string, reason?: string) => Promise<void>;
   transferVehicle: (vehicleId: string, newDriverId: string, reason?: string) => Promise<Assignment>;
 
-  // Validación
   validateAssignment: (driverId: string, vehicleId: string) => Promise<AssignmentValidationResult | null>;
   lastValidation: AssignmentValidationResult | null;
   isValidating: boolean;
@@ -59,21 +44,16 @@ export interface UseAssignmentReturn {
   history: AssignmentHistory[];
   loadHistory: (filters?: { driverId?: string; vehicleId?: string }) => Promise<void>;
 
-  // Utilidades
   refreshStats: () => Promise<void>;
   clearError: () => void;
 }
 
-/* ============================================
-   HOOK PRINCIPAL
-   ============================================ */
 
 export function useDriverVehicleAssignment(
   options: UseAssignmentOptions = {}
 ): UseAssignmentReturn {
   const { autoLoad = true, drivers = [], vehicles = [] } = options;
 
-  // Estado
   const [assignments, setAssignments] = React.useState<Assignment[]>([]);
   const [history, setHistory] = React.useState<AssignmentHistory[]>([]);
   const [stats, setStats] = React.useState<AssignmentStats | null>(null);

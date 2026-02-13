@@ -1,8 +1,3 @@
-/**
- * @fileoverview Página principal de configuración del sistema
- * @module app/(dashboard)/settings/page
- */
-
 "use client";
 
 import { useState } from "react";

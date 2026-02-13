@@ -1,9 +1,3 @@
-/**
- * @fileoverview Filtros para Torre de Control
- * 
- * @module components/monitoring/control-tower/control-tower-filters
- */
-
 "use client";
 
 import { useMemo } from "react";
@@ -23,7 +17,7 @@ import {
 import type { ControlTowerFilters as Filters, RetransmissionStatus } from "@/types/monitoring";
 
 interface ControlTowerFiltersProps {
-  /** Filtros actuales */
+  
   filters: Filters;
   /** Callback al cambiar filtros */
   onFiltersChange: (filters: Filters) => void;

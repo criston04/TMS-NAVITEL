@@ -31,7 +31,7 @@ import {
   BarChart3,
   ArrowLeft,
 } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Part, PartCategory } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -55,6 +55,7 @@ const statusConfig = {
 } as const;
 
 export default function PartsInventoryPage() {
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(true);
   const [parts, setParts] = useState<Part[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,7 +68,7 @@ export default function PartsInventoryPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const partsData = await maintenanceService.getParts();
+      const partsData = await maintenance.getParts();
       setParts(partsData);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -140,7 +141,7 @@ export default function PartsInventoryPage() {
           
           const [partNumber, name, category, quantity, minimumStock, unitPrice, , supplier] = line.split(',');
           try {
-            await maintenanceService.createPart({
+            await maintenance.createPart({
               partNumber: partNumber.trim(),
               name: name.trim(),
               category: category.trim() as PartCategory,

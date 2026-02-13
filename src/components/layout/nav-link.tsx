@@ -1,7 +1,5 @@
 /**
  * NavLink Component - Componente atómico para items de navegación
- * Principio: SRP - Solo renderiza un link de navegación
- * Principio: Open/Closed - Extensible via props, cerrado para modificación
  */
 
 "use client";

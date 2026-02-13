@@ -1,9 +1,3 @@
-/**
- * @fileoverview Modal para seleccionar vehículos a agregar
- * 
- * @module components/monitoring/multi-window/vehicle-selector-modal
- */
-
 "use client";
 
 import { useState, useMemo } from "react";

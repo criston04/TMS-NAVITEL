@@ -1,18 +1,6 @@
-/**
- * @fileoverview Cliente HTTP centralizado
- * 
- * Principio DRY: Un solo cliente para todas las peticiones HTTP.
- * Principio SRP: Solo maneja comunicación HTTP, no lógica de negocio.
- * 
- * @module lib/api
- */
-
 import { apiConfig } from "@/config/api.config";
 import { ApiResponse } from "@/types/common";
 
-/* ============================================
-   TIPOS DEL CLIENTE HTTP
-   ============================================ */
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -28,9 +16,6 @@ interface ApiError extends Error {
   details?: unknown;
 }
 
-/* ============================================
-   HELPERS
-   ============================================ */
 
 /**
  * Construye URL con query params
@@ -93,24 +78,10 @@ function createApiError(status: number, message: string, details?: unknown): Api
   return error;
 }
 
-/* ============================================
-   CLIENTE HTTP PRINCIPAL
-   ============================================ */
 
 /**
  * Cliente HTTP para comunicación con la API
  * 
- * @example
- * // GET
- * const customers = await apiClient.get<Customer[]>("/customers");
- * 
- * // POST
- * const newCustomer = await apiClient.post<Customer>("/customers", { name: "Acme" });
- * 
- * // Con parámetros
- * const results = await apiClient.get<Customer[]>("/customers", {
- *   params: { page: 1, search: "acme" }
- * });
  */
 export const apiClient = {
   /**

@@ -1,23 +1,3 @@
-/**
- * @fileoverview Contexto de autenticación para Navitel TMS
- * 
- * Maneja el estado de autenticación del usuario, protección de rutas,
- * y persistencia de sesión en localStorage.
- * 
- * @module contexts/auth-context
- * @requires react
- * @requires next/navigation
- * 
- * @example
- * // En el layout raíz
- * <AuthProvider>
- *   <App />
- * </AuthProvider>
- * 
- * // En cualquier componente
- * const { user, login, logout, isAuthenticated } = useAuth();
- */
-
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";

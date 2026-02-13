@@ -1,15 +1,3 @@
-/**
- * @fileoverview Tipos comunes reutilizables en toda la aplicación
- * 
- * Principio DRY: Definir una vez, usar en todos los módulos.
- * Principio ISP: Interfaces pequeñas y específicas.
- * 
- * @module types/common
- */
-
-/* ============================================
-   TIPOS DE RESPUESTA API
-   ============================================ */
 
 /**
  * Respuesta estándar de la API
@@ -62,9 +50,6 @@ export interface SearchParams extends PaginationParams {
   filters?: Record<string, string | number | boolean>;
 }
 
-/* ============================================
-   TIPOS DE ESTADO
-   ============================================ */
 
 /**
  * Estados posibles de una entidad
@@ -85,13 +70,9 @@ export interface AsyncState<T> {
   error: Error | null;
 }
 
-/* ============================================
-   TIPOS BASE PARA ENTIDADES
-   ============================================ */
 
 /**
  * Campos comunes a todas las entidades
- * Principio DRY: Todos los modelos heredan estos campos
  */
 export interface BaseEntity {
   id: string;
@@ -115,9 +96,6 @@ export interface ActivatableEntity extends BaseEntity {
   isEnabled: boolean;
 }
 
-/* ============================================
-   TIPOS PARA DOCUMENTOS Y CHECKLIST
-   ============================================ */
 
 /**
  * Documento requerido para validación
@@ -143,9 +121,6 @@ export interface ValidationChecklist {
   completionPercentage: number;
 }
 
-/* ============================================
-   TIPOS PARA IMPORTACIÓN/EXPORTACIÓN
-   ============================================ */
 
 /**
  * Resultado de importación masiva
@@ -176,9 +151,6 @@ export interface ExportOptions {
   filters?: Record<string, unknown>;
 }
 
-/* ============================================
-   TIPOS UTILITARIOS
-   ============================================ */
 
 /**
  * Hace todas las propiedades opcionales excepto las especificadas

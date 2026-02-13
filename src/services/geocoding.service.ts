@@ -1,12 +1,3 @@
-/**
- * @fileoverview Servicio de Geocodificación
- * 
- * Convierte direcciones en coordenadas geográficas usando
- * OpenStreetMap Nominatim (gratuito) o Google Maps API
- * 
- * @module services/geocoding.service
- */
-
 export interface GeocodingResult {
   lat: number;
   lng: number;

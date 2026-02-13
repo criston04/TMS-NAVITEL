@@ -1,12 +1,3 @@
-/**
- * @fileoverview Servicio principal para gestión de Órdenes
- * @module services/orders/OrderService
- * @description Implementa operaciones CRUD y lógica de negocio para órdenes.
- * Preparado para conectar con API REST.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type {
   Order,
   OrderStatus,
@@ -29,6 +20,8 @@ import {
   getOrderGPSOperators,
 } from '@/mocks/orders/orders.mock';
 import { moduleConnectorService } from '@/services/integration';
+import { apiConfig, API_ENDPOINTS } from '@/config/api.config';
+import { apiClient } from '@/lib/api';
 
 /**
  * Configuración del servicio
@@ -46,7 +39,7 @@ interface OrderServiceConfig {
  * Configuración por defecto del servicio
  */
 const defaultConfig: OrderServiceConfig = {
-  useMock: true,
+  useMock: apiConfig.useMocks,
   timeout: 30000,
 };
 
@@ -94,22 +87,10 @@ class OrderService {
     this.config = { ...defaultConfig, ...config };
   }
 
-  // ============================================
-  // MÉTODOS DE LECTURA (READ)
-  // ============================================
-
   /**
    * Obtiene órdenes con filtros y paginación
    * @param filters - Filtros a aplicar
    * @returns Promesa con respuesta paginada de órdenes
-   * @example
-   * ```typescript
-   * const response = await orderService.getOrders({
-   *   status: 'in_transit',
-   *   page: 1,
-   *   pageSize: 20
-   * });
-   * ```
    */
   async getOrders(filters: OrderFilters = {}): Promise<OrdersResponse> {
     await simulateDelay();
@@ -140,7 +121,7 @@ class OrderService {
     }
 
     // TODO: Implementar llamada a API real
-    throw new Error('API not implemented');
+    return apiClient.get<OrdersResponse>(API_ENDPOINTS.operations.orders, { params: filters as unknown as Record<string, string> });
   }
 
   /**
@@ -158,7 +139,7 @@ class OrderService {
     }
 
     // TODO: Implementar llamada a API real
-    throw new Error('API not implemented');
+    return apiClient.get<Order | null>(`${API_ENDPOINTS.operations.orders}/${id}`);
   }
 
   /**
@@ -174,7 +155,7 @@ class OrderService {
       return order ?? null;
     }
 
-    throw new Error('API not implemented');
+    return apiClient.get<Order | null>(`${API_ENDPOINTS.operations.orders}/by-number/${orderNumber}`);
   }
 
   /**
@@ -188,7 +169,7 @@ class OrderService {
       return getOrderStatusCounts(this.orders);
     }
 
-    throw new Error('API not implemented');
+    return apiClient.get<Record<OrderStatus, number>>(`${API_ENDPOINTS.operations.orders}/status-counts`);
   }
 
   /**
@@ -282,7 +263,7 @@ class OrderService {
       };
     }
 
-    throw new Error('API not implemented');
+    return apiClient.get(`${API_ENDPOINTS.operations.orders}/by-driver/${driverId}`, { params: options as unknown as Record<string, string> });
   }
 
   /**
@@ -361,12 +342,8 @@ class OrderService {
       };
     }
 
-    throw new Error('API not implemented');
+    return apiClient.get(`${API_ENDPOINTS.operations.orders}/by-vehicle/${vehicleId}`, { params: options as unknown as Record<string, string> });
   }
-
-  // ============================================
-  // MÉTODOS DE ESCRITURA (CREATE/UPDATE/DELETE)
-  // ============================================
 
   /**
    * Crea una nueva orden con auto-asignación de workflow
@@ -377,9 +354,7 @@ class OrderService {
     await simulateDelay(500);
 
     if (this.config.useMock) {
-      // =============================================
       // CONEXIÓN CON WORKFLOWS (AUTO-ASIGNACIÓN)
-      // =============================================
       const { enrichedData, workflowAssignment, validationWarnings } = 
         await moduleConnectorService.prepareOrderWithConnections(data);
       
@@ -394,7 +369,6 @@ class OrderService {
       if (validationWarnings.length > 0) {
         console.info('[OrderService] Advertencias:', validationWarnings);
       }
-      // =============================================
 
       const id = generateOrderId();
       const orderNumber = generateOrderNumber(this.orders.length + 1);
@@ -447,7 +421,7 @@ class OrderService {
       return newOrder;
     }
 
-    throw new Error('API not implemented');
+    return apiClient.post<Order>(API_ENDPOINTS.operations.orders, data);
   }
 
   /**
@@ -508,7 +482,7 @@ class OrderService {
       return updatedOrder;
     }
 
-    throw new Error('API not implemented');
+    return apiClient.put<Order>(`${API_ENDPOINTS.operations.orders}/${id}`, data);
   }
 
   /**
@@ -534,12 +508,8 @@ class OrderService {
       return true;
     }
 
-    throw new Error('API not implemented');
+    return apiClient.delete<boolean>(`${API_ENDPOINTS.operations.orders}/${id}`);
   }
-
-  // ============================================
-  // MÉTODOS DE ESTADO Y WORKFLOW
-  // ============================================
 
   /**
    * Cambia el estado de una orden
@@ -587,7 +557,7 @@ class OrderService {
       });
     }
 
-    throw new Error('API not implemented');
+    return apiClient.patch<Order>(`${API_ENDPOINTS.operations.orders}/${id}/assign`, { vehicleId, driverId });
   }
 
   /**
@@ -617,12 +587,8 @@ class OrderService {
       });
     }
 
-    throw new Error('API not implemented');
+    return apiClient.patch<Order>(`${API_ENDPOINTS.operations.orders}/${id}/start-trip`);
   }
-
-  // ============================================
-  // MÉTODOS DE CIERRE DE ORDEN
-  // ============================================
 
   /**
    * Verifica si una orden puede ser cerrada
@@ -708,12 +674,8 @@ class OrderService {
       return closedOrder;
     }
 
-    throw new Error('API not implemented');
+    return apiClient.post<Order>(`${API_ENDPOINTS.operations.orders}/${id}/close`, closureData);
   }
-
-  // ============================================
-  // MÉTODOS DE HITOS/MILESTONES
-  // ============================================
 
   /**
    * Actualiza un hito de la orden
@@ -785,7 +747,7 @@ class OrderService {
       return updatedOrder;
     }
 
-    throw new Error('API not implemented');
+    return apiClient.patch<Order>(`${API_ENDPOINTS.operations.orders}/${orderId}/milestones/${milestoneId}`, data);
   }
 
   /**
@@ -815,10 +777,6 @@ class OrderService {
       actualExit: now,
     });
   }
-
-  // ============================================
-  // MÉTODOS DE SINCRONIZACIÓN EXTERNA
-  // ============================================
 
   /**
    * Envía una orden a sistema externo
@@ -851,7 +809,7 @@ class OrderService {
       return updatedOrder;
     }
 
-    throw new Error('API not implemented');
+    return apiClient.post<Order>(`${API_ENDPOINTS.operations.orders}/${id}/send-external`);
   }
 
   /**
@@ -899,12 +857,8 @@ class OrderService {
       };
     }
 
-    throw new Error('API not implemented');
+    return apiClient.post<BulkSendResult>(`${API_ENDPOINTS.operations.orders}/bulk-send-external`, payload);
   }
-
-  // ============================================
-  // MÉTODOS DE DATOS AUXILIARES
-  // ============================================
 
   /**
    * Obtiene lista de clientes para filtros
@@ -932,10 +886,6 @@ class OrderService {
     await simulateDelay(100);
     return getOrderGPSOperators();
   }
-
-  // ============================================
-  // MÉTODOS DE EVENTOS EN TIEMPO REAL
-  // ============================================
 
   /**
    * Suscribe a eventos de una orden

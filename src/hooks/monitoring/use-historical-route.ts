@@ -1,10 +1,3 @@
-/**
- * @fileoverview Hook para consulta de rutas históricas
- * 
- * @module hooks/monitoring/use-historical-route
- * @description Maneja carga y exportación de rutas históricas
- */
-
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
@@ -25,7 +18,7 @@ export interface UseHistoricalRouteState {
   route: HistoricalRoute | null;
   /** Estadísticas de la ruta */
   stats: HistoricalRouteStats | null;
-  /** Estado de carga */
+  
   isLoading: boolean;
   /** Estado de exportación */
   isExporting: boolean;
@@ -45,6 +38,8 @@ export interface UseHistoricalRouteActions {
   loadRoute: (params: HistoricalRouteParams) => Promise<void>;
   /** Exporta la ruta actual */
   exportRoute: (format: RouteExportFormat, options?: Partial<RouteExportOptions>) => Promise<void>;
+  /** Obtiene vehículos disponibles para consulta */
+  getAvailableVehicles: () => Promise<Array<{ id: string; plate: string }>>;
   /** Valida parámetros de consulta */
   validateParams: (params: HistoricalRouteParams) => { valid: boolean; errors: string[] };
   /** Limpia la ruta actual */
@@ -56,30 +51,8 @@ export interface UseHistoricalRouteActions {
 /**
  * Hook para consulta de rutas históricas
  * 
- * @example
- * ```tsx
- * const { 
- *   route, 
- *   stats, 
- *   isLoading,
- *   loadRoute,
- *   exportRoute,
- *   validateParams 
- * } = useHistoricalRoute();
- * 
- * // Cargar ruta
- * await loadRoute({
- *   vehicleId: "veh-001",
- *   startDateTime: "2024-01-15T08:00:00Z",
- *   endDateTime: "2024-01-15T18:00:00Z",
- * });
- * 
- * // Exportar
- * await exportRoute("csv");
- * ```
  */
 export function useHistoricalRoute(): UseHistoricalRouteState & UseHistoricalRouteActions {
-  // Estado
   const [route, setRoute] = useState<HistoricalRoute | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -161,6 +134,14 @@ export function useHistoricalRoute(): UseHistoricalRouteState & UseHistoricalRou
   }, [route]);
 
   /**
+   * Obtiene vehículos disponibles para consulta histórica
+   */
+  const getAvailableVehicles = useCallback(async () => {
+    const data = await historicalTrackingService.getAvailableVehicles();
+    return data.map((v: { id: string; plate: string }) => ({ id: v.id, plate: v.plate }));
+  }, []);
+
+  /**
    * Limpia la ruta actual
    */
   const clearRoute = useCallback(() => {
@@ -182,7 +163,6 @@ export function useHistoricalRoute(): UseHistoricalRouteState & UseHistoricalRou
   const stats = useMemo(() => route?.stats ?? null, [route]);
 
   return useMemo(() => ({
-    // Estado
     route,
     stats,
     isLoading,
@@ -190,9 +170,9 @@ export function useHistoricalRoute(): UseHistoricalRouteState & UseHistoricalRou
     error,
     validationErrors,
     lastParams,
-    // Acciones
     loadRoute,
     exportRoute,
+    getAvailableVehicles,
     validateParams,
     clearRoute,
     clearErrors,
@@ -206,6 +186,7 @@ export function useHistoricalRoute(): UseHistoricalRouteState & UseHistoricalRou
     lastParams,
     loadRoute,
     exportRoute,
+    getAvailableVehicles,
     validateParams,
     clearRoute,
     clearErrors,

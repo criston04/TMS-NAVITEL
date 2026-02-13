@@ -1,9 +1,3 @@
-/**
- * @fileoverview Marcador de vehículo para el mapa
- * 
- * @module components/monitoring/control-tower/vehicle-marker
- */
-
 "use client";
 
 import { useMemo } from "react";

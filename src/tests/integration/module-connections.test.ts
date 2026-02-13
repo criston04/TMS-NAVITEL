@@ -1,17 +1,7 @@
-/**
- * @fileoverview Tests de integración para conexiones entre módulos
- * @module tests/integration/module-connections.test
- * @description Verifica que las conexiones Orders <-> Workflows <-> Scheduling funcionen
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { moduleConnectorService } from '@/services/integration';
 import { unifiedWorkflowService } from '@/services/workflow.service';
 
-// ============================================
 // TEST SUITE: CONEXIONES DE MÓDULOS
-// ============================================
 
 /**
  * Suite de pruebas para verificar la integración entre módulos

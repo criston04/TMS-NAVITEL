@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestión de reportes del TMS
- * @module hooks/useReports
- * @description Hook de React que proporciona acceso a generación,
- * programación y gestión de reportes del sistema.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { reportService } from "@/services/report.service";
 import type {
@@ -25,12 +16,8 @@ import type {
   ExportFormat,
 } from "@/types/report";
 
-/* ============================================
-   HOOK PRINCIPAL
-   ============================================ */
 
 interface UseReportsReturn {
-  // Datos
   definitions: ReportDefinition[];
   templates: ReportTemplate[];
   generatedReports: GeneratedReport[];
@@ -38,7 +25,6 @@ interface UseReportsReturn {
   stats: ReportUsageStats | null;
   categories: string[];
 
-  // Estado
   loading: boolean;
   generating: boolean;
   error: string | null;
@@ -57,7 +43,6 @@ interface UseReportsReturn {
   getReportStatus: (id: string) => Promise<string>;
   downloadReport: (id: string) => Promise<{ url: string; filename: string } | null>;
 
-  // Programación
   fetchSchedules: () => Promise<void>;
   createSchedule: (data: CreateReportScheduleDTO) => Promise<ReportSchedule | null>;
   updateSchedule: (id: string, data: Partial<CreateReportScheduleDTO>) => Promise<boolean>;
@@ -65,11 +50,9 @@ interface UseReportsReturn {
   deleteSchedule: (id: string) => Promise<boolean>;
   runScheduleNow: (id: string) => Promise<GeneratedReport | null>;
 
-  // Estadísticas
   fetchStats: () => Promise<void>;
   fetchCategories: () => Promise<void>;
 
-  // Utilidades
   refresh: () => Promise<void>;
   setPage: (page: number) => void;
 }
@@ -83,7 +66,6 @@ interface UseReportsOptions {
 export function useReports(options: UseReportsOptions = {}): UseReportsReturn {
   const { autoFetch = true, initialType, pageSize = 20 } = options;
 
-  // Estados
   const [definitions, setDefinitions] = useState<ReportDefinition[]>([]);
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
   const [generatedReports, setGeneratedReports] = useState<GeneratedReport[]>([]);
@@ -227,7 +209,6 @@ export function useReports(options: UseReportsOptions = {}): UseReportsReturn {
     []
   );
 
-  // Programación
   const fetchSchedules = useCallback(async () => {
     try {
       const result = await reportService.getSchedules();
@@ -309,7 +290,6 @@ export function useReports(options: UseReportsOptions = {}): UseReportsReturn {
     []
   );
 
-  // Estadísticas
   const fetchStats = useCallback(async () => {
     try {
       const result = await reportService.getUsageStats();
@@ -384,9 +364,6 @@ export function useReports(options: UseReportsOptions = {}): UseReportsReturn {
   };
 }
 
-/* ============================================
-   HOOK DE REPORTE OPERACIONAL
-   ============================================ */
 
 export function useOperationalReport(startDate: string, endDate: string) {
   const [data, setData] = useState<OperationalReportData | null>(null);
@@ -434,9 +411,6 @@ export function useOperationalReport(startDate: string, endDate: string) {
   return { data, kpis, loading, error, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE REPORTE FINANCIERO
-   ============================================ */
 
 export function useFinancialReport(startDate: string, endDate: string) {
   const [data, setData] = useState<FinancialReportData | null>(null);
@@ -483,9 +457,6 @@ export function useFinancialReport(startDate: string, endDate: string) {
   return { data, analysis, loading, error, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE GENERADOR RÁPIDO
-   ============================================ */
 
 export function useQuickReportGenerator() {
   const [generating, setGenerating] = useState(false);
@@ -587,9 +558,6 @@ export function useQuickReportGenerator() {
   };
 }
 
-/* ============================================
-   HOOK DE PROGRAMACIONES
-   ============================================ */
 
 export function useReportSchedules() {
   const [schedules, setSchedules] = useState<ReportSchedule[]>([]);
@@ -621,7 +589,6 @@ export function useReportSchedules() {
       .slice(0, 5);
   }, [schedules]);
 
-  // Estadísticas
   const stats = useMemo(() => ({
     total: schedules.length,
     active: schedules.filter(s => s.isActive).length,

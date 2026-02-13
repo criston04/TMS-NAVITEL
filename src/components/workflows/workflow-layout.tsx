@@ -1,22 +1,13 @@
-/**
- * @fileoverview Layout principal del módulo de Workflows
- * @module components/workflows/WorkflowLayout
- * @description Layout Master-Detail para gestión de workflows
- * @author TMS-NAVITEL
- * @version 1.1.0
- */
-
 'use client';
 
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback } from 'react';
 import type { Workflow, CreateWorkflowDTO } from '@/types/workflow';
 import { useToast } from '@/components/ui/toast';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { WorkflowList } from './workflow-list';
 import { WorkflowDetailPanel } from './workflow-detail-panel';
-import { unifiedWorkflowService } from '@/services/workflow.service';
+import { useWorkflowManagement } from '@/hooks/useWorkflowManagement';
 import { cn } from '@/lib/utils';
-
 
 interface WorkflowLayoutProps {
   className?: string;
@@ -27,22 +18,24 @@ export const WorkflowLayout = memo(function WorkflowLayout({
 }: WorkflowLayoutProps) {
   const { success, error } = useToast();
 
-  // Data State
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [availableCustomers, setAvailableCustomers] = useState<Array<{ id: string; name: string }>>([]);
-  const [availableGeofences, setAvailableGeofences] = useState<Array<{
-    id: string;
-    name: string;
-    type: string;
-    color: string;
-  }>>([]);
+  // Datos desde el hook de gestión
+  const {
+    workflows,
+    availableCustomers,
+    availableGeofences,
+    isLoading,
+    createWorkflow,
+    updateWorkflow,
+    deleteWorkflow: removeWorkflow,
+    duplicateWorkflow,
+    changeStatus,
+  } = useWorkflowManagement();
 
   // UI State
   // View Mode: 'list' (grid) or 'detail' (editor)
   const [activeView, setActiveView] = useState<'list' | 'detail'>('list');
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   
-  const [isLoading, setIsLoading] = useState(true);
   const [_isSidebarCollapsed, _setIsSidebarCollapsed] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,37 +54,6 @@ export const WorkflowLayout = memo(function WorkflowLayout({
   // Navigation Confirmation
   const [navConfirmOpen, setNavConfirmOpen] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
-
-  // ----------------------------------------
-  // DATA LOADING
-  // ----------------------------------------
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [allWorkflows, customers, geofences] = await Promise.all([
-        unifiedWorkflowService.getAll(),
-        unifiedWorkflowService.getAvailableCustomers(),
-        unifiedWorkflowService.getAvailableGeofences()
-      ]);
-
-      setWorkflows(allWorkflows);
-      setAvailableCustomers(customers);
-      setAvailableGeofences(geofences.map(g => ({
-        id: g.id,
-        name: g.name,
-        type: g.category,
-        color: g.color || '#3b82f6'
-      })));
-    } catch {
-      error('Error al cargar datos del módulo');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [error]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
 
   // ----------------------------------------
   // HANDLERS
@@ -152,14 +114,12 @@ export const WorkflowLayout = memo(function WorkflowLayout({
     try {
       if (selectedWorkflow) {
         // Update
-        const updated = await unifiedWorkflowService.update(selectedWorkflow.id, data);
-        setWorkflows(prev => prev.map(w => w.id === updated.id ? updated : w));
+        const updated = await updateWorkflow(selectedWorkflow.id, data);
         setSelectedWorkflow(updated);
         success('Workflow actualizado correctamente');
       } else {
         // Create
-        const created = await unifiedWorkflowService.create(data);
-        setWorkflows(prev => [created, ...prev]);
+        const created = await createWorkflow(data);
         setSelectedWorkflow(created);
         success('Workflow creado correctamente');
       }
@@ -169,18 +129,16 @@ export const WorkflowLayout = memo(function WorkflowLayout({
     } finally {
       setIsSaving(false);
     }
-  }, [selectedWorkflow, success, error]);
+  }, [selectedWorkflow, success, error, updateWorkflow, createWorkflow]);
 
   const handleDuplicate = useCallback(async (workflow: Workflow) => {
     try {
-      const copy = await unifiedWorkflowService.duplicate(workflow.id, `${workflow.name} (Copia)`);
-      setWorkflows(prev => [copy, ...prev]);
-      // Stay in list or go to detail? Let's stay in list but refresh
+      await duplicateWorkflow(workflow.id, `${workflow.name} (Copia)`);
       success('Copia creada correctamente');
     } catch {
       error('Error duplicando workflow');
     }
-  }, [success, error]);
+  }, [success, error, duplicateWorkflow]);
 
   const handleDeleteRequest = useCallback((workflow: Workflow) => {
     setDeleteData({ isOpen: true, workflow, loading: false });
@@ -190,12 +148,11 @@ export const WorkflowLayout = memo(function WorkflowLayout({
     if (!deleteData.workflow) return;
     setDeleteData(prev => ({ ...prev, loading: true }));
     try {
-      await unifiedWorkflowService.delete(deleteData.workflow.id);
-      setWorkflows(prev => prev.filter(w => w.id !== deleteData.workflow?.id));
+      await removeWorkflow(deleteData.workflow.id);
       if (selectedWorkflow?.id === deleteData.workflow.id) {
         setSelectedWorkflow(null);
         setIsEditing(false);
-        setActiveView('list'); // Force back to list if deleted the active one
+        setActiveView('list');
       }
       success('Workflow eliminado');
     } catch {
@@ -203,13 +160,12 @@ export const WorkflowLayout = memo(function WorkflowLayout({
     } finally {
       setDeleteData({ isOpen: false, workflow: null, loading: false });
     }
-  }, [deleteData.workflow, selectedWorkflow, success, error]);
+  }, [deleteData.workflow, selectedWorkflow, success, error, removeWorkflow]);
 
   const handleToggleStatus = useCallback(async (workflow: Workflow) => {
     try {
       const newStatus = workflow.status === 'active' ? 'inactive' : 'active';
-      const updated = await unifiedWorkflowService.changeStatus(workflow.id, newStatus);
-      setWorkflows(prev => prev.map(w => w.id === updated.id ? updated : w));
+      const updated = await changeStatus(workflow.id, newStatus);
       if (selectedWorkflow?.id === updated.id) {
         setSelectedWorkflow(updated);
       }
@@ -217,7 +173,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
     } catch {
       error('Error cambiando estado');
     }
-  }, [selectedWorkflow, success, error]);
+  }, [selectedWorkflow, success, error, changeStatus]);
 
   return (
     <div className={cn("h-full w-full bg-background relative overflow-hidden", className)}>

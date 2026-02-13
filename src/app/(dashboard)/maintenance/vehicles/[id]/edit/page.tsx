@@ -19,13 +19,14 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Truck, ArrowLeft, Save, AlertCircle } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
 
 export default function EditVehiclePage() {
   const router = useRouter();
   const params = useParams();
+  const maintenance = useMaintenance();
   const vehicleId = params?.id as string;
   
   const [loading, setLoading] = useState(true);
@@ -55,7 +56,7 @@ export default function EditVehiclePage() {
   const loadVehicle = async () => {
     try {
       setLoading(true);
-      const vehicles = await maintenanceService.getVehicles();
+      const vehicles = await maintenance.getVehicles();
       const found = vehicles.find((v) => v.id === vehicleId);
       
       if (found) {
@@ -96,7 +97,7 @@ export default function EditVehiclePage() {
       };
 
       // En producción, esto llamaría a la API
-      await maintenanceService.updateVehicle(vehicleId, updatedVehicle);
+      await maintenance.updateVehicle(vehicleId, updatedVehicle);
 
       // Redirigir al detalle del vehículo
       router.push(`/maintenance/vehicles/${vehicleId}`);

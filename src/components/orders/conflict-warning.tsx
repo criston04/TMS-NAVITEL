@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente de alertas de conflictos de recursos
- * @module components/orders/ConflictWarning
- * @description Muestra alertas cuando hay conflictos de vehículo,
- * conductor o fechas en una orden.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState } from 'react';
@@ -32,12 +23,8 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface ConflictWarningProps {
-  /** Lista de conflictos */
+  
   conflicts: ResourceConflict[];
   /** Callback para forzar (ignorar conflictos) */
   onForce?: () => void;
@@ -46,10 +33,6 @@ interface ConflictWarningProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// CONFIGURACIÓN
-// ============================================
 
 const CONFLICT_ICONS: Record<ConflictType, typeof Truck> = {
   vehicle: Truck,
@@ -63,9 +46,7 @@ const CONFLICT_LABELS: Record<ConflictType, string> = {
   overlap: 'Fechas',
 };
 
-// ============================================
 // COMPONENTE DE CONFLICTO INDIVIDUAL
-// ============================================
 
 interface ConflictItemProps {
   conflict: ResourceConflict;
@@ -189,9 +170,7 @@ function ConflictItem({ conflict }: ConflictItemProps) {
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 function ConflictWarningComponent({
   conflicts,

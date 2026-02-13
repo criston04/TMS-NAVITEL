@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componentes de estadísticas de órdenes
- * @module components/orders/OrderStats
- * @description Cards y widgets de estadísticas de órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useMemo } from 'react';
@@ -24,10 +16,6 @@ import type { OrderStatus } from '@/types/order';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 /**
  * Props del componente OrderStatsCards
  */
@@ -42,31 +30,7 @@ interface OrderStatsCardsProps {
   className?: string;
 }
 
-/**
- * Props para una card individual de stat
- */
-interface StatCardProps {
-  /** Título */
-  title: string;
-  /** Valor numérico */
-  value: number;
-  /** Icono */
-  icon: typeof Package;
-  /** Color del icono */
-  iconClassName: string;
-  /** Color de fondo */
-  bgClassName: string;
-  /** Si está activo */
-  isActive?: boolean;
-  /** Callback al click */
-  onClick?: () => void;
-  /** Tendencia (positivo = up, negativo = down) */
-  trend?: number;
-}
-
-// ============================================
-// CONFIGURACIÓN
-// ============================================
+// COMPONENTE PRINCIPAL
 
 /**
  * Configuración de cards por estado
@@ -133,9 +97,19 @@ const STATUS_CARD_CONFIG: Record<OrderStatus, {
   },
 };
 
-// ============================================
-// COMPONENTE STAT CARD
-// ============================================
+/**
+ * Props del componente StatCard
+ */
+interface StatCardProps {
+  title: string;
+  value: number;
+  icon: typeof Package;
+  iconClassName: string;
+  bgClassName: string;
+  isActive?: boolean;
+  onClick?: () => void;
+  trend?: number;
+}
 
 /**
  * Card individual de estadística
@@ -191,9 +165,7 @@ function StatCard({
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 /**
  * Grid de cards de estadísticas por estado
@@ -321,9 +293,7 @@ function OrderStatsCardsComponent({
  */
 export const OrderStatsCards = memo(OrderStatsCardsComponent);
 
-// ============================================
 // COMPONENTE MINI STATS
-// ============================================
 
 /**
  * Props del componente MiniStats

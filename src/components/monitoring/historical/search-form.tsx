@@ -1,8 +1,3 @@
-/**
- * @fileoverview Formulario de busqueda de ruta historica
- * @module components/monitoring/historical/search-form
- */
-
 "use client";
 
 import { useState } from "react";

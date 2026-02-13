@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de API Keys
- * @module components/settings/api-key-settings
- */
-
 "use client";
 
 import { useState } from "react";

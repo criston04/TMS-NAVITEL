@@ -1,9 +1,3 @@
-/**
- * @fileoverview Datos mock para Vehículos
- * 
- * @module mocks/master/vehicles.mock
- */
-
 import { Vehicle } from "@/types/models";
 
 // TODO: Refactorizar mocks para cumplir con la interfaz Vehicle completa
@@ -24,7 +18,9 @@ export const vehiclesMock = [
       fuelType: "diesel",
     },
     capacity: {
-      maxWeight: 30000,
+      grossWeight: 40000,
+      tareWeight: 10000,
+      maxPayload: 30000,
       maxVolume: 80,
       palletCapacity: 33,
     },
@@ -55,6 +51,7 @@ export const vehiclesMock = [
       },
     ],
     currentMileage: 125000,
+    currentDriverName: "Juan Carlos Pérez López",
     gpsDeviceId: "GPS-001",
     lastLocation: {
       lat: -12.0464,
@@ -80,7 +77,9 @@ export const vehiclesMock = [
       fuelType: "diesel",
     },
     capacity: {
-      maxWeight: 15000,
+      grossWeight: 26000,
+      tareWeight: 11000,
+      maxPayload: 15000,
       maxVolume: 45,
       palletCapacity: 18,
     },
@@ -104,6 +103,7 @@ export const vehiclesMock = [
       },
     ],
     currentDriverId: "drv-002",
+    currentDriverName: "Pedro Ramírez García",
     currentMileage: 89000,
     gpsDeviceId: "GPS-002",
     lastLocation: {
@@ -130,7 +130,9 @@ export const vehiclesMock = [
       fuelType: "diesel",
     },
     capacity: {
-      maxWeight: 3500,
+      grossWeight: 5500,
+      tareWeight: 2000,
+      maxPayload: 3500,
       maxVolume: 12,
       palletCapacity: 4,
     },

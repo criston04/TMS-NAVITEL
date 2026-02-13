@@ -1,8 +1,3 @@
-/**
- * @fileoverview Página de Torre de Control
- * @module app/(dashboard)/monitoring/control-tower/page
- */
-
 "use client";
 
 import dynamic from "next/dynamic";

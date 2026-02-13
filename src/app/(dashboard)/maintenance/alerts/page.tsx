@@ -26,7 +26,7 @@ import {
   Truck,
   XCircle,
 } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Alert, Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -77,6 +77,7 @@ const statusConfigAlert = {
 } as const;
 
 export default function AlertsPage() {
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -90,8 +91,8 @@ export default function AlertsPage() {
     try {
       setLoading(true);
       const [alertsData, vehiclesData] = await Promise.all([
-        maintenanceService.getAlerts(),
-        maintenanceService.getVehicles(),
+        maintenance.getAlerts(),
+        maintenance.getVehicles(),
       ]);
       setAlerts(alertsData);
       setVehicles(vehiclesData);

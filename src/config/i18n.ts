@@ -1,19 +1,3 @@
-/**
- * @fileoverview Configuración de internacionalización (i18n)
- * 
- * Define los idiomas soportados, el idioma por defecto,
- * y los metadatos de cada idioma (nombres, banderas).
- * 
- * @module config/i18n
- * 
- * @example
- * import { locales, defaultLocale, localeNames } from "@/config/i18n";
- * 
- * locales.forEach(locale => {
- *   console.log(localeNames[locale]); // "Español", "English"
- * });
- */
-
 /** Idiomas soportados por la aplicación */
 export const locales = ["es", "en"] as const;
 

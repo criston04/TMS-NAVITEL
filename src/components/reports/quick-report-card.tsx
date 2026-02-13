@@ -1,8 +1,3 @@
-/**
- * @fileoverview Card de reporte rápido
- * @module components/reports/quick-report-card
- */
-
 "use client";
 
 import { LucideIcon, Download, Loader2 } from "lucide-react";

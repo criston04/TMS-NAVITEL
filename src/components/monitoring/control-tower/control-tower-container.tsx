@@ -1,9 +1,3 @@
-/**
- * @fileoverview Contenedor principal de Torre de Control
- * 
- * @module components/monitoring/control-tower/control-tower-container
- */
-
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -23,7 +17,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVehicleTracking } from "@/hooks/monitoring/use-vehicle-tracking";
 import { useTrackedOrder } from "@/hooks/monitoring/use-tracked-order";
-import { trackingService } from "@/services/monitoring/tracking.service";
 import { ControlTowerFilters } from "./control-tower-filters";
 import { VehicleInfoCard } from "./vehicle-info-card";
 import { VehicleListSidebar } from "./vehicle-list-sidebar";
@@ -50,12 +43,10 @@ interface ControlTowerContainerProps {
 export function ControlTowerContainer({
   className,
 }: ControlTowerContainerProps) {
-  // Estado del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"vehicles" | "filters">("vehicles");
   const [carriers, setCarriers] = useState<string[]>([]);
 
-  // Hook de tracking
   const {
     vehiclesList,
     isConnected,
@@ -67,17 +58,17 @@ export function ControlTowerContainer({
     setFilters,
     refresh,
     centerOnVehicle,
+    getCarriers,
   } = useVehicleTracking({
     autoConnect: true,
   });
 
-  // Hook de orden rastreada (para el vehículo seleccionado)
   const { order, isLoading: _isLoadingOrder } = useTrackedOrder(selectedVehicle?.id);
 
   // Cargar lista de transportistas
   useEffect(() => {
-    trackingService.getCarriers().then(setCarriers);
-  }, []);
+    getCarriers().then(setCarriers);
+  }, [getCarriers]);
 
   /**
    * Maneja selección de vehículo en el mapa

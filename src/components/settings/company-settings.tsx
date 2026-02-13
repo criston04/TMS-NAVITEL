@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de la empresa
- * @module components/settings/company-settings
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

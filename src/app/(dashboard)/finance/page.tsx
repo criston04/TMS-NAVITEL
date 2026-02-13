@@ -1,11 +1,3 @@
-/**
- * @fileoverview Página principal del módulo de Finanzas
- * @module app/(dashboard)/finance/page
- * @description Dashboard financiero con facturas, pagos, costos y análisis.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -23,7 +15,6 @@ import {
   BarChart3,
 } from "lucide-react";
 
-// Hooks
 import { useFinance, useProfitability, useCashFlow } from "@/hooks/useFinance";
 
 // Utilidad para fechas por defecto (último mes)
@@ -63,9 +54,7 @@ import {
   RecordCostDialog,
 } from "@/components/finance";
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export default function FinancePage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -76,7 +65,6 @@ export default function FinancePage() {
   // Rango de fechas por defecto
   const dateRange = useMemo(() => getDefaultDateRange(), []);
 
-  // Hooks de datos
   const {
     invoices,
     payments,

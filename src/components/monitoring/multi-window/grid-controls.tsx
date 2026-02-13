@@ -1,9 +1,3 @@
-/**
- * @fileoverview Controles para el grid de multiventana
- * 
- * @module components/monitoring/multi-window/grid-controls
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

@@ -19,13 +19,14 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ClipboardList, ArrowLeft, Save, Truck } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { WorkOrder, Vehicle, Workshop } from '@/types/maintenance';
 import Link from 'next/link';
 
 export default function NewWorkOrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const maintenance = useMaintenance();
   const scheduleId = searchParams.get('scheduleId');
 
   const [loading, setLoading] = useState(false);
@@ -55,15 +56,15 @@ export default function NewWorkOrderPage() {
     try {
       setLoadingData(true);
       const [vehiclesData, workshopsData] = await Promise.all([
-        maintenanceService.getVehicles(),
-        maintenanceService.getWorkshops(),
+        maintenance.getVehicles(),
+        maintenance.getWorkshops(),
       ]);
       setVehicles(vehiclesData.filter((v) => v.status === 'active' || v.status === 'maintenance'));
       setWorkshops(workshopsData.filter((w) => w.isActive));
 
       // Si viene de una programación, pre-llenar datos
       if (scheduleId) {
-        const schedules = await maintenanceService.getMaintenanceSchedules();
+        const schedules = await maintenance.getMaintenanceSchedules();
         const schedule = schedules.find((s) => s.id === scheduleId);
         if (schedule) {
           setFormData((prev) => ({
@@ -101,18 +102,17 @@ export default function NewWorkOrderPage() {
         priority: formData.priority,
         status: 'pending' as const,
         scheduledDate: formData.scheduledStartDate || undefined,
-        assignedWorkshopId: formData.assignedWorkshopId || undefined,
-        assignedTechnicianId: formData.assignedTechnicianId || undefined,
+        workshopId: formData.assignedWorkshopId || undefined,
+        technicianId: formData.assignedTechnicianId || undefined,
         estimatedCost: formData.estimatedCost || undefined,
-        estimatedHours: formData.estimatedHours || undefined,
+        estimatedLaborHours: formData.estimatedHours || undefined,
         notes: formData.notes || undefined,
-        tasks: [],
         partsUsed: [],
         createdBy: 'system',
       };
 
       // En producción, esto llamaría a la API
-      await maintenanceService.createWorkOrder(newWorkOrder);
+      await maintenance.createWorkOrder(newWorkOrder);
 
       // Redirigir a la lista de órdenes
       router.push('/maintenance/work-orders');

@@ -40,7 +40,7 @@ import {
   Upload,
   ArrowLeft,
 } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -76,6 +76,7 @@ const vehicleTypeLabels = {
 };
 
 export default function VehiclesPage() {
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(true);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([]);
@@ -94,7 +95,7 @@ export default function VehiclesPage() {
   const loadVehicles = async () => {
     try {
       setLoading(true);
-      const data = await maintenanceService.getVehicles();
+      const data = await maintenance.getVehicles();
       setVehicles(data);
       setFilteredVehicles(data);
     } catch (error) {
@@ -174,7 +175,7 @@ export default function VehiclesPage() {
           
           const [plate, type, brand, model, year, vin, mileage] = line.split(',');
           try {
-            await maintenanceService.createVehicle({
+            await maintenance.createVehicle({
               plate: plate.trim(),
               type: type.trim().toLowerCase() as Vehicle['type'],
               brand: brand.trim(),

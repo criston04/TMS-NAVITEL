@@ -1,12 +1,3 @@
-/**
- * @fileoverview Página de creación de nueva orden
- * @module app/(dashboard)/orders/new/page
- * @description Formulario para crear nuevas órdenes de transporte con
- * integración automática de workflows.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -27,15 +18,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-// Servicios
-import { orderService } from '@/services/orders';
+import { useOrders } from '@/hooks/useOrders';
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export default function NewOrderPage() {
   const router = useRouter();
+  const { createOrder } = useOrders({ autoFetch: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
@@ -55,8 +44,8 @@ export default function NewOrderPage() {
     try {
       console.info('[NewOrderPage] Creando orden con datos:', data);
       
-      // Llamar al servicio que ya tiene integración con workflows
-      const createdOrder = await orderService.createOrder(data);
+      // Llamar al hook que encapsula el servicio con workflows
+      const createdOrder = await createOrder(data);
       
       console.info('[NewOrderPage] Orden creada exitosamente:', {
         id: createdOrder.id,

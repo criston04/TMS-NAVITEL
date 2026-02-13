@@ -228,14 +228,12 @@ class ReminderService {
       custom: '🔔',
     };
 
-    await notificationService.sendWarning(
-      `${typeEmojis[reminder.type]} ${reminder.title}`,
-      reminder.description,
-      () => {
-        // Redirigir a la página correspondiente
-        window.location.href = '/maintenance';
-      }
-    );
+    await notificationService.createNotification({
+      title: `${typeEmojis[reminder.type]} ${reminder.title}`,
+      message: reminder.description,
+      category: 'maintenance',
+      priority: 'high',
+    });
   }
 
   /**

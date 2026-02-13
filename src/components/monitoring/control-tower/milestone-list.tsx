@@ -1,9 +1,3 @@
-/**
- * @fileoverview Lista de hitos/milestones con timeline
- * 
- * @module components/monitoring/control-tower/milestone-list
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -11,7 +5,7 @@ import { Check, Clock, MapPin, CircleDot } from "lucide-react";
 import type { TrackedMilestone } from "@/types/monitoring";
 
 interface MilestoneListProps {
-  /** Lista de hitos */
+  
   milestones: TrackedMilestone[];
   /** Índice del hito actual */
   currentIndex: number;

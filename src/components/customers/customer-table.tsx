@@ -1,9 +1,3 @@
-/**
- * @fileoverview Tabla de clientes mejorada con acciones
- * 
- * @module components/customers/customer-table
- */
-
 "use client";
 
 import {
@@ -39,8 +33,9 @@ import {
   MapPin,
   Copy,
 } from "lucide-react";
-import { Customer, CustomerCategory } from "@/types/models";
+import { Customer } from "@/types/models";
 import { cn } from "@/lib/utils";
+import { CATEGORY_BADGE_MAP, CATEGORY_LABEL_MAP } from "@/config/customer-categories.config";
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -55,19 +50,9 @@ interface CustomerTableProps {
   onToggleStatus: (customer: Customer) => void;
 }
 
-const CATEGORY_COLORS: Record<CustomerCategory, string> = {
-  standard: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  premium: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  vip: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
-  wholesale: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
-};
+const CATEGORY_COLORS: Record<string, string> = CATEGORY_BADGE_MAP;
 
-const CATEGORY_LABELS: Record<CustomerCategory, string> = {
-  standard: "Estándar",
-  premium: "Premium",
-  vip: "VIP",
-  wholesale: "Mayorista",
-};
+const CATEGORY_LABELS: Record<string, string> = CATEGORY_LABEL_MAP;
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text);
@@ -267,19 +252,17 @@ export function CustomerTable({
                 </TableCell>
 
                 <TableCell>
-                  <Badge className={cn("font-normal", CATEGORY_COLORS[category])}>
-                    {CATEGORY_LABELS[category]}
+                  <Badge className={cn("font-normal", CATEGORY_COLORS[category] || "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300")}>
+                    {CATEGORY_LABELS[category] || category}
                   </Badge>
                 </TableCell>
 
                 <TableCell>
                   <Badge 
-                    variant={customer.status === "active" ? "default" : "secondary"}
-                    className={cn(
-                      customer.status === "active" 
-                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                        : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                    )}
+                    className={customer.status === "active" 
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300 border-0" 
+                      : "bg-gray-100 text-gray-600 dark:bg-gray-800/60 dark:text-gray-400 border-0"
+                    }
                   >
                     {customer.status === "active" ? "Activo" : "Inactivo"}
                   </Badge>

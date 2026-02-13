@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel export para componentes de configuración
- * @module components/settings
- */
-
 export { CompanySettings } from "./company-settings";
 export { UserManagement } from "./user-management";
 export { FleetSettings } from "./fleet-settings";

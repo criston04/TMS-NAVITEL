@@ -1,10 +1,3 @@
-/**
- * @fileoverview Datos mock para Empresas GPS
- * 
- * @module mocks/monitoring/gps-companies.mock
- * @description Empresas proveedoras de servicios GPS para retransmisión
- */
-
 import type { GpsCompany } from "@/types/monitoring";
 
 /**

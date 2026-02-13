@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para gestión de configuración del sistema
- * @module hooks/useSettings
- * @description Hook de React que proporciona acceso a la configuración
- * del TMS, roles, permisos, integraciones y auditoría.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { settingsService } from "@/services/settings.service";
 import type {
@@ -23,23 +14,17 @@ import type {
   AuditLogFilters,
 } from "@/types/settings";
 
-/* ============================================
-   HOOK PRINCIPAL
-   ============================================ */
 
 interface UseSettingsReturn {
-  // Datos
   settings: SystemSettings | null;
   roles: Role[];
   integrations: Integration[];
   overview: SettingsOverview | null;
 
-  // Estado
   loading: boolean;
   saving: boolean;
   error: string | null;
 
-  // Configuración
   fetchSettings: () => Promise<void>;
   getSettingsByCategory: <T extends keyof SystemSettings>(category: T) => Promise<SystemSettings[T] | null>;
   updateSettings: (data: UpdateSettingsDTO) => Promise<boolean>;
@@ -61,7 +46,6 @@ interface UseSettingsReturn {
   testIntegration: (id: string) => Promise<{ success: boolean; message: string } | null>;
   syncIntegration: (id: string) => Promise<{ recordsSynced: number } | null>;
 
-  // Utilidades
   refresh: () => Promise<void>;
 }
 
@@ -72,7 +56,6 @@ interface UseSettingsOptions {
 export function useSettings(options: UseSettingsOptions = {}): UseSettingsReturn {
   const { autoFetch = true } = options;
 
-  // Estados
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
@@ -81,7 +64,6 @@ export function useSettings(options: UseSettingsOptions = {}): UseSettingsReturn
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Configuración
   const fetchSettings = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -377,9 +359,6 @@ export function useSettings(options: UseSettingsOptions = {}): UseSettingsReturn
   };
 }
 
-/* ============================================
-   HOOK DE CONFIGURACIÓN POR CATEGORÍA
-   ============================================ */
 
 export function useSettingsCategory<T extends keyof SystemSettings>(category: T) {
   const [settings, setSettings] = useState<SystemSettings[T] | null>(null);
@@ -448,9 +427,6 @@ export function useSettingsCategory<T extends keyof SystemSettings>(category: T)
   return { settings, loading, saving, error, save, reset, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE ROLES
-   ============================================ */
 
 export function useRoles() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -472,7 +448,6 @@ export function useRoles() {
     fetch();
   }, [fetch]);
 
-  // Estadísticas
   const stats = useMemo(() => ({
     total: roles.length,
     active: roles.filter(r => r.isActive).length,
@@ -484,9 +459,6 @@ export function useRoles() {
   return { roles, loading, stats, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE INTEGRACIONES
-   ============================================ */
 
 export function useIntegrations() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
@@ -513,7 +485,6 @@ export function useIntegrations() {
     fetch();
   }, [fetch]);
 
-  // Estadísticas
   const stats = useMemo(() => ({
     total: integrations.length,
     active: integrations.filter(i => i.isActive && i.status === "active").length,
@@ -527,9 +498,6 @@ export function useIntegrations() {
   return { integrations, health, loading, stats, refresh: fetch };
 }
 
-/* ============================================
-   HOOK DE AUDITORÍA
-   ============================================ */
 
 export function useAuditLog(initialFilters: AuditLogFilters = {}) {
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
@@ -574,7 +542,6 @@ export function useAuditLog(initialFilters: AuditLogFilters = {}) {
     }
   }, [filters]);
 
-  // Estadísticas
   const stats = useMemo(() => {
     const actions = new Map<string, number>();
     const resources = new Map<string, number>();
@@ -611,9 +578,6 @@ export function useAuditLog(initialFilters: AuditLogFilters = {}) {
   };
 }
 
-/* ============================================
-   HOOK DE APARIENCIA
-   ============================================ */
 
 export function useAppearance() {
   const { settings, loading, saving, error, save } = useSettingsCategory("appearance");

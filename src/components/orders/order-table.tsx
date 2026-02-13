@@ -1,11 +1,3 @@
-/**
- * @fileoverview Tabla de órdenes para vista densa
- * @module components/orders/OrderTable
- * @description Tabla de datos optimizada para operaciones logísticas.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo } from 'react';
@@ -34,9 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from './order-card';
 
-// ============================================
 // PROPS
-// ============================================
 
 interface OrderTableProps {
   orders: Order[];
@@ -48,9 +38,7 @@ interface OrderTableProps {
   className?: string;
 }
 
-// ============================================
 // UTILS
-// ============================================
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat('es-MX', {
@@ -61,9 +49,7 @@ function formatDate(date: string) {
   }).format(new Date(date));
 }
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 function OrderTableComponent({
   orders,

@@ -1,13 +1,10 @@
-/**
- * @fileoverview Servicio de Notificaciones
- * @module services/notification.service
- * @description Gestiona el envío, almacenamiento y recuperación de notificaciones
- * del sistema. Soporta múltiples canales y preferencias de usuario.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
+import {
+  mockNotifications,
+  mockNotificationTemplates,
+  defaultPreferences,
+} from "@/mocks/notifications";
 import type {
   SystemNotification,
   NotificationPreferences,
@@ -19,180 +16,13 @@ import type {
   NotificationPriority,
 } from "@/types/notification";
 
-/* ============================================
-   DATOS MOCK
-   ============================================ */
-
-const mockNotifications: SystemNotification[] = [
-  {
-    id: "notif-001",
-    title: "Orden completada",
-    message: "La orden ORD-2026-00123 ha sido completada exitosamente.",
-    category: "order",
-    priority: "medium",
-    channel: "in_app",
-    status: "delivered",
-    userId: "user-001",
-    relatedEntity: {
-      type: "order",
-      id: "ord-00123",
-      name: "ORD-2026-00123",
-    },
-    actionUrl: "/orders/ord-00123",
-    actionLabel: "Ver orden",
-    createdAt: "2026-02-02T10:00:00Z",
-    sentAt: "2026-02-02T10:00:05Z",
-  },
-  {
-    id: "notif-002",
-    title: "Documento por vencer",
-    message: "La licencia del conductor Juan Pérez vence en 15 días.",
-    category: "document",
-    priority: "high",
-    channel: "in_app",
-    status: "delivered",
-    userId: "user-001",
-    relatedEntity: {
-      type: "driver",
-      id: "drv-001",
-      name: "Juan Pérez",
-    },
-    actionUrl: "/master/drivers/drv-001",
-    actionLabel: "Ver conductor",
-    createdAt: "2026-02-01T09:00:00Z",
-    sentAt: "2026-02-01T09:00:02Z",
-  },
-  {
-    id: "notif-003",
-    title: "Mantenimiento programado",
-    message: "El vehículo ABC-123 tiene mantenimiento programado para mañana.",
-    category: "maintenance",
-    priority: "medium",
-    channel: "in_app",
-    status: "read",
-    userId: "user-001",
-    relatedEntity: {
-      type: "vehicle",
-      id: "veh-001",
-      name: "ABC-123",
-    },
-    actionUrl: "/master/vehicles/veh-001/maintenance",
-    actionLabel: "Ver mantenimiento",
-    createdAt: "2026-02-01T08:00:00Z",
-    sentAt: "2026-02-01T08:00:03Z",
-    readAt: "2026-02-01T08:30:00Z",
-  },
-  {
-    id: "notif-004",
-    title: "Alerta de geocerca",
-    message: "El vehículo XYZ-789 ha salido de la geocerca 'Almacén Central'.",
-    category: "geofence",
-    priority: "urgent",
-    channel: "in_app",
-    status: "delivered",
-    userId: "user-001",
-    relatedEntity: {
-      type: "vehicle",
-      id: "veh-002",
-      name: "XYZ-789",
-    },
-    actionUrl: "/monitoring/tracking",
-    actionLabel: "Ver en mapa",
-    createdAt: "2026-02-02T11:30:00Z",
-    sentAt: "2026-02-02T11:30:01Z",
-  },
-  {
-    id: "notif-005",
-    title: "Nuevo conductor registrado",
-    message: "Se ha registrado un nuevo conductor: María García.",
-    category: "driver",
-    priority: "low",
-    channel: "in_app",
-    status: "read",
-    userId: "user-001",
-    relatedEntity: {
-      type: "driver",
-      id: "drv-002",
-      name: "María García",
-    },
-    actionUrl: "/master/drivers/drv-002",
-    actionLabel: "Ver perfil",
-    createdAt: "2026-01-30T14:00:00Z",
-    sentAt: "2026-01-30T14:00:02Z",
-    readAt: "2026-01-30T15:00:00Z",
-  },
-];
-
-const mockTemplates: NotificationTemplate[] = [
-  {
-    id: "tmpl-001",
-    name: "Orden Completada",
-    category: "order",
-    channel: "email",
-    subject: "Orden {{orderNumber}} completada",
-    body: "Estimado usuario,\n\nLa orden {{orderNumber}} ha sido completada exitosamente.\n\nDetalles:\n- Cliente: {{customerName}}\n- Fecha: {{completionDate}}\n\nSaludos,\nTMS Navitel",
-    variables: ["orderNumber", "customerName", "completionDate"],
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "tmpl-002",
-    name: "Documento por Vencer",
-    category: "document",
-    channel: "in_app",
-    body: "El documento {{documentType}} de {{entityName}} vence en {{daysRemaining}} días.",
-    variables: ["documentType", "entityName", "daysRemaining", "expiryDate"],
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "tmpl-003",
-    name: "Alerta de Geocerca",
-    category: "geofence",
-    channel: "push",
-    body: "{{vehiclePlate}} ha {{eventType}} la geocerca {{geofenceName}}.",
-    variables: ["vehiclePlate", "eventType", "geofenceName", "timestamp"],
-    isActive: true,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-];
-
-const defaultPreferences: NotificationPreferences = {
-  userId: "user-001",
-  channels: {
-    order: ["in_app", "email"],
-    driver: ["in_app"],
-    vehicle: ["in_app"],
-    maintenance: ["in_app", "email"],
-    document: ["in_app", "email", "push"],
-    geofence: ["in_app", "push"],
-    alert: ["in_app", "push", "email"],
-    system: ["in_app"],
-  },
-  quietHours: {
-    enabled: false,
-    startTime: "22:00",
-    endTime: "07:00",
-  },
-  dailyDigest: true,
-  digestEmail: "usuario@ejemplo.com",
-  soundEnabled: true,
-  vibrationEnabled: true,
-};
-
-/* ============================================
-   SERVICIO DE NOTIFICACIONES
-   ============================================ */
 
 /**
  * Servicio para gestión de notificaciones del sistema
  */
 class NotificationService {
   private notifications: SystemNotification[] = [...mockNotifications];
-  private templates: NotificationTemplate[] = [...mockTemplates];
+  private templates: NotificationTemplate[] = [...mockNotificationTemplates];
   private preferences: Map<string, NotificationPreferences> = new Map([
     ["user-001", defaultPreferences],
   ]);
@@ -218,10 +48,6 @@ class NotificationService {
   private generateId(): string {
     return `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
-
-  // ============================================
-  // CRUD DE NOTIFICACIONES
-  // ============================================
 
   /**
    * Obtiene notificaciones con filtros
@@ -302,7 +128,7 @@ class NotificationService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.notifications.base, { params: { ...filters, page, pageSize } });
   }
 
   /**
@@ -315,7 +141,7 @@ class NotificationService {
       return this.notifications.find(n => n.id === id) || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.notifications.base}/${id}`);
   }
 
   /**
@@ -363,7 +189,7 @@ class NotificationService {
       return newNotification;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(API_ENDPOINTS.notifications.base, data);
   }
 
   /**
@@ -384,7 +210,7 @@ class NotificationService {
       return notification;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch(`${API_ENDPOINTS.notifications.base}/${id}/read`);
   }
 
   /**
@@ -410,7 +236,7 @@ class NotificationService {
       return count;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch(`${API_ENDPOINTS.notifications.base}/mark-all-read`, { userId });
   }
 
   /**
@@ -429,7 +255,7 @@ class NotificationService {
       return true;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.delete(`${API_ENDPOINTS.notifications.base}/${id}`);
   }
 
   /**
@@ -450,12 +276,8 @@ class NotificationService {
       return initialLength - this.notifications.length;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.delete(`${API_ENDPOINTS.notifications.base}/old`, { params: { olderThanDays } });
   }
-
-  // ============================================
-  // ESTADÍSTICAS
-  // ============================================
 
   /**
    * Obtiene estadísticas de notificaciones
@@ -508,12 +330,10 @@ class NotificationService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.notifications.stats, { params: userId ? { userId } : undefined });
   }
 
-  // ============================================
   // PREFERENCIAS
-  // ============================================
 
   /**
    * Obtiene preferencias de notificación de un usuario
@@ -528,7 +348,7 @@ class NotificationService {
       };
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(`${API_ENDPOINTS.notifications.preferences}/${userId}`);
   }
 
   /**
@@ -547,12 +367,10 @@ class NotificationService {
       return updated;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.put(`${API_ENDPOINTS.notifications.preferences}/${userId}`, updates);
   }
 
-  // ============================================
   // PLANTILLAS
-  // ============================================
 
   /**
    * Obtiene plantillas de notificación
@@ -567,7 +385,7 @@ class NotificationService {
       return this.templates;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get(API_ENDPOINTS.notifications.templates, { params: category ? { category } : undefined });
   }
 
   /**
@@ -607,12 +425,10 @@ class NotificationService {
       });
     }
 
-    throw new Error("API not implemented");
+    return apiClient.post(`${API_ENDPOINTS.notifications.templates}/${templateId}/create`, { variables, ...options });
   }
 
-  // ============================================
   // SUSCRIPCIÓN EN TIEMPO REAL
-  // ============================================
 
   /**
    * Suscribe a nuevas notificaciones
@@ -638,10 +454,6 @@ class NotificationService {
       }
     });
   }
-
-  // ============================================
-  // NOTIFICACIONES PREDEFINIDAS
-  // ============================================
 
   /**
    * Envía notificación de orden completada

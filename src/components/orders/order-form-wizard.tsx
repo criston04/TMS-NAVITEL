@@ -1,11 +1,3 @@
-/**
- * @fileoverview Wizard de creación de órdenes con pasos
- * @module components/orders/order-form-wizard
- * @description Formulario de creación de órdenes con wizard de 4 pasos.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -71,7 +63,6 @@ import { vehiclesMock } from '@/mocks/master/vehicles.mock';
 import { driversMock } from '@/mocks/master/drivers.mock';
 import { operatorsMock } from '@/mocks/master/operators.mock';
 
-// Hooks
 import { useResourceConflicts } from '@/hooks/orders/use-resource-conflicts';
 
 // Services
@@ -90,10 +81,6 @@ const RoutePreviewMapLazy = dynamic(
   }
 );
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface OrderFormWizardProps {
   /** Datos iniciales para edición */
   initialData?: Partial<CreateOrderDTO>;
@@ -106,11 +93,6 @@ interface OrderFormWizardProps {
   /** Modo del formulario */
   mode?: 'create' | 'edit';
 }
-
-
-// ============================================
-// CONSTANTES
-// ============================================
 
 const WIZARD_STEPS: WizardStep[] = [
   {
@@ -157,10 +139,6 @@ const CARGO_TYPES: { value: CargoType; label: string }[] = [
   { value: 'bulk', label: 'Granel' },
 ];
 
-// ============================================
-// HELPERS
-// ============================================
-
 function getGeofenceCoordinates(geofence: Geofence): { lat: number; lng: number } {
   switch (geofence.geometry.type) {
     case 'circle':
@@ -173,9 +151,7 @@ function getGeofenceCoordinates(geofence: Geofence): { lat: number; lng: number 
   }
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export function OrderFormWizard({
   initialData,
@@ -184,7 +160,6 @@ export function OrderFormWizard({
   isSubmitting = false,
   mode = 'create',
 }: OrderFormWizardProps) {
-  // Estado del wizard
   const [currentStep, setCurrentStep] = useState(0);
   const [stepErrors, setStepErrors] = useState<Record<number, string[]>>({});
 

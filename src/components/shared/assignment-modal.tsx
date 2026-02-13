@@ -1,11 +1,3 @@
-/**
- * @fileoverview Modal de Asignación Conductor-Vehículo
- * 
- * Permite asignar/desasignar conductores a vehículos y viceversa.
- * 
- * @module components/shared/assignment-modal
- */
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";

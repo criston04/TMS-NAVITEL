@@ -1,12 +1,3 @@
-/**
- * @fileoverview Componente de mapa de geocercas mejorado
- * 
- * Usa los hooks useLeafletMap y useDrawingTools para una
- * arquitectura más limpia y mantenible.
- * 
- * @module components/geofences/geofences-map-new
- */
-
 "use client";
 
 import {
@@ -25,7 +16,7 @@ import { cn } from "@/lib/utils";
  * Props para GeofencesMapNew
  */
 interface GeofencesMapNewProps {
-  /** Lista de geocercas */
+  
   geofences: Geofence[];
   /** IDs de geocercas seleccionadas */
   selectedGeofenceIds?: Set<string>;
@@ -78,7 +69,6 @@ export const GeofencesMapNew = forwardRef<GeofencesMapNewRef, GeofencesMapNewPro
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const currentEditingLayerRef = useRef<any>(null);
 
-    // Hook de mapa
     const {
       mapRef,
       leafletMap,
@@ -92,7 +82,6 @@ export const GeofencesMapNew = forwardRef<GeofencesMapNewRef, GeofencesMapNewPro
       zoom: 5,
     });
     
-    // Hook de herramientas de dibujo
     const {
       startDrawPolygon,
       startDrawCircle,

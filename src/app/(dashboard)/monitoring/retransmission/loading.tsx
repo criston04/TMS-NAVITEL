@@ -1,8 +1,3 @@
-/**
- * @fileoverview Loading skeleton para Retransmisión
- * @module app/(dashboard)/monitoring/retransmission/loading
- */
-
 export default function RetransmissionLoading() {
   return (
     <div className="space-y-6 p-6">

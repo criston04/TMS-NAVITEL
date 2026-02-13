@@ -1,11 +1,3 @@
-/**
- * @fileoverview Servicio de Vehículos
- * 
- * Incluye funcionalidades de checklist, tracking y mantenimiento.
- * 
- * @module services/master/vehicles.service
- */
-
 import { BulkService } from "@/services/base.service";
 import { API_ENDPOINTS } from "@/config/api.config";
 import { Vehicle, VehicleStats } from "@/types/models";

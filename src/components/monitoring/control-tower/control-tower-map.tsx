@@ -1,8 +1,3 @@
-/**
- * @fileoverview Mapa principal de Torre de Control con Leaflet
- * @module components/monitoring/control-tower/control-tower-map
- */
-
 "use client";
 
 import { useEffect, useRef, useMemo, useCallback, useState } from "react";
@@ -90,7 +85,6 @@ export function ControlTowerMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
 
-  // Estadísticas - Estados mutuamente excluyentes basados en conexión
   const stats = useMemo(() => {
     // Primero por conexión (prioridad)
     const offline = vehicles.filter((v) => v.connectionStatus === "disconnected").length;

@@ -1,16 +1,10 @@
-/**
- * @fileoverview Servicio WebSocket para monitoreo en tiempo real
- * 
- * @module services/monitoring/websocket.service
- * @description Maneja conexiones WebSocket para actualizaciones de posición en tiempo real
- */
-
 import type { 
   WebSocketMessage, 
   WebSocketConfig,
   PositionUpdateMessage
 } from "@/types/monitoring";
 import { vehiclePositionsMock, simulateVehicleMovement } from "@/mocks/monitoring/vehicle-positions.mock";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
 
 /**
  * Configuración por defecto del WebSocket
@@ -55,10 +49,11 @@ export class MonitoringWebSocketService {
   private subscribedVehicleIds: Set<string> = new Set();
   
   // Mock mode
-  private useMock = true; // Cambiar a false cuando haya servidor real
+  private readonly useMock: boolean;
 
   constructor(config: Partial<WebSocketConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.useMock = apiConfig.useMocks;
   }
 
   /**
@@ -76,7 +71,8 @@ export class MonitoringWebSocketService {
     }
 
     try {
-      this.socket = new WebSocket(this.config.url);
+      const wsUrl = apiConfig.baseUrl.replace(/^http/, 'ws') + API_ENDPOINTS.monitoring.websocket;
+      this.socket = new WebSocket(wsUrl);
       
       this.socket.onopen = () => {
         console.log("[WS] Connected");

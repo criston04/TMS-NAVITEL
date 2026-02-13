@@ -1,11 +1,3 @@
-/**
- * @fileoverview Servicio para importación de órdenes desde Excel
- * @module services/orders/OrderImportService
- * @description Maneja la importación masiva de órdenes desde archivos Excel.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type {
   Order,
   CreateOrderDTO,
@@ -15,6 +7,8 @@ import type {
   OrderPriority,
 } from '@/types/order';
 import { orderService } from './OrderService';
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
 /**
  * Columnas esperadas en el archivo Excel
@@ -94,6 +88,12 @@ const simulateDelay = (ms: number = 300): Promise<void> => {
  * Clase de servicio para importación de órdenes
  */
 class OrderImportService {
+  private readonly useMocks: boolean;
+
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
+
   /**
    * Valida el formato del archivo Excel
    * @param headers - Encabezados del archivo
@@ -318,42 +318,45 @@ class OrderImportService {
       skipWarnings?: boolean;
     } = {}
   ): Promise<OrderImportResult> {
-    await simulateDelay(500);
+    if (this.useMocks) {
+      await simulateDelay(500);
 
-    const { skipInvalid = true, skipWarnings = false } = options;
-    const parsedRows = rows.map((row, index) => this.parseRow(row, index + 2));
-    const createdOrders: Order[] = [];
+      const { skipInvalid = true, skipWarnings = false } = options;
+      const parsedRows = rows.map((row, index) => this.parseRow(row, index + 2));
+      const createdOrders: Order[] = [];
 
-    // Filtrar filas a procesar
-    let rowsToProcess = parsedRows;
-    if (skipInvalid) {
-      rowsToProcess = rowsToProcess.filter(r => r.status !== 'invalid');
-    }
-    if (skipWarnings) {
-      rowsToProcess = rowsToProcess.filter(r => r.status === 'valid');
-    }
-
-    // Crear órdenes
-    for (const row of rowsToProcess) {
-      if (row.status === 'invalid') continue;
-
-      try {
-        const order = await orderService.createOrder(row.data as CreateOrderDTO);
-        createdOrders.push(order);
-      } catch (error) {
-        row.errors.push(`Error al crear orden: ${(error as Error).message}`);
-        row.status = 'invalid';
+      // Filtrar filas a procesar
+      let rowsToProcess = parsedRows;
+      if (skipInvalid) {
+        rowsToProcess = rowsToProcess.filter(r => r.status !== 'invalid');
       }
-    }
+      if (skipWarnings) {
+        rowsToProcess = rowsToProcess.filter(r => r.status === 'valid');
+      }
 
-    return {
-      totalRows: parsedRows.length,
-      validRows: parsedRows.filter(r => r.status === 'valid').length,
-      errorRows: parsedRows.filter(r => r.status === 'invalid').length,
-      warningRows: parsedRows.filter(r => r.status === 'warning').length,
-      rows: parsedRows,
-      createdOrders,
-    };
+      // Crear órdenes
+      for (const row of rowsToProcess) {
+        if (row.status === 'invalid') continue;
+
+        try {
+          const order = await orderService.createOrder(row.data as CreateOrderDTO);
+          createdOrders.push(order);
+        } catch (error) {
+          row.errors.push(`Error al crear orden: ${(error as Error).message}`);
+          row.status = 'invalid';
+        }
+      }
+
+      return {
+        totalRows: parsedRows.length,
+        validRows: parsedRows.filter(r => r.status === 'valid').length,
+        errorRows: parsedRows.filter(r => r.status === 'invalid').length,
+        warningRows: parsedRows.filter(r => r.status === 'warning').length,
+        rows: parsedRows,
+        createdOrders,
+      };
+    }
+    return apiClient.post<OrderImportResult>(`${API_ENDPOINTS.operations.orders}/import`, { rows, ...options });
   }
 
   /**

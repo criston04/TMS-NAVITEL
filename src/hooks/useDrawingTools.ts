@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para herramientas de dibujo en Leaflet
- * 
- * Principio SRP: Solo maneja las herramientas de dibujo.
- * Principio DRY: Centraliza toda la logica de Leaflet.Draw.
- * 
- * @module hooks/useDrawingTools
- */
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Geofence, PolygonGeometry, CircleGeometry, GeoCoordinate } from "@/types/models/geofence";
 
@@ -97,7 +88,6 @@ interface UseDrawingToolsReturn {
   currentStyle: DrawingStyle;
   setCurrentStyle: (style: DrawingStyle) => void;
   
-  // Utilidades
   zoomToLayer: (layer: L.Layer, padding?: number) => void;
   getLayerBounds: (layer: L.Layer) => L.LatLngBounds | null;
 }
@@ -117,13 +107,6 @@ const DEFAULT_STYLE: DrawingStyle = {
  * @param options - Opciones de configuración
  * @returns Estado y acciones de dibujo
  * 
- * @example
- * const { startDrawPolygon, activeLayer, createPentagon } = useDrawingTools({
- *   map: leafletMap,
- *   drawnItems: drawnItemsLayer,
- *   L: leafletInstance,
- *   onGeometryCreated: (event) => console.log(event)
- * });
  */
 export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingToolsReturn {
   const {
@@ -136,7 +119,6 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
     onGeometryDeleted,
   } = options;
   
-  // Estado
   const [drawingMode, setDrawingMode] = useState<DrawingMode>("none");
   const [currentStyle, setCurrentStyle] = useState<DrawingStyle>(defaultStyle);
   const [isEditing, setIsEditing] = useState(false);
@@ -283,7 +265,6 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
     return null;
   }, [L]);
 
-  // Acciones de dibujo
   const startDrawPolygon = useCallback(() => {
     if (!map || !L || !drawnItems) return;
 
@@ -415,7 +396,6 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
     setDrawingMode("none");
   }, []);
 
-  // Acciones de edicion
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const enableEditing = useCallback((layer: any) => {
     if (!L) return;
@@ -471,7 +451,6 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
     }
   }, []);
 
-  // Acciones de capas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addLayer = useCallback((layer: any) => {
     if (!drawnItems) return;
@@ -570,7 +549,6 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
     }
   }, []);
 
-  // Utilidades
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const zoomToLayer = useCallback((layer: any, padding = 50) => {
     if (!map) return;
@@ -600,25 +578,21 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
   }, [L]);
   
   return {
-    // Estado
     drawingMode,
     activeLayer: activeLayerRef.current,
     isEditing,
     
-    // Acciones de dibujo
     startDrawPolygon,
     startDrawCircle,
     startDrawRectangle,
     createPentagon,
     cancelDrawing,
     
-    // Acciones de edición
     enableEditing,
     disableEditing,
     enableDragging,
     disableDragging,
     
-    // Acciones de capas
     addLayer,
     removeLayer,
     clearAllLayers,
@@ -634,7 +608,6 @@ export function useDrawingTools(options: UseDrawingToolsOptions): UseDrawingTool
     currentStyle,
     setCurrentStyle,
     
-    // Utilidades
     zoomToLayer,
     getLayerBounds,
   };

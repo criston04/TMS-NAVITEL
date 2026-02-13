@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de lista de órdenes
- * @module components/orders/OrderList
- * @description Lista con paginación y vista de órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useCallback } from 'react';
@@ -24,23 +16,19 @@ import { OrderCard } from './order-card';
 import { OrderTable } from './order-table';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 /**
  * Props del componente OrderList
  */
 interface OrderListProps {
   /** Lista de órdenes */
   orders: Order[];
-  /** Está cargando */
+  
   isLoading?: boolean;
-  /** Página actual */
+  
   page: number;
   /** Total de páginas */
   totalPages: number;
-  /** Total de registros */
+  
   total: number;
   /** IDs seleccionados */
   selectedIds: Set<string>;
@@ -62,9 +50,7 @@ interface OrderListProps {
   className?: string;
 }
 
-// ============================================
 // COMPONENTES AUXILIARES
-// ============================================
 
 /**
  * Skeleton de carga para lista
@@ -226,9 +212,7 @@ function Pagination({ page, totalPages, total, onPageChange }: Readonly<Paginati
   );
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 /**
  * Lista de órdenes con paginación y selección

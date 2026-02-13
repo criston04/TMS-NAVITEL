@@ -1,8 +1,3 @@
-/**
- * @fileoverview Loading skeleton para Rastreo Histórico
- * @module app/(dashboard)/monitoring/historical/loading
- */
-
 export default function HistoricalLoading() {
   return (
     <div className="flex h-full w-full">

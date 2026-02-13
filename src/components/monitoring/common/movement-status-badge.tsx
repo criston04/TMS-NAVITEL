@@ -1,9 +1,3 @@
-/**
- * @fileoverview Badge de estado de movimiento
- * 
- * @module components/monitoring/common/movement-status-badge
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -11,7 +5,7 @@ import { Navigation, Square } from "lucide-react";
 import type { MovementStatus } from "@/types/monitoring";
 
 interface MovementStatusBadgeProps {
-  /** Estado de movimiento */
+  
   status: MovementStatus;
   /** Velocidad en km/h (opcional) */
   speed?: number;

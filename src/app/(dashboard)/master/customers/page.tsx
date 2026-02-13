@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * @fileoverview Página de Clientes - Módulo MAESTRO (Refactorizada)
- * 
- * Gestión completa de clientes con CRUD, filtros, paginación y exportación.
- * 
- * @module app/(dashboard)/master/customers/page
- */
-
 import { useState, useCallback } from "react";
 import { PageWrapper } from "@/components/page-wrapper";
 import { Button } from "@/components/ui/button";
@@ -42,7 +34,6 @@ import {
  * Página principal de Clientes
  */
 export default function CustomersPage() {
-  // Hook de gestión de clientes
   const {
     customers,
     stats,
@@ -71,7 +62,6 @@ export default function CustomersPage() {
     findByDocument,
   } = useCustomers({ autoLoad: true, initialPageSize: 10 });
 
-  // Estados de modales
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

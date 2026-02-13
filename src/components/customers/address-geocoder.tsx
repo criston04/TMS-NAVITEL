@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de geocodificación de direcciones
- * 
- * Botón para obtener coordenadas de una dirección
- * 
- * @module components/customers/address-geocoder
- */
-
 "use client";
 
 import { useState, useCallback } from "react";

@@ -1,12 +1,3 @@
-/**
- * @fileoverview Formulario de creación/edición de órdenes
- * @module components/orders/order-form
- * @description Formulario completo para crear nuevas órdenes con integración
- * de workflows automática y selección de hitos.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -60,10 +51,6 @@ import { geofencesMock } from '@/mocks/master/geofences.mock';
 import { vehiclesMock } from '@/mocks/master/vehicles.mock';
 import { driversMock } from '@/mocks/master/drivers.mock';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface OrderFormProps {
   /** Datos iniciales para edición */
   initialData?: Partial<CreateOrderDTO>;
@@ -95,10 +82,6 @@ interface WorkflowAssignmentInfo {
   isAutoAssigned: boolean;
 }
 
-// ============================================
-// CONSTANTES
-// ============================================
-
 const PRIORITIES: { value: OrderPriority; label: string; color: string }[] = [
   { value: 'low', label: 'Baja', color: 'bg-slate-500' },
   { value: 'normal', label: 'Normal', color: 'bg-[#34b7ff]' },
@@ -116,9 +99,7 @@ const CARGO_TYPES: { value: CargoType; label: string }[] = [
   { value: 'bulk', label: 'Granel' },
 ];
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export function OrderForm({
   initialData,
@@ -126,14 +107,12 @@ export function OrderForm({
   onCancel,
   isSubmitting = false,
 }: OrderFormProps) {
-  // Estado del formulario
   const [customerId, setCustomerId] = useState(initialData?.customerId || '');
   const [carrierId, _setCarrierId] = useState(initialData?.carrierId || '');
   const [vehicleId, setVehicleId] = useState(initialData?.vehicleId || '');
   const [driverId, setDriverId] = useState(initialData?.driverId || '');
   const [priority, setPriority] = useState<OrderPriority>(initialData?.priority || 'normal');
   
-  // Estado de carga
   const [cargoDescription, setCargoDescription] = useState(initialData?.cargo?.description || '');
   const [cargoType, setCargoType] = useState<CargoType>(initialData?.cargo?.type || 'general');
   const [cargoWeight, setCargoWeight] = useState(initialData?.cargo?.weightKg?.toString() || '');
@@ -141,7 +120,6 @@ export function OrderForm({
   const [cargoQuantity, setCargoQuantity] = useState(initialData?.cargo?.quantity?.toString() || '1');
   const [cargoDeclaredValue, setCargoDeclaredValue] = useState(initialData?.cargo?.declaredValue?.toString() || '');
   
-  // Estado de fechas
   const [scheduledStartDate, setScheduledStartDate] = useState(
     initialData?.scheduledStartDate?.split('T')[0] || ''
   );
@@ -155,7 +133,6 @@ export function OrderForm({
     initialData?.scheduledEndDate?.split('T')[1]?.substring(0, 5) || '18:00'
   );
   
-  // Estado de hitos
   const [milestones, setMilestones] = useState<MilestoneFormData[]>(() => {
     if (initialData?.milestones?.length) {
       return initialData.milestones.map((m, i) => ({
@@ -174,16 +151,13 @@ export function OrderForm({
     return [];
   });
   
-  // Estado adicional
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [externalReference, setExternalReference] = useState(initialData?.externalReference || '');
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [tagInput, setTagInput] = useState('');
   
-  // Estado de workflow auto-asignado
   const [workflowInfo, setWorkflowInfo] = useState<WorkflowAssignmentInfo | null>(null);
   
-  // Estado de errores
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Obtener cliente seleccionado

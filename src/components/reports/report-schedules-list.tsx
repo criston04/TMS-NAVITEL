@@ -1,8 +1,3 @@
-/**
- * @fileoverview Lista de programaciones de reportes
- * @module components/reports/report-schedules-list
- */
-
 "use client";
 
 import { useState } from "react";

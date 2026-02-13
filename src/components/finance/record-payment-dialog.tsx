@@ -1,8 +1,3 @@
-/**
- * @fileoverview Diálogo para registrar pago
- * @module components/finance/record-payment-dialog
- */
-
 "use client";
 
 import { useState } from "react";

@@ -1,10 +1,3 @@
-/**
- * @fileoverview Datos mock para posiciones de vehículos en tiempo real
- * 
- * @module mocks/monitoring/vehicle-positions.mock
- * @description Posiciones y simulación de movimiento de vehículos
- */
-
 import type { 
   VehiclePosition, 
   TrackedVehicle, 

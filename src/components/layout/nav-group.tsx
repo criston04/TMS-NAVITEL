@@ -1,7 +1,6 @@
 /**
  * NavGroup Component - Grupo de navegación con título y items
  * Estructura: OPERACIONES, FINANZAS, MAESTRO
- * Principio: SRP - Solo maneja grupos con título
  */
 
 "use client";

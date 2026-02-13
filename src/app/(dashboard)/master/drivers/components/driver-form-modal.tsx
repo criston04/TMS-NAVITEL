@@ -1,12 +1,3 @@
-/**
- * @fileoverview Modal de Formulario de Conductor
- * 
- * Modal completo para crear/editar conductores con múltiples tabs
- * que cubren toda la información requerida por normativa peruana.
- * 
- * @module app/(dashboard)/master/drivers/components/driver-form-modal
- */
-
 "use client";
 
 import * as React from "react";
@@ -67,9 +58,6 @@ import {
   LICENSE_CATEGORIES,
 } from "@/lib/validators/driver-validators";
 
-/* ============================================
-   TIPOS Y ESQUEMAS DE VALIDACIÓN
-   ============================================ */
 
 /**
  * Esquema de validación para el formulario de conductor
@@ -112,7 +100,6 @@ const driverFormSchema = z.object({
     address: z.string().optional(),
   })).min(1, "Al menos un contacto de emergencia requerido"),
 
-  // Estado
   status: z.enum(["active", "inactive", "suspended", "on_leave", "terminated"]).default("active"),
   hireDate: z.string().optional(),
   notes: z.string().optional(),
@@ -120,7 +107,6 @@ const driverFormSchema = z.object({
 
 type DriverFormData = z.infer<typeof driverFormSchema>;
 
-// Exportar el tipo para uso en otras páginas
 export type { DriverFormData };
 
 /**
@@ -134,9 +120,6 @@ interface DriverFormModalProps {
   isLoading?: boolean;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 const DOCUMENT_TYPES = [
   { value: "DNI", label: "DNI" },
@@ -163,9 +146,6 @@ const RELATIONSHIPS = [
   "Esposo/a", "Padre", "Madre", "Hijo/a", "Hermano/a", "Tío/a", "Amigo/a", "Otro",
 ];
 
-/* ============================================
-   COMPONENTE PRINCIPAL
-   ============================================ */
 
 export function DriverFormModal({
   open,

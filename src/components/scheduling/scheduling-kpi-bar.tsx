@@ -1,11 +1,3 @@
-/**
- * @fileoverview Barra de KPIs para el módulo de programación
- * @module components/scheduling/SchedulingKPIBar
- * @description Muestra métricas clave de programación en tiempo real.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo } from 'react';
@@ -25,10 +17,6 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface SchedulingKPIBarProps {
   /** KPIs de programación */
   kpis: SchedulingKPIs;
@@ -41,10 +29,6 @@ interface SchedulingKPIBarProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// CONFIGURACIÓN DE KPIs
-// ============================================
 
 interface KPIConfig {
   key: keyof SchedulingKPIs;
@@ -145,9 +129,7 @@ const KPI_CONFIGS: KPIConfig[] = [
   },
 ];
 
-// ============================================
 // COMPONENTE: KPI INDIVIDUAL
-// ============================================
 
 const KPICard = memo(function KPICard({
   config,
@@ -218,9 +200,7 @@ const KPICard = memo(function KPICard({
   );
 });
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export const SchedulingKPIBar = memo(function SchedulingKPIBar({
   kpis,
@@ -257,9 +237,7 @@ export const SchedulingKPIBar = memo(function SchedulingKPIBar({
   );
 });
 
-// ============================================
 // COMPONENTE COMPACTO ALTERNATIVO
-// ============================================
 
 export const SchedulingKPICompact = memo(function SchedulingKPICompact({
   kpis,

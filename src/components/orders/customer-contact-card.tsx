@@ -1,11 +1,3 @@
-/**
- * @fileoverview Card de información de contacto del cliente
- * @module components/orders/customer-contact-card
- * @description Muestra información del cliente y permite especificar contacto para la orden.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState } from 'react';
@@ -28,10 +20,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 export interface CustomerInfo {
   id: string;
@@ -72,9 +60,7 @@ interface CustomerContactCardProps {
   compact?: boolean;
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export function CustomerContactCard({
   customer,
@@ -317,9 +303,7 @@ export function CustomerContactCard({
   );
 }
 
-// ============================================
 // COMPONENTE MINI (para resumen)
-// ============================================
 
 export function CustomerContactMini({ customer }: { customer: CustomerInfo }) {
   return (

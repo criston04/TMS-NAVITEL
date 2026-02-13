@@ -1,11 +1,3 @@
-/**
- * @fileoverview Componente de filtros para órdenes
- * @module components/orders/OrderFilters
- * @description Panel de filtros compacto para la lista de órdenes.
- * @author TMS-NAVITEL
- * @version 2.0.0
- */
-
 'use client';
 
 import { memo, useState, useCallback } from 'react';
@@ -36,15 +28,11 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 /**
  * Props del componente OrderFilters
  */
 interface OrderFiltersProps {
-  /** Filtros actuales */
+  
   filters: OrderFiltersType;
   /** Callback al cambiar filtros */
   onFiltersChange: (filters: OrderFiltersType) => void;
@@ -66,10 +54,6 @@ interface OrderFiltersProps {
   className?: string;
 }
 
-// ============================================
-// CONFIGURACIÓN
-// ============================================
-
 /**
  * Colores de estados para badges
  */
@@ -85,9 +69,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 /**
  * Panel de filtros compacto para órdenes

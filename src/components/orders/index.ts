@@ -1,11 +1,3 @@
-/**
- * @fileoverview Exportaciones del módulo de componentes de órdenes
- * @module components/orders
- * @description Barrel exports para componentes de órdenes.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 // Componentes principales
 export { OrderCard, STATUS_CONFIG, PRIORITY_CONFIG } from './order-card';
 export { OrderList } from './order-list';

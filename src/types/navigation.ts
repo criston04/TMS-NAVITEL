@@ -1,6 +1,5 @@
 /**
  * Navigation Types - Single source of truth para tipos de navegación
- * Principio: DRY - Definir tipos una sola vez
  */
 
 import { LucideIcon } from "lucide-react";

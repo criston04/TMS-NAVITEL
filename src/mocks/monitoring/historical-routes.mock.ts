@@ -1,10 +1,3 @@
-/**
- * @fileoverview Datos mock para rutas históricas
- * 
- * @module mocks/monitoring/historical-routes.mock
- * @description Rutas históricas de vehículos con puntos GPS
- */
-
 import type { 
   HistoricalRoute, 
   HistoricalRoutePoint, 
@@ -181,7 +174,6 @@ export function generateHistoricalRouteStats(points: HistoricalRoutePoint[]): Hi
 function generateHistoricalRoutes(): HistoricalRoute[] {
   const routes: HistoricalRoute[] = [];
   
-  // Rutas predefinidas en Lima, Perú
   const routeConfigs = [
     {
       // Lima Centro a Callao

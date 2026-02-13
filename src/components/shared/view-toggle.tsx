@@ -1,9 +1,3 @@
-/**
- * @fileoverview Toggle para cambiar entre vista de tabla y tarjetas
- * 
- * @module components/shared/view-toggle
- */
-
 "use client";
 
 import { Button } from "@/components/ui/button";

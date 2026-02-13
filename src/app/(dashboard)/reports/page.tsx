@@ -1,11 +1,3 @@
-/**
- * @fileoverview Página principal del módulo de Reportes
- * @module app/(dashboard)/reports/page
- * @description Centro de reportes con generación, programación y descarga.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 "use client";
 
 import { useState } from "react";
@@ -23,10 +15,8 @@ import {
   Package,
 } from "lucide-react";
 
-// Hooks
 import { useReports, useQuickReportGenerator } from "@/hooks/useReports";
 
-// Tipos
 import type { ReportType } from "@/types/report";
 
 // Componentes UI
@@ -50,10 +40,6 @@ import {
   CreateReportDialog,
   ScheduleReportDialog,
 } from "@/components/reports";
-
-// ============================================
-// REPORTES RÁPIDOS
-// ============================================
 
 const quickReports = [
   {
@@ -94,14 +80,11 @@ const quickReports = [
   },
 ];
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState("quick");
 
-  // Hooks de datos
   const {
     definitions,
     generatedReports,

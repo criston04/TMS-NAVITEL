@@ -1,11 +1,3 @@
-/**
- * @fileoverview Servicio para gestión de Workflows
- * @module services/orders/WorkflowService
- * @description Implementa operaciones para workflows configurables.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type {
   Workflow,
   WorkflowStep,
@@ -17,6 +9,8 @@ import type {
 } from '@/types/workflow';
 import type { Order } from '@/types/order';
 import { mockWorkflows } from '@/mocks/orders/workflows.mock';
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
 /**
  * Simula latencia de red
@@ -39,10 +33,11 @@ const generateId = (prefix: string): string => {
  */
 class WorkflowService {
   private workflows: Workflow[] = [...mockWorkflows];
+  private readonly useMocks: boolean;
 
-  // ============================================
-  // MÉTODOS DE LECTURA
-  // ============================================
+  constructor() {
+    this.useMocks = apiConfig.useMocks;
+  }
 
   /**
    * Obtiene todos los workflows
@@ -50,38 +45,41 @@ class WorkflowService {
    * @returns Promesa con lista de workflows
    */
   async getWorkflows(filters?: WorkflowFilters): Promise<Workflow[]> {
-    await simulateDelay();
+    if (this.useMocks) {
+      await simulateDelay();
 
-    let result = [...this.workflows];
+      let result = [...this.workflows];
 
-    if (filters?.search) {
-      const searchLower = filters.search.toLowerCase();
-      result = result.filter(
-        wf =>
-          wf.name.toLowerCase().includes(searchLower) ||
-          wf.description.toLowerCase().includes(searchLower) ||
-          wf.code.toLowerCase().includes(searchLower)
-      );
+      if (filters?.search) {
+        const searchLower = filters.search.toLowerCase();
+        result = result.filter(
+          wf =>
+            wf.name.toLowerCase().includes(searchLower) ||
+            wf.description.toLowerCase().includes(searchLower) ||
+            wf.code.toLowerCase().includes(searchLower)
+        );
+      }
+
+      if (filters?.status) {
+        result = result.filter(wf => wf.status === filters.status);
+      }
+
+      if (filters?.isDefault !== undefined) {
+        result = result.filter(wf => wf.isDefault === filters.isDefault);
+      }
+
+      if (filters?.applicableCargoType) {
+        result = result.filter(
+          wf =>
+            !wf.applicableCargoTypes ||
+            wf.applicableCargoTypes.length === 0 ||
+            wf.applicableCargoTypes.includes(filters.applicableCargoType!)
+        );
+      }
+
+      return result;
     }
-
-    if (filters?.status) {
-      result = result.filter(wf => wf.status === filters.status);
-    }
-
-    if (filters?.isDefault !== undefined) {
-      result = result.filter(wf => wf.isDefault === filters.isDefault);
-    }
-
-    if (filters?.applicableCargoType) {
-      result = result.filter(
-        wf =>
-          !wf.applicableCargoTypes ||
-          wf.applicableCargoTypes.length === 0 ||
-          wf.applicableCargoTypes.includes(filters.applicableCargoType!)
-      );
-    }
-
-    return result;
+    return apiClient.get<Workflow[]>(API_ENDPOINTS.operations.orderWorkflows, { params: filters as unknown as Record<string, string> });
   }
 
   /**
@@ -90,8 +88,11 @@ class WorkflowService {
    * @returns Promesa con el workflow o null
    */
   async getWorkflowById(id: string): Promise<Workflow | null> {
-    await simulateDelay(200);
-    return this.workflows.find(wf => wf.id === id) ?? null;
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return this.workflows.find(wf => wf.id === id) ?? null;
+    }
+    return apiClient.get<Workflow>(`${API_ENDPOINTS.operations.orderWorkflows}/${id}`);
   }
 
   /**
@@ -99,8 +100,11 @@ class WorkflowService {
    * @returns Promesa con workflows activos
    */
   async getActiveWorkflows(): Promise<Workflow[]> {
-    await simulateDelay(200);
-    return this.workflows.filter(wf => wf.status === 'active');
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return this.workflows.filter(wf => wf.status === 'active');
+    }
+    return apiClient.get<Workflow[]>(`${API_ENDPOINTS.operations.orderWorkflows}/active`);
   }
 
   /**
@@ -108,8 +112,11 @@ class WorkflowService {
    * @returns Promesa con el workflow por defecto
    */
   async getDefaultWorkflow(): Promise<Workflow | null> {
-    await simulateDelay(100);
-    return this.workflows.find(wf => wf.isDefault) ?? null;
+    if (this.useMocks) {
+      await simulateDelay(100);
+      return this.workflows.find(wf => wf.isDefault) ?? null;
+    }
+    return apiClient.get<Workflow>(`${API_ENDPOINTS.operations.orderWorkflows}/default`);
   }
 
   /**
@@ -118,14 +125,17 @@ class WorkflowService {
    * @returns Promesa con workflows aplicables
    */
   async getWorkflowsForCargoType(cargoType: string): Promise<Workflow[]> {
-    await simulateDelay(200);
-    return this.workflows.filter(
-      wf =>
-        wf.status === 'active' &&
-        (!wf.applicableCargoTypes ||
-          wf.applicableCargoTypes.length === 0 ||
-          wf.applicableCargoTypes.includes(cargoType))
-    );
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return this.workflows.filter(
+        wf =>
+          wf.status === 'active' &&
+          (!wf.applicableCargoTypes ||
+            wf.applicableCargoTypes.length === 0 ||
+            wf.applicableCargoTypes.includes(cargoType))
+      );
+    }
+    return apiClient.get<Workflow[]>(API_ENDPOINTS.operations.orderWorkflows, { params: { cargoType } });
   }
 
   /**
@@ -134,19 +144,18 @@ class WorkflowService {
    * @returns Promesa con workflows aplicables
    */
   async getWorkflowsForCustomer(customerId: string): Promise<Workflow[]> {
-    await simulateDelay(200);
-    return this.workflows.filter(
-      wf =>
-        wf.status === 'active' &&
-        (!wf.applicableCustomerIds ||
-          wf.applicableCustomerIds.length === 0 ||
-          wf.applicableCustomerIds.includes(customerId))
-    );
+    if (this.useMocks) {
+      await simulateDelay(200);
+      return this.workflows.filter(
+        wf =>
+          wf.status === 'active' &&
+          (!wf.applicableCustomerIds ||
+            wf.applicableCustomerIds.length === 0 ||
+            wf.applicableCustomerIds.includes(customerId))
+      );
+    }
+    return apiClient.get<Workflow[]>(API_ENDPOINTS.operations.orderWorkflows, { params: { customerId } });
   }
-
-  // ============================================
-  // MÉTODOS DE ESCRITURA
-  // ============================================
 
   /**
    * Crea un nuevo workflow
@@ -154,45 +163,48 @@ class WorkflowService {
    * @returns Promesa con el workflow creado
    */
   async createWorkflow(data: CreateWorkflowDTO): Promise<Workflow> {
-    await simulateDelay(500);
+    if (this.useMocks) {
+      await simulateDelay(500);
 
-    const now = new Date().toISOString();
-    const id = generateId('wf');
+      const now = new Date().toISOString();
+      const id = generateId('wf');
 
-    // Si es default, quitar default de los demás
-    if (data.isDefault) {
-      this.workflows = this.workflows.map(wf => ({
-        ...wf,
-        isDefault: false,
-      }));
+      // Si es default, quitar default de los demás
+      if (data.isDefault) {
+        this.workflows = this.workflows.map(wf => ({
+          ...wf,
+          isDefault: false,
+        }));
+      }
+
+      const newWorkflow: Workflow = {
+        id,
+        name: data.name,
+        description: data.description,
+        code: data.code,
+        status: 'draft',
+        version: 1,
+        steps: data.steps.map((step, index) => ({
+          ...step,
+          id: `${id}-step-${index + 1}`,
+        })),
+        escalationRules: (data.escalationRules ?? []).map((rule, index) => ({
+          ...rule,
+          id: `${id}-rule-${index + 1}`,
+        })),
+        applicableCargoTypes: data.applicableCargoTypes,
+        applicableCustomerIds: data.applicableCustomerIds,
+        isDefault: data.isDefault ?? false,
+        createdAt: now,
+        createdBy: 'current-user',
+        updatedAt: now,
+        updatedBy: 'current-user',
+      };
+
+      this.workflows.push(newWorkflow);
+      return newWorkflow;
     }
-
-    const newWorkflow: Workflow = {
-      id,
-      name: data.name,
-      description: data.description,
-      code: data.code,
-      status: 'draft',
-      version: 1,
-      steps: data.steps.map((step, index) => ({
-        ...step,
-        id: `${id}-step-${index + 1}`,
-      })),
-      escalationRules: (data.escalationRules ?? []).map((rule, index) => ({
-        ...rule,
-        id: `${id}-rule-${index + 1}`,
-      })),
-      applicableCargoTypes: data.applicableCargoTypes,
-      applicableCustomerIds: data.applicableCustomerIds,
-      isDefault: data.isDefault ?? false,
-      createdAt: now,
-      createdBy: 'current-user',
-      updatedAt: now,
-      updatedBy: 'current-user',
-    };
-
-    this.workflows.push(newWorkflow);
-    return newWorkflow;
+    return apiClient.post<Workflow>(API_ENDPOINTS.operations.orderWorkflows, data);
   }
 
   /**
@@ -202,45 +214,48 @@ class WorkflowService {
    * @returns Promesa con el workflow actualizado
    */
   async updateWorkflow(id: string, data: UpdateWorkflowDTO): Promise<Workflow> {
-    await simulateDelay(400);
+    if (this.useMocks) {
+      await simulateDelay(400);
 
-    const index = this.workflows.findIndex(wf => wf.id === id);
-    if (index === -1) {
-      throw new Error(`Workflow ${id} not found`);
+      const index = this.workflows.findIndex(wf => wf.id === id);
+      if (index === -1) {
+        throw new Error(`Workflow ${id} not found`);
+      }
+
+      const now = new Date().toISOString();
+
+      // Si es default, quitar default de los demás
+      if (data.isDefault) {
+        this.workflows = this.workflows.map(wf => ({
+          ...wf,
+          isDefault: wf.id === id,
+        }));
+      }
+
+      const updatedWorkflow: Workflow = {
+        ...this.workflows[index],
+        ...data,
+        version: this.workflows[index].version + 1,
+        updatedAt: now,
+        updatedBy: 'current-user',
+        steps: data.steps
+          ? data.steps.map((step, i): WorkflowStep => ({
+              ...step,
+              id: `${id}-step-${i + 1}`,
+            }))
+          : this.workflows[index].steps,
+        escalationRules: data.escalationRules
+          ? data.escalationRules.map((rule, i): EscalationRule => ({
+              ...rule,
+              id: `${id}-esc-${i + 1}`,
+            }))
+          : this.workflows[index].escalationRules,
+      };
+
+      this.workflows[index] = updatedWorkflow;
+      return updatedWorkflow;
     }
-
-    const now = new Date().toISOString();
-
-    // Si es default, quitar default de los demás
-    if (data.isDefault) {
-      this.workflows = this.workflows.map(wf => ({
-        ...wf,
-        isDefault: wf.id === id,
-      }));
-    }
-
-    const updatedWorkflow: Workflow = {
-      ...this.workflows[index],
-      ...data,
-      version: this.workflows[index].version + 1,
-      updatedAt: now,
-      updatedBy: 'current-user',
-      steps: data.steps
-        ? data.steps.map((step, i): WorkflowStep => ({
-            ...step,
-            id: `${id}-step-${i + 1}`,
-          }))
-        : this.workflows[index].steps,
-      escalationRules: data.escalationRules
-        ? data.escalationRules.map((rule, i): EscalationRule => ({
-            ...rule,
-            id: `${id}-esc-${i + 1}`,
-          }))
-        : this.workflows[index].escalationRules,
-    };
-
-    this.workflows[index] = updatedWorkflow;
-    return updatedWorkflow;
+    return apiClient.put<Workflow>(`${API_ENDPOINTS.operations.orderWorkflows}/${id}`, data);
   }
 
   /**
@@ -249,7 +264,10 @@ class WorkflowService {
    * @returns Promesa con el workflow activado
    */
   async activateWorkflow(id: string): Promise<Workflow> {
-    return this.updateWorkflow(id, { status: 'active' });
+    if (this.useMocks) {
+      return this.updateWorkflow(id, { status: 'active' });
+    }
+    return apiClient.patch<Workflow>(`${API_ENDPOINTS.operations.orderWorkflows}/${id}/activate`);
   }
 
   /**
@@ -258,11 +276,14 @@ class WorkflowService {
    * @returns Promesa con el workflow desactivado
    */
   async deactivateWorkflow(id: string): Promise<Workflow> {
-    const workflow = await this.getWorkflowById(id);
-    if (workflow?.isDefault) {
-      throw new Error('Cannot deactivate default workflow');
+    if (this.useMocks) {
+      const workflow = await this.getWorkflowById(id);
+      if (workflow?.isDefault) {
+        throw new Error('Cannot deactivate default workflow');
+      }
+      return this.updateWorkflow(id, { status: 'inactive' });
     }
-    return this.updateWorkflow(id, { status: 'inactive' });
+    return apiClient.patch<Workflow>(`${API_ENDPOINTS.operations.orderWorkflows}/${id}/deactivate`);
   }
 
   /**
@@ -271,23 +292,27 @@ class WorkflowService {
    * @returns Promesa que indica éxito
    */
   async deleteWorkflow(id: string): Promise<boolean> {
-    await simulateDelay(300);
+    if (this.useMocks) {
+      await simulateDelay(300);
 
-    const index = this.workflows.findIndex(wf => wf.id === id);
-    if (index === -1) {
-      throw new Error(`Workflow ${id} not found`);
+      const index = this.workflows.findIndex(wf => wf.id === id);
+      if (index === -1) {
+        throw new Error(`Workflow ${id} not found`);
+      }
+
+      const workflow = this.workflows[index];
+      if (workflow.isDefault) {
+        throw new Error('Cannot delete default workflow');
+      }
+
+      if (workflow.status === 'active') {
+        throw new Error('Cannot delete active workflow. Deactivate it first.');
+      }
+
+      this.workflows.splice(index, 1);
+      return true;
     }
-
-    const workflow = this.workflows[index];
-    if (workflow.isDefault) {
-      throw new Error('Cannot delete default workflow');
-    }
-
-    if (workflow.status === 'active') {
-      throw new Error('Cannot delete active workflow. Deactivate it first.');
-    }
-
-    this.workflows.splice(index, 1);
+    await apiClient.delete(`${API_ENDPOINTS.operations.orderWorkflows}/${id}`);
     return true;
   }
 
@@ -298,28 +323,27 @@ class WorkflowService {
    * @returns Promesa con el workflow duplicado
    */
   async duplicateWorkflow(id: string, newName: string): Promise<Workflow> {
-    await simulateDelay(400);
+    if (this.useMocks) {
+      await simulateDelay(400);
 
-    const original = await this.getWorkflowById(id);
-    if (!original) {
-      throw new Error(`Workflow ${id} not found`);
+      const original = await this.getWorkflowById(id);
+      if (!original) {
+        throw new Error(`Workflow ${id} not found`);
+      }
+
+      return this.createWorkflow({
+        name: newName,
+        description: `Copia de: ${original.description}`,
+        code: `${original.code}-COPY`,
+        steps: original.steps.map(({ id: _id, ...step }) => step),
+        escalationRules: original.escalationRules.map(({ id: _id, ...rule }) => rule),
+        applicableCargoTypes: original.applicableCargoTypes,
+        applicableCustomerIds: original.applicableCustomerIds,
+        isDefault: false,
+      });
     }
-
-    return this.createWorkflow({
-      name: newName,
-      description: `Copia de: ${original.description}`,
-      code: `${original.code}-COPY`,
-      steps: original.steps.map(({ id: _id, ...step }) => step),
-      escalationRules: original.escalationRules.map(({ id: _id, ...rule }) => rule),
-      applicableCargoTypes: original.applicableCargoTypes,
-      applicableCustomerIds: original.applicableCustomerIds,
-      isDefault: false,
-    });
+    return apiClient.post<Workflow>(`${API_ENDPOINTS.operations.orderWorkflows}/${id}/duplicate`, { newName });
   }
-
-  // ============================================
-  // MÉTODOS DE PROGRESO
-  // ============================================
 
   /**
    * Calcula el progreso de una orden en su workflow
@@ -327,63 +351,66 @@ class WorkflowService {
    * @returns Progreso del workflow
    */
   async calculateProgress(order: Order): Promise<WorkflowProgress | null> {
-    await simulateDelay(100);
+    if (this.useMocks) {
+      await simulateDelay(100);
 
-    if (!order.workflowId) {
-      return null;
+      if (!order.workflowId) {
+        return null;
+      }
+
+      const workflow = await this.getWorkflowById(order.workflowId);
+      if (!workflow) {
+        return null;
+      }
+
+      // Determinar paso actual basado en hitos completados
+      const completedMilestones = order.milestones.filter(
+        m => m.status === 'completed'
+      ).length;
+      
+      const currentStepIndex = Math.min(completedMilestones, workflow.steps.length - 1);
+      const currentStep = workflow.steps[currentStepIndex];
+
+      const completedSteps = workflow.steps
+        .slice(0, completedMilestones)
+        .map(s => s.id);
+
+      // Calcular tiempo en paso actual
+      const lastMilestone = order.milestones
+        .filter(m => m.status === 'completed')
+        .pop();
+      
+      const timeInCurrentStep = lastMilestone?.actualExit
+        ? Math.round(
+            (Date.now() - new Date(lastMilestone.actualExit).getTime()) / 60000
+          )
+        : 0;
+
+      // Determinar si está retrasado
+      const isDelayed = currentStep.maxDurationMinutes
+        ? timeInCurrentStep > currentStep.maxDurationMinutes
+        : false;
+
+      return {
+        workflowId: workflow.id,
+        orderId: order.id,
+        currentStepId: currentStep.id,
+        currentStepIndex,
+        totalSteps: workflow.steps.length,
+        completedSteps,
+        skippedSteps: [],
+        progressPercentage: Math.round((completedSteps.length / workflow.steps.length) * 100),
+        timeInCurrentStep,
+        isDelayed,
+        stepHistory: completedSteps.map((stepId, i) => ({
+          stepId,
+          enteredAt: order.milestones[i]?.actualEntry ?? new Date().toISOString(),
+          completedAt: order.milestones[i]?.actualExit,
+          status: 'completed' as const,
+        })),
+      };
     }
-
-    const workflow = await this.getWorkflowById(order.workflowId);
-    if (!workflow) {
-      return null;
-    }
-
-    // Determinar paso actual basado en hitos completados
-    const completedMilestones = order.milestones.filter(
-      m => m.status === 'completed'
-    ).length;
-    
-    const currentStepIndex = Math.min(completedMilestones, workflow.steps.length - 1);
-    const currentStep = workflow.steps[currentStepIndex];
-
-    const completedSteps = workflow.steps
-      .slice(0, completedMilestones)
-      .map(s => s.id);
-
-    // Calcular tiempo en paso actual
-    const lastMilestone = order.milestones
-      .filter(m => m.status === 'completed')
-      .pop();
-    
-    const timeInCurrentStep = lastMilestone?.actualExit
-      ? Math.round(
-          (Date.now() - new Date(lastMilestone.actualExit).getTime()) / 60000
-        )
-      : 0;
-
-    // Determinar si está retrasado
-    const isDelayed = currentStep.maxDurationMinutes
-      ? timeInCurrentStep > currentStep.maxDurationMinutes
-      : false;
-
-    return {
-      workflowId: workflow.id,
-      orderId: order.id,
-      currentStepId: currentStep.id,
-      currentStepIndex,
-      totalSteps: workflow.steps.length,
-      completedSteps,
-      skippedSteps: [],
-      progressPercentage: Math.round((completedSteps.length / workflow.steps.length) * 100),
-      timeInCurrentStep,
-      isDelayed,
-      stepHistory: completedSteps.map((stepId, i) => ({
-        stepId,
-        enteredAt: order.milestones[i]?.actualEntry ?? new Date().toISOString(),
-        completedAt: order.milestones[i]?.actualExit,
-        status: 'completed' as const,
-      })),
-    };
+    return apiClient.post<WorkflowProgress>(`${API_ENDPOINTS.operations.orderWorkflows}/calculate-progress`, { orderId: order.id });
   }
 
   /**
@@ -392,26 +419,29 @@ class WorkflowService {
    * @returns Siguiente paso o null si no hay más
    */
   async getNextStep(order: Order): Promise<WorkflowStep | null> {
-    if (!order.workflowId) {
-      return null;
-    }
+    if (this.useMocks) {
+      if (!order.workflowId) {
+        return null;
+      }
 
-    const progress = await this.calculateProgress(order);
-    if (!progress) {
-      return null;
-    }
+      const progress = await this.calculateProgress(order);
+      if (!progress) {
+        return null;
+      }
 
-    const workflow = await this.getWorkflowById(order.workflowId);
-    if (!workflow) {
-      return null;
-    }
+      const workflow = await this.getWorkflowById(order.workflowId);
+      if (!workflow) {
+        return null;
+      }
 
-    const nextIndex = progress.currentStepIndex + 1;
-    if (nextIndex >= workflow.steps.length) {
-      return null;
-    }
+      const nextIndex = progress.currentStepIndex + 1;
+      if (nextIndex >= workflow.steps.length) {
+        return null;
+      }
 
-    return workflow.steps[nextIndex];
+      return workflow.steps[nextIndex];
+    }
+    return apiClient.get<WorkflowStep>(`${API_ENDPOINTS.operations.orderWorkflows}/next-step/${order.id}`);
   }
 
   /**
@@ -422,64 +452,67 @@ class WorkflowService {
   async checkEscalationRules(
     order: Order
   ): Promise<Array<{ rule: string; triggered: boolean; message?: string }>> {
-    if (!order.workflowId) {
-      return [];
-    }
-
-    const workflow = await this.getWorkflowById(order.workflowId);
-    if (!workflow) {
-      return [];
-    }
-
-    const progress = await this.calculateProgress(order);
-    if (!progress) {
-      return [];
-    }
-
-    const results: Array<{ rule: string; triggered: boolean; message?: string }> = [];
-
-    for (const rule of workflow.escalationRules) {
-      if (!rule.isActive) continue;
-
-      let triggered = false;
-      let message: string | undefined;
-
-      switch (rule.condition.type) {
-        case 'delay_threshold':
-          if (progress.isDelayed && progress.timeInCurrentStep > rule.condition.thresholdMinutes) {
-            triggered = true;
-            message = `Retraso de ${progress.timeInCurrentStep} minutos (umbral: ${rule.condition.thresholdMinutes} min)`;
-          }
-          break;
-
-        case 'no_update':
-          // Simular verificación de última actualización
-          const lastUpdate = new Date(order.updatedAt).getTime();
-          const minutesSinceUpdate = (Date.now() - lastUpdate) / 60000;
-          if (minutesSinceUpdate > rule.condition.thresholdMinutes) {
-            triggered = true;
-            message = `Sin actualización por ${Math.round(minutesSinceUpdate)} minutos`;
-          }
-          break;
-
-        case 'step_stuck':
-          if (rule.condition.stepIds?.includes(progress.currentStepId)) {
-            if (progress.timeInCurrentStep > rule.condition.thresholdMinutes) {
-              triggered = true;
-              message = `Detenido en paso por ${progress.timeInCurrentStep} minutos`;
-            }
-          }
-          break;
+    if (this.useMocks) {
+      if (!order.workflowId) {
+        return [];
       }
 
-      results.push({
-        rule: rule.name,
-        triggered,
-        message,
-      });
-    }
+      const workflow = await this.getWorkflowById(order.workflowId);
+      if (!workflow) {
+        return [];
+      }
 
-    return results;
+      const progress = await this.calculateProgress(order);
+      if (!progress) {
+        return [];
+      }
+
+      const results: Array<{ rule: string; triggered: boolean; message?: string }> = [];
+
+      for (const rule of workflow.escalationRules) {
+        if (!rule.isActive) continue;
+
+        let triggered = false;
+        let message: string | undefined;
+
+        switch (rule.condition.type) {
+          case 'delay_threshold':
+            if (progress.isDelayed && progress.timeInCurrentStep > rule.condition.thresholdMinutes) {
+              triggered = true;
+              message = `Retraso de ${progress.timeInCurrentStep} minutos (umbral: ${rule.condition.thresholdMinutes} min)`;
+            }
+            break;
+
+          case 'no_update':
+            // Simular verificación de última actualización
+            const lastUpdate = new Date(order.updatedAt).getTime();
+            const minutesSinceUpdate = (Date.now() - lastUpdate) / 60000;
+            if (minutesSinceUpdate > rule.condition.thresholdMinutes) {
+              triggered = true;
+              message = `Sin actualización por ${Math.round(minutesSinceUpdate)} minutos`;
+            }
+            break;
+
+          case 'step_stuck':
+            if (rule.condition.stepIds?.includes(progress.currentStepId)) {
+              if (progress.timeInCurrentStep > rule.condition.thresholdMinutes) {
+                triggered = true;
+                message = `Detenido en paso por ${progress.timeInCurrentStep} minutos`;
+              }
+            }
+            break;
+        }
+
+        results.push({
+          rule: rule.name,
+          triggered,
+          message,
+        });
+      }
+
+      return results;
+    }
+    return apiClient.post<Array<{ rule: string; triggered: boolean; message?: string }>>(`${API_ENDPOINTS.operations.orderWorkflows}/check-escalation`, { orderId: order.id });
   }
 }
 

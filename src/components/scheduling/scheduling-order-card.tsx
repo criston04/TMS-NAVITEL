@@ -1,12 +1,3 @@
-/**
- * @fileoverview Tarjeta de orden arrastrable para programación
- * @module components/scheduling/SchedulingOrderCard
- * @description Tarjeta compacta que representa una orden pendiente o programada.
- * Diseñada para drag & drop hacia el calendario.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo } from 'react';
@@ -21,10 +12,6 @@ import type { Order, OrderPriority } from '@/types/order';
 import type { ScheduledOrder, ScheduleStatus } from '@/types/scheduling';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// TIPOS
-// ============================================
 
 interface SchedulingOrderCardProps {
   /** Orden (pendiente o programada) */
@@ -46,10 +33,6 @@ interface SchedulingOrderCardProps {
   /** Clase adicional */
   className?: string;
 }
-
-// ============================================
-// CONFIGURACIÓN DE COLORES
-// ============================================
 
 const PRIORITY_CONFIG: Record<OrderPriority, {
   label: string;
@@ -116,9 +99,7 @@ const STATUS_CONFIG: Record<ScheduleStatus, {
   },
 };
 
-// ============================================
 // COMPONENTE
-// ============================================
 
 export const SchedulingOrderCard = memo(function SchedulingOrderCard({
   order,

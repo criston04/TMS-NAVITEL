@@ -1,8 +1,3 @@
-/**
- * @fileoverview Timeline visual de pasos del workflow
- * @module components/workflows/workflow-timeline
- */
-
 'use client';
 
 import { type FC, useMemo } from 'react';

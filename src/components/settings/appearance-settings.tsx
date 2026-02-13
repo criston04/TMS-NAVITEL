@@ -1,8 +1,3 @@
-/**
- * @fileoverview Configuración de apariencia
- * @module components/settings/appearance-settings
- */
-
 "use client";
 
 import { useState, useEffect } from "react";

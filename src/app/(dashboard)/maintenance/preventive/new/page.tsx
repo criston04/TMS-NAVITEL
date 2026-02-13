@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Calendar as CalendarIcon, ArrowLeft, Save } from 'lucide-react';
-import { maintenanceService } from '@/services/maintenance';
+import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle, MaintenanceType } from '@/types/maintenance';
 import Link from 'next/link';
 
@@ -40,6 +40,7 @@ const maintenanceTypeOptions = [
 
 export default function NewPreventiveMaintenancePage() {
   const router = useRouter();
+  const maintenance = useMaintenance();
   const [loading, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [formData, setFormData] = useState({
@@ -60,7 +61,7 @@ export default function NewPreventiveMaintenancePage() {
 
   const loadVehicles = async () => {
     try {
-      const data = await maintenanceService.getVehicles();
+      const data = await maintenance.getVehicles();
       setVehicles(data);
     } catch (error) {
       console.error('Error loading vehicles:', error);
@@ -72,16 +73,17 @@ export default function NewPreventiveMaintenancePage() {
     setLoading(true);
 
     try {
-      await maintenanceService.createMaintenanceSchedule({
+      await maintenance.createMaintenanceSchedule({
         vehicleId: formData.vehicleId,
         type: (formData.maintenanceType === 'custom' ? formData.customType : formData.maintenanceType) as MaintenanceType,
-        scheduledDate: formData.scheduledDate,
+        scheduleType: formData.intervalKm ? 'mileage' : 'time',
         intervalKm: formData.intervalKm || undefined,
-        intervalMonths: formData.intervalMonths || undefined,
-        estimatedCost: formData.estimatedCost || undefined,
-        description: formData.description || undefined,
-        notes: formData.notes || undefined,
+        intervalDays: formData.intervalMonths ? formData.intervalMonths * 30 : undefined,
+        nextDueDate: formData.scheduledDate || undefined,
         status: 'upcoming',
+        isActive: true,
+        alertDaysBefore: 7,
+        alertKmBefore: 500,
       });
 
       router.push('/maintenance/preventive');

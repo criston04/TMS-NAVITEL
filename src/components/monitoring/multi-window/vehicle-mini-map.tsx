@@ -1,10 +1,3 @@
-/**
- * @fileoverview Mini mapa para panel de vehículo
- * 
- * @module components/monitoring/multi-window/vehicle-mini-map
- * @description Mini mapa con Leaflet mostrando la posición del vehículo
- */
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -18,7 +11,7 @@ interface VehicleMiniMapProps {
   position: VehiclePosition;
   /** ID del vehículo */
   vehicleId?: string;
-  /** Estado de movimiento */
+  
   movementStatus?: MovementStatus;
   /** Estado de conexión */
   connectionStatus?: RetransmissionStatus;
@@ -190,4 +183,4 @@ export function VehicleMiniMap({
     </div>
   );
 }
-
+

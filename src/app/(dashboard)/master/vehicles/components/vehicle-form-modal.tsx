@@ -1,12 +1,3 @@
-/**
- * @fileoverview Modal de Formulario de Vehículo
- * 
- * Modal completo para crear/editar vehículos con múltiples tabs
- * que cubren toda la información requerida por normativa peruana.
- * 
- * @module app/(dashboard)/master/vehicles/components/vehicle-form-modal
- */
-
 "use client";
 
 import * as React from "react";
@@ -66,9 +57,6 @@ import {
   formatPlate,
 } from "@/lib/validators/vehicle-validators";
 
-/* ============================================
-   TIPOS Y ESQUEMAS DE VALIDACIÓN
-   ============================================ */
 
 /**
  * Esquema de validación para el formulario de vehículo
@@ -124,7 +112,6 @@ const vehicleFormSchema = z.object({
     fileUrl: z.string().optional(),
   }),
 
-  // Estado (usa EntityStatus)
   status: z.enum(["active", "inactive", "pending", "blocked", "suspended", "on_leave", "terminated"]).default("active"),
   currentMileage: z.number().min(0).default(0),
   currentDriverId: z.string().optional(),
@@ -133,7 +120,6 @@ const vehicleFormSchema = z.object({
 
 type VehicleFormData = z.infer<typeof vehicleFormSchema>;
 
-// Exportar el tipo para uso en otras páginas
 export type { VehicleFormData };
 
 /**
@@ -147,9 +133,6 @@ interface VehicleFormModalProps {
   isLoading?: boolean;
 }
 
-/* ============================================
-   CONSTANTES
-   ============================================ */
 
 const FUEL_TYPES = [
   { value: "diesel", label: "Diésel" },
@@ -184,9 +167,6 @@ const COMMON_COLORS = [
   "Verde", "Amarillo", "Naranja", "Beige",
 ];
 
-/* ============================================
-   COMPONENTE PRINCIPAL
-   ============================================ */
 
 export function VehicleFormModal({
   open,

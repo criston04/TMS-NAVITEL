@@ -1,10 +1,3 @@
-/**
- * @fileoverview Overlay de ruta para Torre de Control
- * 
- * @module components/monitoring/control-tower/route-overlay
- * @description Placeholder - requiere configuración correcta de react-leaflet
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -24,7 +17,7 @@ interface RouteOverlayProps {
 
 /**
  * Overlay de ruta planificada - Placeholder
- * TODO: Implementar con react-leaflet cuando los tipos estén configurados
+ * TODO: Implementar con react-leaflet cuando los tipos estï¿½n configurados
  */
 export function RouteOverlay({
   order,

@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook principal para el módulo de Programación
- * @module hooks/use-scheduling
- * @description Maneja el estado y lógica del módulo de programación,
- * incluyendo calendario, órdenes pendientes y asignaciones.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -33,10 +24,6 @@ import {
   type MockDriver,
 } from '@/mocks/scheduling';
 
-// ============================================
-// TIPOS DEL HOOK
-// ============================================
-
 interface AssignmentModalState {
   isOpen: boolean;
   order: Order | ScheduledOrder | null;
@@ -44,7 +31,6 @@ interface AssignmentModalState {
 }
 
 interface UseSchedulingReturn {
-  // Datos
   pendingOrders: Order[];
   calendarData: CalendarDayData[];
   scheduledOrders: ScheduledOrder[];
@@ -57,7 +43,6 @@ interface UseSchedulingReturn {
   hosValidation: HOSValidationResult | null;
   config: SchedulingFeatureFlags;
   
-  // Estado UI
   currentMonth: Date;
   calendarView: CalendarViewType;
   selectedDate: Date | null;
@@ -68,10 +53,8 @@ interface UseSchedulingReturn {
   // Modal
   assignmentModal: AssignmentModalState;
   
-  // Filtros
   pendingFilters: PendingOrdersFilters;
   
-  // Acciones de estado
   setCurrentMonth: (date: Date) => void;
   setCalendarView: (view: CalendarViewType) => void;
   setSelectedDate: (date: Date | null) => void;
@@ -82,7 +65,6 @@ interface UseSchedulingReturn {
   handleDragEnd: () => void;
   draggingOrder: Order | null;
   
-  // Asignación
   openAssignmentModal: (order: Order | ScheduledOrder, date?: Date) => void;
   closeAssignmentModal: () => void;
   confirmAssignment: (data: AssignmentPayload) => void;
@@ -90,27 +72,20 @@ interface UseSchedulingReturn {
   validateHOS: (driverId: string, date: Date, duration: number) => void;
 }
 
-// ============================================
-// HOOK PRINCIPAL
-// ============================================
-
 export function useScheduling(): UseSchedulingReturn {
   // ----------------------------------------
-  // ESTADO DE CARGA
   // ----------------------------------------
   const [isLoading, setIsLoading] = useState(true);
   const [isScheduling, setIsScheduling] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   
   // ----------------------------------------
-  // ESTADO DEL CALENDARIO
   // ----------------------------------------
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [calendarView, setCalendarView] = useState<CalendarViewType>('month');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   // ----------------------------------------
-  // DATOS PRINCIPALES
   // ----------------------------------------
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [scheduledOrders, setScheduledOrders] = useState<ScheduledOrder[]>([]);
@@ -127,14 +102,12 @@ export function useScheduling(): UseSchedulingReturn {
   });
   
   // ----------------------------------------
-  // ESTADO DE ASIGNACIÓN
   // ----------------------------------------
   const [suggestions, setSuggestions] = useState<ResourceSuggestion[]>([]);
   const [conflicts, setConflicts] = useState<ScheduleConflict[]>([]);
   const [hosValidation, setHOSValidation] = useState<HOSValidationResult | null>(null);
   
   // ----------------------------------------
-  // FILTROS
   // ----------------------------------------
   const [pendingFilters, setPendingFilters] = useState<PendingOrdersFilters>({});
   
@@ -153,18 +126,15 @@ export function useScheduling(): UseSchedulingReturn {
   });
   
   // ----------------------------------------
-  // CONFIGURACIÓN (inmutable en esta versión)
   // ----------------------------------------
   const config = useMemo(() => DEFAULT_SCHEDULING_CONFIG, []);
 
   // ----------------------------------------
-  // DATOS ESTÁTICOS
   // ----------------------------------------
   const vehicles = useMemo(() => MOCK_VEHICLES, []);
   const drivers = useMemo(() => MOCK_DRIVERS, []);
 
   // ----------------------------------------
-  // DATOS DEL CALENDARIO (derivado)
   // ----------------------------------------
   const calendarData = useMemo(() => {
     return schedulingService.generateCalendarDays(currentMonth, scheduledOrders);
@@ -368,10 +338,8 @@ export function useScheduling(): UseSchedulingReturn {
   }, [validateHOS]);
 
   // ----------------------------------------
-  // RETURN
   // ----------------------------------------
   return {
-    // Datos
     pendingOrders,
     calendarData,
     scheduledOrders,
@@ -384,7 +352,6 @@ export function useScheduling(): UseSchedulingReturn {
     hosValidation,
     config,
     
-    // Estado UI
     currentMonth,
     calendarView,
     selectedDate,
@@ -395,10 +362,8 @@ export function useScheduling(): UseSchedulingReturn {
     // Modal
     assignmentModal,
     
-    // Filtros
     pendingFilters,
     
-    // Acciones
     setCurrentMonth,
     setCalendarView,
     setSelectedDate,
@@ -409,7 +374,6 @@ export function useScheduling(): UseSchedulingReturn {
     handleDragEnd,
     draggingOrder,
     
-    // Asignación
     openAssignmentModal,
     closeAssignmentModal,
     confirmAssignment: wrappedConfirmAssignment,

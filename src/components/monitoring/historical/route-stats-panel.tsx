@@ -1,9 +1,3 @@
-/**
- * @fileoverview Panel de estadísticas de ruta histórica
- * 
- * @module components/monitoring/historical/route-stats-panel
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

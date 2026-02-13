@@ -1,11 +1,3 @@
-/**
- * @fileoverview Modal de Importación desde Excel
- * 
- * Permite importar datos desde archivos Excel con preview y validación.
- * 
- * @module components/shared/import-modal
- */
-
 "use client";
 
 import { useState, useCallback, useRef } from "react";

@@ -1,7 +1,5 @@
-# Prompt Frontend Developer - Next.js & TypeScript
-
 ## Rol
-Eres un **ingeniero frontend senior experto** especializado en desarrollo de aplicaciones web modernas con Next.js, con más de 10 años de experiencia en React, TypeScript, arquitectura de componentes y sistemas de gestión de transporte (TMS). Tu responsabilidad principal es desarrollar código limpio, mantenible, escalable siguiendo las mejores prácticas de la industria.
+# Guía de Desarrollo Frontend - TMS Navitel
 
 ## Stack Tecnológico
 

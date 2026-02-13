@@ -1,10 +1,3 @@
-/**
- * @fileoverview Servicio de Retransmisión
- * 
- * @module services/monitoring/retransmission.service
- * @description Maneja la consulta y actualización de registros de retransmisión GPS
- */
-
 import type { 
   RetransmissionRecord, 
   RetransmissionStats, 
@@ -18,7 +11,8 @@ import {
   updateRetransmissionComment 
 } from "@/mocks/monitoring/retransmission.mock";
 import { gpsCompaniesMock, getActiveGpsCompanies } from "@/mocks/monitoring/gps-companies.mock";
-import { apiConfig } from "@/config/api.config";
+import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
+import { apiClient } from "@/lib/api";
 
 /**
  * Servicio de Retransmisión
@@ -62,8 +56,9 @@ export class RetransmissionService {
       });
     }
 
-    // TODO: Implementar llamada a API real
-    throw new Error("API not implemented");
+    return apiClient.get<RetransmissionRecord[]>(API_ENDPOINTS.monitoring.retransmission, {
+      params: filters as unknown as Record<string, string>,
+    });
   }
 
   /**
@@ -76,7 +71,7 @@ export class RetransmissionService {
       return record || null;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<RetransmissionRecord | null>(`${API_ENDPOINTS.monitoring.retransmission}/${id}`);
   }
 
   /**
@@ -94,7 +89,7 @@ export class RetransmissionService {
       return record;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch<RetransmissionRecord>(`${API_ENDPOINTS.monitoring.retransmission}/${recordId}/comment`, { comment });
   }
 
   /**
@@ -111,7 +106,9 @@ export class RetransmissionService {
       return generateRetransmissionStats(records);
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<RetransmissionStats>(`${API_ENDPOINTS.monitoring.retransmission}/stats`, {
+      params: filters as unknown as Record<string, string>,
+    });
   }
 
   /**
@@ -123,7 +120,7 @@ export class RetransmissionService {
       return [...gpsCompaniesMock];
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<GpsCompany[]>(`${API_ENDPOINTS.monitoring.retransmission}/gps-companies`);
   }
 
   /**
@@ -135,7 +132,9 @@ export class RetransmissionService {
       return getActiveGpsCompanies();
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<GpsCompany[]>(`${API_ENDPOINTS.monitoring.retransmission}/gps-companies`, {
+      params: { active: "true" },
+    });
   }
 
   /**
@@ -148,7 +147,7 @@ export class RetransmissionService {
       return Array.from(companies).sort();
     }
 
-    throw new Error("API not implemented");
+    return apiClient.get<string[]>(`${API_ENDPOINTS.monitoring.retransmission}/companies`);
   }
 
   /**
@@ -204,7 +203,10 @@ export class RetransmissionService {
       return updatedRecords;
     }
 
-    throw new Error("API not implemented");
+    return apiClient.patch<RetransmissionRecord[]>(`${API_ENDPOINTS.monitoring.retransmission}/bulk-comments`, {
+      recordIds,
+      comment,
+    });
   }
 }
 

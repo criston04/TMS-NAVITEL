@@ -1,9 +1,3 @@
-/**
- * @fileoverview Panel individual de vehículo para multiventana
- * 
- * @module components/monitoring/multi-window/vehicle-panel
- */
-
 "use client";
 
 import dynamic from "next/dynamic";

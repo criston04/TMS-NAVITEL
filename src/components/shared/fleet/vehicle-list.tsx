@@ -1,22 +1,3 @@
-/**
- * @fileoverview Componente de lista de vehículos con scroll
- * 
- * Muestra una lista scrolleable de vehículos usando VehicleCard.
- * Maneja el estado de expansión de las tarjetas individualmente.
- * 
- * @module components/shared/fleet/vehicle-list
- * @requires react
- * @requires @/types/fleet
- * @requires ./vehicle-card
- * 
- * @example
- * <VehicleList
- *   vehicles={vehicles}
- *   selectedVehicle={selected}
- *   onSelectVehicle={handleSelect}
- * />
- */
-
 "use client";
 
 import { useState } from "react";

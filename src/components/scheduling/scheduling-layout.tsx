@@ -1,12 +1,3 @@
-/**
- * @fileoverview Layout principal del módulo de programación
- * @module components/scheduling/SchedulingLayout
- * @description Orquesta todos los componentes del módulo de
- * programación con soporte para calendar y timeline views.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 'use client';
 
 import { memo, useState, useCallback } from 'react';
@@ -35,10 +26,6 @@ import { AssignmentModal } from './assignment-modal';
 import { useScheduling } from '@/hooks/use-scheduling';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TIPOS
-// ============================================
-
 type MainView = 'calendar' | 'timeline';
 
 interface SchedulingLayoutProps {
@@ -46,21 +33,16 @@ interface SchedulingLayoutProps {
   className?: string;
 }
 
-// ============================================
 // COMPONENTE PRINCIPAL
-// ============================================
 
 export const SchedulingLayout = memo(function SchedulingLayout({
   className,
 }: SchedulingLayoutProps) {
-  // Estado de vistas
   const [mainView, setMainView] = useState<MainView>('calendar');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Hook principal de scheduling
   const {
-    // Datos
     pendingOrders,
     calendarData,
     timelines,
@@ -71,7 +53,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
     conflicts,
     hosValidation,
     config,
-    // Estado UI
     currentMonth,
     calendarView,
     selectedDate,
@@ -80,9 +61,7 @@ export const SchedulingLayout = memo(function SchedulingLayout({
     isLoadingSuggestions,
     // Modal
     assignmentModal,
-    // Filtros
     pendingFilters,
-    // Acciones
     setCurrentMonth,
     setCalendarView,
     setSelectedDate,
@@ -91,7 +70,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
     handleDragStart,
     handleDragEnd,
     draggingOrder,
-    // Asignación
     openAssignmentModal,
     closeAssignmentModal,
     confirmAssignment,

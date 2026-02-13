@@ -1,10 +1,3 @@
-/**
- * @fileoverview Datos mock para Retransmisión
- * 
- * @module mocks/monitoring/retransmission.mock
- * @description Registros de retransmisión de vehículos con estados variados
- */
-
 import type { 
   RetransmissionRecord, 
   RetransmissionStats,

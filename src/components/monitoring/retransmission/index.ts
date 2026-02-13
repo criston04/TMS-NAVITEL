@@ -1,8 +1,3 @@
-/**
- * @fileoverview Barrel exports para componentes de Retransmisión
- * @module components/monitoring/retransmission
- */
-
 export { RetransmissionFilters } from "./retransmission-filters";
 export { RetransmissionRow } from "./retransmission-row";
 export { RetransmissionTable } from "./retransmission-table";

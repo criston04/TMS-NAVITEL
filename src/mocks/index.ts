@@ -1,9 +1,3 @@
-/**
- * @fileoverview Barrel exports para datos mock
- * @module mocks
- */
-
-// Datos compartidos centralizados (fuente única de verdad)
 export {
   SHARED_CUSTOMERS,
   SHARED_VEHICLES,
@@ -49,5 +43,23 @@ export {
 
 export type { MockVehicle, MockDriver } from './scheduling';
 
-// Geofences mock
-export * from './master/geofences.mock';
+// Submódulos de mocks (re-exportaciones selectivas para evitar colisiones)
+export * from './master';
+export * from './monitoring';
+export * from './maintenance';
+export * from './finance';
+export * from './reports';
+export * from './settings';
+export * from './notifications';
+
+// Orders: re-exportación selectiva (mockWorkflows ya existe en master)
+export * from './orders/orders.mock';
+export * from './orders/incidents.mock';
+export {
+  mockWorkflows as mockOrderWorkflows,
+  getAllWorkflows,
+  getWorkflowById,
+  getActiveWorkflows,
+  getDefaultWorkflow,
+  getWorkflowsByCargoType,
+} from './orders/workflows.mock';

@@ -1,11 +1,3 @@
-/**
- * @fileoverview Datos mock para Workflows
- * @module mocks/master/workflows
- * @description Datos de prueba para el módulo de workflows.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type { Workflow, WorkflowStep, WorkflowStatus } from '@/types/workflow';
 
 /**

@@ -1,26 +1,3 @@
-/**
- * @fileoverview Componente de tarjeta de vehículo con timeline de tracking
- * 
- * Muestra información detallada de un vehículo incluyendo:
- * - Información básica (código, conductor, ubicación)
- * - Barra de progreso de entrega
- * - Timeline de eventos de tracking
- * 
- * @module components/shared/fleet/vehicle-card
- * @requires react
- * @requires @/types/fleet
- * @requires lucide-react
- * 
- * @example
- * <VehicleCard
- *   vehicle={vehicle}
- *   isSelected={true}
- *   isExpanded={true}
- *   onSelect={() => {}}
- *   onToggleExpand={() => {}}
- * />
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Loading skeleton para el módulo de Monitoreo
- * @module app/(dashboard)/monitoring/loading
- */
-
 export default function MonitoringLoading() {
   return (
     <div className="flex h-full w-full items-center justify-center p-6">

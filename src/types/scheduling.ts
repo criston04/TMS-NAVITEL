@@ -1,17 +1,4 @@
-/**
- * @fileoverview Tipos e interfaces para el módulo de Programación
- * @module types/scheduling
- * @description Define todas las estructuras de datos relacionadas con la
- * programación de órdenes, asignación de recursos y calendario.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type { Order, OrderPriority } from './order';
-
-// ============================================
-// CONFIGURACIÓN DEL MÓDULO
-// ============================================
 
 /**
  * Configuración de features habilitables del módulo
@@ -47,10 +34,6 @@ export const DEFAULT_SCHEDULING_CONFIG: SchedulingFeatureFlags = {
   conflictCheckIntervalMs: 5000,
   gpsIntegrationType: 'none',
 };
-
-// ============================================
-// ESTADOS Y ENUMS
-// ============================================
 
 /**
  * Estados de una programación
@@ -98,10 +81,6 @@ export type ConflictType =
  */
 export type ConflictSeverity = 'low' | 'medium' | 'high';
 
-// ============================================
-// INTERFACES PRINCIPALES
-// ============================================
-
 /**
  * Representa una programación de orden
  * Extiende Order con información de programación
@@ -141,7 +120,7 @@ export interface ScheduledOrder extends Order {
 export interface ScheduleConflict {
   /** ID único del conflicto */
   id: string;
-  /** Tipo de conflicto */
+  
   type: ConflictType;
   /** Severidad */
   severity: ConflictSeverity;
@@ -168,11 +147,11 @@ export interface ScheduleConflict {
  * @interface ResourceSuggestion
  */
 export interface ResourceSuggestion {
-  /** Tipo de recurso */
+  
   type: 'vehicle' | 'driver';
-  /** ID del recurso */
+  
   resourceId: string;
-  /** Nombre del recurso */
+  
   name: string;
   /** Puntuación de compatibilidad (0-100) */
   score: number;
@@ -199,9 +178,7 @@ export interface DeliveryTimeWindow {
   isStrict: boolean;
 }
 
-// ============================================
 // CALENDARIO
-// ============================================
 
 /**
  * Datos de un día en el calendario
@@ -268,9 +245,7 @@ export interface DayCapacitySummary {
   utilizationPercent: number;
 }
 
-// ============================================
 // TIMELINE
-// ============================================
 
 /**
  * Entrada en el timeline de un recurso
@@ -291,7 +266,7 @@ export interface TimelineEntry {
   durationMinutes: number;
   /** Estado */
   status: ScheduleStatus;
-  /** Nombre del cliente */
+  
   customerName: string;
   /** Destino */
   destination: string;
@@ -304,11 +279,11 @@ export interface TimelineEntry {
  * @interface ResourceTimeline
  */
 export interface ResourceTimeline {
-  /** ID del recurso */
+  
   resourceId: string;
-  /** Tipo de recurso */
+  
   type: 'vehicle' | 'driver';
-  /** Nombre del recurso */
+  
   name: string;
   /** Código/placa (para vehículos) */
   code?: string;
@@ -325,11 +300,11 @@ export interface ResourceTimeline {
  * @interface ResourceTimelineExtended
  */
 export interface ResourceTimelineExtended {
-  /** Tipo de recurso */
+  
   resourceType: 'vehicle' | 'driver';
-  /** ID del recurso */
+  
   resourceId: string;
-  /** Nombre del recurso */
+  
   resourceName: string;
   /** Código/placa */
   resourceCode: string;
@@ -340,10 +315,6 @@ export interface ResourceTimelineExtended {
   /** Tiene conflictos */
   hasConflicts: boolean;
 }
-
-// ============================================
-// FILTROS Y PAGINACIÓN
-// ============================================
 
 /**
  * Filtros para órdenes pendientes de programar
@@ -375,7 +346,7 @@ export interface PendingOrdersFilters {
 export interface CalendarFilters {
   /** ID del vehículo */
   vehicleId?: string;
-  /** ID del conductor */
+  
   driverId?: string;
   /** ID de la empresa */
   companyId?: string;
@@ -386,10 +357,6 @@ export interface CalendarFilters {
   /** Mostrar solo con conflictos */
   onlyWithConflicts?: boolean;
 }
-
-// ============================================
-// ACCIONES Y EVENTOS
-// ============================================
 
 /**
  * Payload para programar una orden
@@ -441,7 +408,7 @@ export interface UnscheduleOrderPayload {
  * @interface ScheduleAuditLog
  */
 export interface ScheduleAuditLog {
-  /** ID del registro */
+  
   id: string;
   /** ID de la programación */
   scheduleId: string;
@@ -457,15 +424,13 @@ export interface ScheduleAuditLog {
   }[];
   /** Usuario que realizó la acción */
   performedBy: string;
-  /** Nombre del usuario */
+  
   performedByName: string;
   /** Fecha y hora */
   performedAt: string;
 }
 
-// ============================================
 // HOS (HOURS OF SERVICE) VALIDATION
-// ============================================
 
 /**
  * Resultado de validación HOS (Horas de Servicio)
@@ -484,9 +449,7 @@ export interface HOSValidationResult {
   warnings?: string[];
 }
 
-// ============================================
 // GPS INTEGRATION
-// ============================================
 
 /**
  * Configuración de integración GPS
@@ -522,9 +485,7 @@ export interface LinkToGPSPayload {
   trackingStartDate: string;
 }
 
-// ============================================
 // RESÚMENES Y KPIs
-// ============================================
 
 /**
  * KPIs del módulo de programación

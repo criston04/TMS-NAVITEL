@@ -1,12 +1,3 @@
-/**
- * @fileoverview Hook para inicialización y gestión del mapa Leaflet
- * 
- * Principio SRP: Solo maneja la inicialización y configuración del mapa.
- * Principio DRY: Centraliza toda la lógica de Leaflet.
- * 
- * @module hooks/useLeafletMap
- */
-
 import { useEffect, useRef, useState, useCallback } from "react";
 
 /**
@@ -93,7 +84,6 @@ interface UseLeafletMapReturn {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   L: any;
 
-  // Acciones del mapa
   setCenter: (lat: number, lng: number, zoom?: number) => void;
   setZoom: (zoom: number) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -109,7 +99,6 @@ interface UseLeafletMapReturn {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drawnItems: any;
 
-  // Utilidades
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getCenter: () => any;
   getZoom: () => number | null;
@@ -131,12 +120,6 @@ declare global {
  * @param options - Opciones de configuración del mapa
  * @returns Estado y acciones del mapa
  * 
- * @example
- * const { mapRef, isReady, setLayer, currentLayer } = useLeafletMap({
- *   center: [-12.0464, -77.0428],
- *   zoom: 12,
- *   layerType: "voyager"
- * });
  */
 export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
   const {
@@ -158,7 +141,6 @@ export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
   const drawnItemsRef = useRef<any>(null);
   const initializingRef = useRef(false);
 
-  // Estado
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -196,7 +178,6 @@ export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
       setError(null);
 
       try {
-        // Importar Leaflet dinamicamente
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const L = (await import("leaflet")).default as any;
 
@@ -205,11 +186,9 @@ export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
           return;
         }
         
-        // Importar estilos
         await import("leaflet/dist/leaflet.css");
         await import("@/styles/leaflet-custom.css");
         
-        // Importar plugins
         await import("leaflet-draw");
         await import("leaflet-draw/dist/leaflet.draw.css");
         await import("leaflet-path-drag");
@@ -329,7 +308,6 @@ export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
     setCurrentLayer(layer);
   }, [leafletInstance]);
   
-  // Acciones del mapa
   const setCenter = useCallback((lat: number, lng: number, newZoom?: number) => {
     if (!leafletMapRef.current) return;
     leafletMapRef.current.setView([lat, lng], newZoom ?? leafletMapRef.current.getZoom());
@@ -353,7 +331,6 @@ export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
     leafletMapRef.current.invalidateSize();
   }, []);
   
-  // Utilidades
   const getCenter = useCallback((): L.LatLng | null => {
     return leafletMapRef.current?.getCenter() ?? null;
   }, []);
@@ -383,7 +360,6 @@ export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
     // Leaflet instance
     L: leafletInstance,
     
-    // Acciones del mapa
     setCenter,
     setZoom,
     fitBounds,
@@ -397,7 +373,6 @@ export function useLeafletMap(options: MapOptions = {}): UseLeafletMapReturn {
     // Feature groups
     drawnItems: drawnItemsRef.current,
     
-    // Utilidades
     getCenter,
     getZoom,
     getBounds,

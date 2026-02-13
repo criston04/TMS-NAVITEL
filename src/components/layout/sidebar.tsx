@@ -1,14 +1,3 @@
-/**
- * Sidebar Component - Refactorizado con principios SOLID
- * 
- * SRP: Componente orquestador que delega a componentes especializados
- * OCP: Extensible via navigationConfig sin modificar el código
- * DIP: Depende de abstracciones (hooks, types) no implementaciones
- * 
- * Alta cohesión: Todo relacionado con el sidebar está junto
- * Bajo acoplamiento: Componentes independientes y reutilizables
- */
-
 "use client";
 
 import Link from "next/link";
@@ -24,9 +13,6 @@ import { navigationConfig } from "@/config/navigation";
 import { NavLink } from "./nav-link";
 import { NavGroup } from "./nav-group";
 
-/* ============================================
-   SIDEBAR HEADER - Logo y branding
-   ============================================ */
 function SidebarHeader({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
   return (
     <div className="flex h-16 items-center justify-center px-2">
@@ -71,9 +57,6 @@ function SidebarHeader({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
   );
 }
 
-/* ============================================
-   SIDEBAR FOOTER - Settings, Help, Logout
-   ============================================ */
 function SidebarFooter({
   isCollapsed,
   onLogout,
@@ -117,9 +100,6 @@ function SidebarFooter({
   );
 }
 
-/* ============================================
-   SIDEBAR TOGGLE BUTTON
-   ============================================ */
 function SidebarToggle({
   isCollapsed,
   onToggle,
@@ -147,9 +127,6 @@ function SidebarToggle({
   );
 }
 
-/* ============================================
-   MAIN SIDEBAR COMPONENT
-   ============================================ */
 export function Sidebar() {
   const { logout } = useAuth();
   const {

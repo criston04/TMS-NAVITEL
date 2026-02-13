@@ -1,12 +1,3 @@
-/**
- * @fileoverview Mock data para órdenes de transporte
- * @module mocks/orders/orders
- * @description Genera datos de prueba realistas para el módulo de órdenes,
- * incluyendo hitos, historial de estados y datos de cierre.
- * @author TMS-NAVITEL
- * @version 1.0.0
- */
-
 import type {
   Order,
   OrderStatus,
@@ -46,60 +37,60 @@ const randomDate = (start: Date, end: Date): string => {
 const randomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
 /**
- * Lista de clientes mock para órdenes
+ * Lista de clientes mock para órdenes (sincronizado con shared-data.ts)
  */
 const mockCustomers = [
-  { id: 'cust-001', name: 'Corporación Andina de Fomento', code: 'CAF', email: 'logistica@caf.com' },
-  { id: 'cust-002', name: 'Minera Las Bambas', code: 'MLB', email: 'transporte@lasbambas.pe' },
-  { id: 'cust-003', name: 'Alicorp S.A.A.', code: 'ALC', email: 'supply@alicorp.com.pe' },
-  { id: 'cust-004', name: 'Gloria S.A.', code: 'GLO', email: 'logistica@gloria.com.pe' },
-  { id: 'cust-005', name: 'Southern Peru Copper', code: 'SPC', email: 'logistics@southernperu.com' },
-  { id: 'cust-006', name: 'Backus y Johnston', code: 'BKS', email: 'distribucion@backus.com.pe' },
-  { id: 'cust-007', name: 'Cementos Pacasmayo', code: 'CPA', email: 'transporte@cementospacasmayo.com.pe' },
-  { id: 'cust-008', name: 'Petroperú S.A.', code: 'PPE', email: 'logistica@petroperu.com.pe' },
+  { id: 'cust-001', name: 'Alicorp S.A.A.', code: 'ALC', email: 'logistica@alicorp.com.pe' },
+  { id: 'cust-002', name: 'Gloria S.A.', code: 'GLO', email: 'distribucion@gloria.com.pe' },
+  { id: 'cust-003', name: 'Sodimac Perú S.A.', code: 'SDM', email: 'transporte@sodimac.com.pe' },
+  { id: 'cust-004', name: 'Minera Las Bambas S.A.', code: 'MLB', email: 'logistica@lasbambas.com.pe' },
+  { id: 'cust-005', name: 'Southern Peru Copper Corporation', code: 'SPC', email: 'logistics@southernperu.com.pe' },
+  { id: 'cust-006', name: 'Unión de Cervecerías Peruanas Backus', code: 'BKS', email: 'distribucion@backus.com.pe' },
+  { id: 'cust-007', name: 'Cementos Pacasmayo S.A.A.', code: 'CPM', email: 'logistica@cementospacasmayo.com.pe' },
+  { id: 'cust-008', name: 'Petróleos del Perú - Petroperú S.A.', code: 'PPE', email: 'transporte@petroperu.com.pe' },
 ];
 
 /**
- * Lista de transportistas mock
+ * Lista de transportistas mock (sincronizado con shared-data.ts)
  */
 const mockCarriers = [
-  { id: 'car-001', name: 'Transportes Cruz del Sur' },
+  { id: 'car-001', name: 'Transportes Cruz del Sur S.A.C.' },
   { id: 'car-002', name: 'Ransa Comercial S.A.' },
   { id: 'car-003', name: 'Transportes Línea S.A.' },
-  { id: 'car-004', name: 'Oltursa Transportes' },
-  { id: 'car-005', name: 'Neptunia S.A.' },
+  { id: 'car-004', name: 'Neptunia S.A.' },
+  { id: 'car-005', name: 'San Lorenzo Logística S.A.C.' },
 ];
 
 /**
- * Lista de operadores GPS mock
+ * Lista de operadores GPS mock (sincronizado con shared-data.ts)
  */
 const mockGPSOperators = [
-  { id: 'gps-001', name: 'Wialon Pro' },
-  { id: 'gps-002', name: 'GPS Tracker Plus' },
-  { id: 'gps-003', name: 'Navitel Fleet' },
-  { id: 'gps-004', name: 'Geotab Connect' },
+  { id: 'gps-op-001', name: 'Wialon Pro' },
+  { id: 'gps-op-002', name: 'Navitel Fleet Manager' },
+  { id: 'gps-op-003', name: 'Geotab Connect' },
+  { id: 'gps-op-004', name: 'GPS Tracker Plus' },
 ];
 
 /**
- * Lista de vehículos mock para órdenes
+ * Lista de vehículos mock para órdenes (sincronizado con shared-data.ts)
  */
 const mockVehicles = [
-  { id: 'veh-001', plate: 'ABC-123', brand: 'Volvo', model: 'FH16', type: 'tractocamion' as const },
-  { id: 'veh-002', plate: 'DEF-456', brand: 'Scania', model: 'R450', type: 'tractocamion' as const },
-  { id: 'veh-003', plate: 'GHI-789', brand: 'Mercedes-Benz', model: 'Actros', type: 'camion' as const },
-  { id: 'veh-004', plate: 'JKL-012', brand: 'Kenworth', model: 'T680', type: 'tractocamion' as const },
-  { id: 'veh-005', plate: 'MNO-345', brand: 'Freightliner', model: 'Cascadia', type: 'camion' as const },
+  { id: 'veh-001', plate: 'ABC-123', brand: 'Volvo', model: 'FH 540', type: 'tractocamion' as const },
+  { id: 'veh-002', plate: 'XYZ-789', brand: 'Mercedes-Benz', model: 'Actros 2645', type: 'camion' as const },
+  { id: 'veh-003', plate: 'DEF-456', brand: 'Scania', model: 'R450', type: 'tractocamion' as const },
+  { id: 'veh-004', plate: 'GHI-321', brand: 'Kenworth', model: 'T680', type: 'camion' as const },
+  { id: 'veh-005', plate: 'JKL-654', brand: 'Freightliner', model: 'M2 106', type: 'furgoneta' as const },
 ];
 
 /**
- * Lista de conductores mock
+ * Lista de conductores mock (sincronizado con shared-data.ts)
  */
 const mockDrivers = [
-  { id: 'drv-001', fullName: 'Carlos Mendoza Ríos', phone: '+51 987 654 321', licenseNumber: 'A-III-C-12345' },
-  { id: 'drv-002', fullName: 'Juan Pérez García', phone: '+51 987 654 322', licenseNumber: 'A-III-C-12346' },
-  { id: 'drv-003', fullName: 'Miguel Sánchez Torres', phone: '+51 987 654 323', licenseNumber: 'A-III-C-12347' },
-  { id: 'drv-004', fullName: 'Roberto Díaz Vargas', phone: '+51 987 654 324', licenseNumber: 'A-III-C-12348' },
-  { id: 'drv-005', fullName: 'Luis Castro Medina', phone: '+51 987 654 325', licenseNumber: 'A-III-C-12349' },
+  { id: 'drv-001', fullName: 'Juan Carlos Pérez López', phone: '+51 999 111 222', licenseNumber: 'Q45678912' },
+  { id: 'drv-002', fullName: 'Pedro Ramírez García', phone: '+51 998 222 333', licenseNumber: 'Q78912345' },
+  { id: 'drv-003', fullName: 'Carlos Alberto Mendoza Ríos', phone: '+51 987 654 321', licenseNumber: 'Q12345678' },
+  { id: 'drv-004', fullName: 'Roberto González Díaz', phone: '+51 996 555 666', licenseNumber: 'Q87654321' },
+  { id: 'drv-005', fullName: 'Miguel Ángel Sánchez Torres', phone: '+51 995 777 888', licenseNumber: 'Q23456789' },
 ];
 
 /**
@@ -424,7 +415,6 @@ export const filterOrders = (filters: {
 }, ordersToFilter?: Order[]): { data: Order[]; total: number; statusCounts: Record<OrderStatus, number> } => {
   let filtered = [...(ordersToFilter || mockOrders)];
   
-  // Búsqueda por número de orden
   if (filters.search) {
     const searchLower = filters.search.toLowerCase();
     filtered = filtered.filter(o =>
