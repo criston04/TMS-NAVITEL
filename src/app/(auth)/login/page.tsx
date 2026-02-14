@@ -94,12 +94,6 @@ export default function LoginPage() {
               <label htmlFor="password" className="text-sm font-medium text-foreground">
                 {t("auth.password")}
               </label>
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors hover:underline"
-              >
-                {t("auth.forgotPassword")}
-              </Link>
             </div>
             <div className="relative group">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
@@ -160,14 +154,6 @@ export default function LoginPage() {
           )}
         </Button>
       </form>
-
-      {/* Mobile register link */}
-      <p className="text-center text-sm text-muted-foreground lg:hidden">
-        {t("auth.noAccount")}{" "}
-        <Link href="/register" className="font-semibold text-primary hover:underline">
-          {t("auth.signUpFree")}
-        </Link>
-      </p>
     </div>
   );
 }

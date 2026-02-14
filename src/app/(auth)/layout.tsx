@@ -221,25 +221,6 @@ export default function AuthLayout({
                 {/* The Form Content from Page.tsx */}
                 {children}
 
-                {/* Footer Link */}
-                <div className="mt-6 text-center">
-                  {isLogin ? (
-                    <p className="text-sm text-slate-400">
-                      {t("auth.noAccount")}{" "}
-                      <Link href="/register" className="text-[#34b7ff] hover:text-[#34b7ff]/80 font-medium hover:underline transition-colors">
-                        {t("auth.createAccount")}
-                      </Link>
-                    </p>
-                  ) : (
-                    <p className="text-sm text-slate-400">
-                      {t("auth.hasAccount")}{" "}
-                      <Link href="/login" className="text-[#34b7ff] hover:text-[#34b7ff]/80 font-medium hover:underline transition-colors">
-                        {t("auth.login")}
-                      </Link>
-                    </p>
-                  )}
-                </div>
-
                 {/* Copyright */}
                 <div className="mt-8 text-center text-[10px] text-slate-600 uppercase tracking-widest">
                    © 2024 Navitel Systems
