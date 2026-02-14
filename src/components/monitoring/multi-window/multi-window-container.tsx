@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Wifi, WifiOff } from "lucide-react";
+import { Wifi, WifiOff, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useMultiWindow } from "@/hooks/monitoring/use-multi-window";
 import { useVehicleTracking } from "@/hooks/monitoring/use-vehicle-tracking";
 import { GridControls } from "./grid-controls";
 import { MultiWindowGrid } from "./multi-window-grid";
 import { VehicleSelectorModal } from "./vehicle-selector-modal";
+import { GroupComparison } from "./group-comparison";
 
 interface MultiWindowContainerProps {
   /** Clase adicional */
@@ -21,6 +23,10 @@ export function MultiWindowContainer({
   className,
 }: MultiWindowContainerProps) {
   const [selectorOpen, setSelectorOpen] = useState(false);
+  const [showGroupComparison, setShowGroupComparison] = useState(false);
+
+  // Track speed history per vehicle (last 20 readings)
+  const speedHistoryRef = useRef<Map<string, number[]>>(new Map());
 
   const {
     panels,
@@ -48,8 +54,26 @@ export function MultiWindowContainer({
     autoConnect: true,
   });
 
-  // Suscribirse cuando cambian los paneles
-  // useEffect para manejar suscripciones se maneja en el hook
+  // Track speed history from vehicles
+  useEffect(() => {
+    vehicles.forEach((v, id) => {
+      const history = speedHistoryRef.current.get(id) || [];
+      history.push(v.speed);
+      if (history.length > 20) history.shift();
+      speedHistoryRef.current.set(id, history);
+    });
+  }, [vehicles]);
+
+  // Get speed history for a vehicle
+  const getSpeedHistory = useCallback((vehicleId: string): number[] => {
+    return speedHistoryRef.current.get(vehicleId) || [];
+  }, []);
+
+  // Selected vehicles for group comparison
+  const selectedVehicles = useMemo(
+    () => panels.map((p) => vehicles.get(p.vehicleId)).filter(Boolean) as import("@/types/monitoring").TrackedVehicle[],
+    [panels, vehicles]
+  );
 
   /**
    * Abre el modal de selección
@@ -106,8 +130,18 @@ export function MultiWindowContainer({
             </p>
           </div>
           
-          {/* Estado de conexión */}
-          <div className="flex items-center gap-2">
+          {/* Estado de conexión + Group comparison toggle */}
+          <div className="flex items-center gap-3">
+            {panelCount > 1 && (
+              <Button
+                variant={showGroupComparison ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowGroupComparison(!showGroupComparison)}
+              >
+                <BarChart3 className="h-4 w-4 mr-1.5" />
+                Comparar grupo
+              </Button>
+            )}
             {isConnected ? (
               <>
                 <Wifi className="h-4 w-4 text-emerald-500" />
@@ -137,6 +171,13 @@ export function MultiWindowContainer({
         />
       </div>
 
+      {/* Group comparison panel */}
+      {showGroupComparison && selectedVehicles.length > 0 && (
+        <div className="border-b px-4 pb-4">
+          <GroupComparison vehicles={selectedVehicles} />
+        </div>
+      )}
+
       {/* Grid de paneles */}
       <div className="flex-1 overflow-auto p-4">
         <MultiWindowGrid
@@ -144,6 +185,7 @@ export function MultiWindowContainer({
           vehicles={vehicles}
           gridConfig={gridConfig}
           onRemovePanel={handleRemoveVehicle}
+          getSpeedHistory={getSpeedHistory}
         />
       </div>
 

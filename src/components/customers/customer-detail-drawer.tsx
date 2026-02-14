@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { Customer } from "@/types/models";
 import { cn } from "@/lib/utils";
-import { CATEGORY_COLOR_MAP, CATEGORY_LABEL_MAP } from "@/config/customer-categories.config";
+import { useCustomerCategories } from "@/contexts/customer-categories-context";
 import { CustomerOperationalStatsCard } from "./customer-operational-stats";
 import { CustomerAuditHistory } from "./customer-audit-history";
 
@@ -46,9 +46,7 @@ interface CustomerDetailDrawerProps {
   onDelete?: (customer: Customer) => void;
 }
 
-const CATEGORY_COLORS: Record<string, string> = CATEGORY_COLOR_MAP;
-
-const CATEGORY_LABELS: Record<string, string> = CATEGORY_LABEL_MAP;
+// CATEGORY_COLORS y CATEGORY_LABELS ahora vienen del hook useCustomerCategories()
 
 function formatDate(date: string | undefined): string {
   if (!date) return "N/A";
@@ -79,6 +77,7 @@ export function CustomerDetailDrawer({
   onToggleStatus,
   onDelete,
 }: CustomerDetailDrawerProps) {
+  const { colorMap: CATEGORY_COLORS, labelMap: CATEGORY_LABELS } = useCustomerCategories();
   if (!customer) return null;
 
   const category = customer.category || "standard";
@@ -116,7 +115,7 @@ export function CustomerDetailDrawer({
           </div>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
+        <ScrollArea type="always" className="flex-1 -mx-6 px-6 min-h-0">
           <Tabs defaultValue="info" className="mt-4">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="info">Info</TabsTrigger>

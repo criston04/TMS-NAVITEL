@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { MessageSquare, MessageSquarePlus } from "lucide-react";
+import { MessageSquare, MessageSquarePlus, MapPin } from "lucide-react";
 import { ConnectionStatusBadge } from "../common/connection-status-badge";
 import { MovementStatusBadge } from "../common/movement-status-badge";
 import { DurationDisplay } from "../common/duration-display";
@@ -93,6 +93,34 @@ export function RetransmissionRow({
             seconds={record.disconnectedDuration} 
             format="compact"
           />
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
+      </td>
+
+      {/* Dirección con enlace al mapa */}
+      <td className="px-4 py-3">
+        {record.lastAddress && record.lastLocation ? (
+          <a
+            href={`https://www.google.com/maps?q=${record.lastLocation.lat},${record.lastLocation.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-1.5 text-sm text-primary hover:underline"
+            title={`Ver en Google Maps: ${record.lastAddress}`}
+          >
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-primary/70 group-hover:text-primary" />
+            <span className="max-w-[180px] truncate">{record.lastAddress}</span>
+          </a>
+        ) : record.lastLocation ? (
+          <a
+            href={`https://www.google.com/maps?q=${record.lastLocation.lat},${record.lastLocation.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary hover:underline"
+          >
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span className="font-mono">{record.lastLocation.lat.toFixed(5)}, {record.lastLocation.lng.toFixed(5)}</span>
+          </a>
         ) : (
           <span className="text-muted-foreground">-</span>
         )}

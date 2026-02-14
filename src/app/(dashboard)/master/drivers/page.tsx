@@ -26,7 +26,12 @@ import {
   Eye,
   Pencil,
   Truck,
-  Trash2
+  Trash2,
+  LayoutGrid,
+  List,
+  Building2,
+  Filter,
+  X,
 } from "lucide-react";
 import { driversService, vehiclesService } from "@/services/master";
 import { useService } from "@/hooks/use-service";
@@ -35,6 +40,13 @@ import { exportToExcel, EXPORT_CONFIGS } from "@/lib/excel-utils";
 import { DriverFormModal } from "./components/driver-form-modal";
 import type { DriverFormData } from "./components/driver-form-modal";
 import { DriverDetailDrawer } from "./components/driver-detail-drawer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -227,11 +239,12 @@ export default function DriversPage() {
   const [statusFilter, setStatusFilter] = useState<DriverStatus | "all">("all");
   const [availabilityFilter, setAvailabilityFilter] = useState<DriverAvailability | "all">("all");
   const [licenseFilter, setLicenseFilter] = useState<LicenseCategory | "all">("all");
+  const [operatorFilter, setOperatorFilter] = useState<string>("all");
   
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   
-  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("table");
   
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
@@ -245,13 +258,14 @@ export default function DriversPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Verificar si hay filtros activos
-  const hasActiveFilters = statusFilter !== "all" || availabilityFilter !== "all" || licenseFilter !== "all";
+  const hasActiveFilters = statusFilter !== "all" || availabilityFilter !== "all" || licenseFilter !== "all" || operatorFilter !== "all";
   
   // Limpiar todos los filtros
   const clearFilters = useCallback(() => {
     setStatusFilter("all");
     setAvailabilityFilter("all");
     setLicenseFilter("all");
+    setOperatorFilter("all");
     setSearch("");
   }, []);
   
@@ -285,9 +299,25 @@ export default function DriversPage() {
         const driverLicenseCategory = driver.license?.category || (driver as unknown as { licenseCategory?: string }).licenseCategory;
         if (driverLicenseCategory !== licenseFilter) return false;
       }
+      // Filtro por empresa transportista / operador logístico
+      if (operatorFilter !== "all") {
+        if (driver.operatorId !== operatorFilter) return false;
+      }
       return true;
     }) ?? [];
-  }, [driversRaw, statusFilter, availabilityFilter, licenseFilter]);
+  }, [driversRaw, statusFilter, availabilityFilter, licenseFilter, operatorFilter]);
+
+  // Operadores/empresas transportistas únicos para filtro
+  const operatorOptions = useMemo(() => {
+    if (!driversRaw) return [];
+    const operators = new Map<string, string>();
+    driversRaw.forEach(d => {
+      if (d.operatorId && d.operatorName) {
+        operators.set(d.operatorId, d.operatorName);
+      }
+    });
+    return Array.from(operators.entries()).map(([id, name]) => ({ value: id, label: name }));
+  }, [driversRaw]);
 
   // Calcular paginación
   const totalItems = filteredDrivers.length;
@@ -307,7 +337,7 @@ export default function DriversPage() {
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
-  }, [statusFilter, availabilityFilter, licenseFilter, search]);
+  }, [statusFilter, availabilityFilter, licenseFilter, operatorFilter, search]);
 
   // Handlers de selección
   const handleToggleSelect = useCallback((id: string, selected: boolean) => {
@@ -592,6 +622,7 @@ export default function DriversPage() {
                   </TableHead>
                   <TableHead>Conductor</TableHead>
                   <TableHead>Documento</TableHead>
+                  <TableHead>Empresa</TableHead>
                   <TableHead>Licencia</TableHead>
                   <TableHead>Disponibilidad</TableHead>
                   <TableHead>Estado</TableHead>
@@ -629,6 +660,11 @@ export default function DriversPage() {
                         </div>
                       </TableCell>
                       <TableCell>{driver.documentNumber}</TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {driver.operatorName || "Sin asignar"}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{licenseCategory}</Badge>
                       </TableCell>
@@ -760,17 +796,115 @@ export default function DriversPage() {
         {renderStatsSection()}
       </div>
 
-      {/* Búsqueda */}
+      {/* Barra de filtros y búsqueda */}
       <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar conductor..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+        <CardContent className="p-4 space-y-3">
+          {/* Fila 1: Búsqueda + Toggle vista */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar conductor..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                  <X className="h-4 w-4 mr-1" />
+                  Limpiar filtros
+                </Button>
+              )}
+              {selectedIds.size > 0 && (
+                <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteOpen(true)}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Eliminar ({selectedIds.size})
+                </Button>
+              )}
+              <div className="flex border rounded-md">
+                <Button
+                  variant={viewMode === "table" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("table")}
+                  className="rounded-r-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "cards" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("cards")}
+                  className="rounded-l-none"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Fila 2: Filtros */}
+          <div className="flex flex-wrap gap-3">
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as DriverStatus | "all")}>
+              <SelectTrigger className="w-[160px] h-9">
+                <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="active">Activo</SelectItem>
+                <SelectItem value="inactive">Inactivo</SelectItem>
+                <SelectItem value="blocked">Bloqueado</SelectItem>
+                <SelectItem value="suspended">Suspendido</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={availabilityFilter} onValueChange={(v) => setAvailabilityFilter(v as DriverAvailability | "all")}>
+              <SelectTrigger className="w-[180px] h-9">
+                <SelectValue placeholder="Disponibilidad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toda disponibilidad</SelectItem>
+                <SelectItem value="available">Disponible</SelectItem>
+                <SelectItem value="on-route">En Ruta</SelectItem>
+                <SelectItem value="resting">Descansando</SelectItem>
+                <SelectItem value="vacation">Vacaciones</SelectItem>
+                <SelectItem value="suspended">Suspendido</SelectItem>
+                <SelectItem value="sick-leave">Descanso Médico</SelectItem>
+                <SelectItem value="unavailable">No disponible</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={licenseFilter} onValueChange={(v) => setLicenseFilter(v as LicenseCategory | "all")}>
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue placeholder="Licencia" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las licencias</SelectItem>
+                <SelectItem value="A-I">A-I</SelectItem>
+                <SelectItem value="A-IIa">A-IIa</SelectItem>
+                <SelectItem value="A-IIb">A-IIb</SelectItem>
+                <SelectItem value="A-IIIa">A-IIIa</SelectItem>
+                <SelectItem value="A-IIIb">A-IIIb</SelectItem>
+                <SelectItem value="A-IIIc">A-IIIc</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={operatorFilter} onValueChange={setOperatorFilter}>
+              <SelectTrigger className="w-[200px] h-9">
+                <Building2 className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                <SelectValue placeholder="Empresa Transportista" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las empresas</SelectItem>
+                {operatorOptions.map(op => (
+                  <SelectItem key={op.value} value={op.value}>
+                    {op.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

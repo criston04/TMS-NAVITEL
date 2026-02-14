@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Clock } from "lucide-react";
+import { Clock, PersonStanding } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "@/styles/leaflet-custom.css";
 import type { HistoricalRoute, HistoricalRoutePoint } from "@/types/monitoring";
@@ -139,7 +139,7 @@ export function HistoricalMap({
       });
       startMarkerRef.current = L.marker([startPoint.lat, startPoint.lng], { icon: startIcon })
         .addTo(map)
-        .bindPopup(`<b>Inicio</b><br>${formatTime(startPoint.timestamp)}<br>${startPoint.speed} km/h`);
+        .bindPopup(`<div style="padding:4px;min-width:160px"><b>Inicio</b><br>${formatTime(startPoint.timestamp)}<br>${startPoint.speed} km/h<br><a href="https://www.google.com/maps?layer=c&cbll=${startPoint.lat},${startPoint.lng}" target="_blank" rel="noopener noreferrer" style="color:#d97706;font-size:12px">🚶 Street View</a></div>`);
 
       // Marcador de fin (B - rojo)
       const endIcon = L.divIcon({
@@ -150,7 +150,7 @@ export function HistoricalMap({
       });
       endMarkerRef.current = L.marker([endPoint.lat, endPoint.lng], { icon: endIcon })
         .addTo(map)
-        .bindPopup(`<b>Fin</b><br>${formatTime(endPoint.timestamp)}<br>${endPoint.speed} km/h`);
+        .bindPopup(`<div style="padding:4px;min-width:160px"><b>Fin</b><br>${formatTime(endPoint.timestamp)}<br>${endPoint.speed} km/h<br><a href="https://www.google.com/maps?layer=c&cbll=${endPoint.lat},${endPoint.lng}" target="_blank" rel="noopener noreferrer" style="color:#d97706;font-size:12px">🚶 Street View</a></div>`);
 
       // Ajustar vista a la ruta
       map.fitBounds(bounds, { padding: [50, 50] });
@@ -314,6 +314,16 @@ export function HistoricalMap({
             </p>
             <p className="text-foreground font-semibold">{displayPoint.speed} km/h</p>
           </div>
+          {/* Botón Street View */}
+          <a
+            href={`https://www.google.com/maps?layer=c&cbll=${displayPoint.lat},${displayPoint.lng}&cbp=,,${displayPoint.heading},,`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-md bg-amber-100 px-2 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
+          >
+            <PersonStanding className="h-3.5 w-3.5" />
+            Street View
+          </a>
         </div>
       )}
     </div>

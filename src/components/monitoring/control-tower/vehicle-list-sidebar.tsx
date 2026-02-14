@@ -34,6 +34,15 @@ function getStatusText(vehicle: TrackedVehicle): string {
   if (vehicle.connectionStatus === "disconnected") return "Sin conexión";
   if (vehicle.connectionStatus === "temporary_loss") return "Pérdida temporal";
   if (vehicle.movementStatus === "moving") return `${vehicle.position.speed} km/h`;
+  // Detenido: mostrar duración si disponible
+  if (vehicle.stoppedSince) {
+    const diff = Date.now() - new Date(vehicle.stoppedSince).getTime();
+    const totalMinutes = Math.floor(diff / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0) return `Detenido ${hours}h ${minutes}m`;
+    return `Detenido ${minutes}m`;
+  }
   return "Detenido";
 }
 

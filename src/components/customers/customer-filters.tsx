@@ -29,7 +29,7 @@ import {
 import { CustomerFilters, CustomerType, CustomerCategory } from "@/types/models";
 import { EntityStatus } from "@/types/common";
 import { cn } from "@/lib/utils";
-import { CATEGORY_FILTER_OPTIONS } from "@/config/customer-categories.config";
+import { useCustomerCategories } from "@/contexts/customer-categories-context";
 
 interface CustomerFiltersProps {
   filters: CustomerFilters;
@@ -52,7 +52,7 @@ const TYPE_OPTIONS: { value: CustomerType | "all"; label: string; icon?: typeof 
   { value: "persona", label: "Personas", icon: User },
 ];
 
-const CATEGORY_OPTIONS = CATEGORY_FILTER_OPTIONS;
+// CATEGORY_OPTIONS ahora viene del hook useCustomerCategories()
 
 const SORT_OPTIONS: { value: CustomerFilters["sortBy"]; label: string }[] = [
   { value: "name", label: "Nombre" },
@@ -67,6 +67,7 @@ export function CustomerFiltersComponent({
   cities = [],
   className,
 }: CustomerFiltersProps) {
+  const { filterOptions: CATEGORY_OPTIONS } = useCustomerCategories();
   const updateFilter = <K extends keyof CustomerFilters>(key: K, value: CustomerFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value });
   };

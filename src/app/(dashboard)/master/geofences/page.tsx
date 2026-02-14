@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,9 @@ import {
   X,
   MapPin,
   Check,
-  Pencil
+  Pencil,
+  Navigation,
+  Loader2
 } from "lucide-react";
 import { GeofencesMap } from "@/components/geofences/geofences-map";
 import GeofenceForm from "@/components/geofences/geofence-form";
@@ -22,6 +24,7 @@ import { Geofence, GeofenceCategory } from "@/types/models/geofence";
 import { GeofenceFormData } from "@/components/geofences/geofence-form";
 import { cn } from "@/lib/utils";
 import { FloatingPanel } from "@/components/ui/floating-panel";
+import { geocodingService } from "@/services/geocoding.service";
 
 export default function GeofencesPage() {
   const [geofences, setGeofences] = useState<Geofence[]>([]);
@@ -50,6 +53,13 @@ export default function GeofencesPage() {
     },
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Estado para búsqueda de direcciones
+  const [addressQuery, setAddressQuery] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<Array<{ address: string; lat: number; lng: number }>>([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const addressSearchRef = useRef<HTMLDivElement>(null);
 
   // Marcar como montado para evitar errores de hidratación
   useEffect(() => {
@@ -90,6 +100,48 @@ export default function GeofencesPage() {
       window.removeEventListener('resize', updateSidebarWidth);
     };
   }, [isMounted]);
+
+  // Búsqueda de direcciones con debounce
+  useEffect(() => {
+    if (addressQuery.length < 3) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
+    setIsSearchingAddress(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results = await geocodingService.getSuggestions(addressQuery);
+        setAddressSuggestions(results);
+        setShowAddressSuggestions(results.length > 0);
+      } catch {
+        setAddressSuggestions([]);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [addressQuery]);
+
+  // Cerrar sugerencias al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (addressSearchRef.current && !addressSearchRef.current.contains(e.target as Node)) {
+        setShowAddressSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Navegar a una dirección seleccionada
+  const handleSelectAddress = useCallback((suggestion: { address: string; lat: number; lng: number }) => {
+    setAddressQuery(suggestion.address.split(",")[0]); // Mostrar solo la parte principal
+    setShowAddressSuggestions(false);
+    // Volar a las coordenadas en el mapa
+    (window as any).__flyToCoordinates?.(suggestion.lat, suggestion.lng, 16);
+    success("Ubicación encontrada", suggestion.address.substring(0, 80));
+  }, [success]);
 
   // Handler cuando se crea una nueva geocerca
   const handleGeofenceCreated = (geofence: Geofence) => {
@@ -455,7 +507,7 @@ export default function GeofencesPage() {
                   </div>
                 </div>
 
-                {/* Buscador */}
+                {/* Buscador de geocercas */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -464,6 +516,44 @@ export default function GeofencesPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
+                </div>
+
+                {/* Buscador de direcciones (geocoding) */}
+                <div ref={addressSearchRef} className="relative">
+                  <Navigation className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
+                  {isSearchingAddress && (
+                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
+                  )}
+                  <Input
+                    placeholder="Buscar dirección o lugar..."
+                    className="pl-10 pr-10 h-10 border-blue-200 dark:border-blue-800 focus:border-blue-400"
+                    value={addressQuery}
+                    onChange={(e) => setAddressQuery(e.target.value)}
+                    onFocus={() => addressSuggestions.length > 0 && setShowAddressSuggestions(true)}
+                  />
+                  {addressQuery && (
+                    <button
+                      onClick={() => { setAddressQuery(""); setAddressSuggestions([]); setShowAddressSuggestions(false); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {/* Dropdown de sugerencias */}
+                  {showAddressSuggestions && addressSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
+                      {addressSuggestions.map((s, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleSelectAddress(s)}
+                          className="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b last:border-b-0 border-gray-100 dark:border-slate-800 flex items-start gap-2"
+                        >
+                          <MapPin className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                          <span className="line-clamp-2 text-gray-700 dark:text-gray-300">{s.address}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Lista de geocercas */}

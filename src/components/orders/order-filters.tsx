@@ -6,6 +6,7 @@ import {
   Search,
   ChevronDown,
   RotateCcw,
+  CalendarIcon,
 } from 'lucide-react';
 import type { OrderFilters as OrderFiltersType, OrderStatus } from '@/types/order';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 /**
@@ -249,6 +256,101 @@ function OrderFiltersComponent({
           </SelectContent>
         </Select>
 
+        {/* Tipo de servicio */}
+        <Select
+          value={filters.serviceType || 'all'}
+          onValueChange={(value) => updateFilter('serviceType', value === 'all' ? undefined : value as OrderFiltersType['serviceType'])}
+        >
+          <SelectTrigger className="w-[160px] h-9 text-sm">
+            <SelectValue placeholder="Tipo servicio" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los tipos</SelectItem>
+            <SelectItem value="distribucion">Distribución</SelectItem>
+            <SelectItem value="importacion">Importación</SelectItem>
+            <SelectItem value="exportacion">Exportación</SelectItem>
+            <SelectItem value="transporte_minero">Transporte Minero</SelectItem>
+            <SelectItem value="transporte_residuos">Transporte Residuos</SelectItem>
+            <SelectItem value="interprovincial">Interprovincial</SelectItem>
+            <SelectItem value="mudanza">Mudanza</SelectItem>
+            <SelectItem value="courier">Courier</SelectItem>
+            <SelectItem value="otro">Otro</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Rango de fechas */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5">
+              <CalendarIcon className="w-3.5 h-3.5" />
+              Fechas
+              {(filters.dateFrom || filters.dateTo) && (
+                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                  1
+                </Badge>
+              )}
+              <ChevronDown className="w-3.5 h-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-4" align="start">
+            <div className="space-y-3">
+              <div>
+                <Label className="text-sm font-medium">Tipo de fecha</Label>
+                <Select
+                  value={filters.dateType || 'scheduled'}
+                  onValueChange={(value) => updateFilter('dateType', value as OrderFiltersType['dateType'])}
+                >
+                  <SelectTrigger className="mt-1 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="creation">Fecha de creación</SelectItem>
+                    <SelectItem value="scheduled">Fecha programada</SelectItem>
+                    <SelectItem value="execution">Fecha de ejecución</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Desde</Label>
+                  <Input
+                    type="date"
+                    value={filters.dateFrom || ''}
+                    onChange={(e) => updateFilter('dateFrom', e.target.value || undefined)}
+                    className="mt-1 h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Hasta</Label>
+                  <Input
+                    type="date"
+                    value={filters.dateTo || ''}
+                    onChange={(e) => updateFilter('dateTo', e.target.value || undefined)}
+                    className="mt-1 h-8 text-sm"
+                  />
+                </div>
+              </div>
+              {(filters.dateFrom || filters.dateTo) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full h-7 text-xs"
+                  onClick={() => {
+                    onFiltersChange({
+                      ...filters,
+                      dateFrom: undefined,
+                      dateTo: undefined,
+                      dateType: undefined,
+                    });
+                  }}
+                >
+                  Limpiar fechas
+                </Button>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+
         {/* Limpiar filtros */}
         {activeFilterCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onClear} className="h-9 gap-1.5 text-muted-foreground">
@@ -319,6 +421,39 @@ function OrderFiltersComponent({
               }}
             >
               &ldquo;{filters.search}&rdquo;
+              <X className="w-3 h-3" />
+            </Badge>
+          )}
+
+          {filters.serviceType && (
+            <Badge
+              variant="secondary"
+              className="gap-1 cursor-pointer text-xs"
+              onClick={() => updateFilter('serviceType', undefined)}
+            >
+              Servicio: {filters.serviceType.replace('_', ' ')}
+              <X className="w-3 h-3" />
+            </Badge>
+          )}
+
+          {(filters.dateFrom || filters.dateTo) && (
+            <Badge
+              variant="secondary"
+              className="gap-1 cursor-pointer text-xs"
+              onClick={() => {
+                onFiltersChange({
+                  ...filters,
+                  dateFrom: undefined,
+                  dateTo: undefined,
+                  dateType: undefined,
+                });
+              }}
+            >
+              {filters.dateFrom && filters.dateTo
+                ? `${filters.dateFrom} → ${filters.dateTo}`
+                : filters.dateFrom
+                  ? `Desde ${filters.dateFrom}`
+                  : `Hasta ${filters.dateTo}`}
               <X className="w-3 h-3" />
             </Badge>
           )}

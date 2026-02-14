@@ -87,6 +87,8 @@ export interface RetransmissionRecord {
     lat: number;
     lng: number;
   };
+  /** Última dirección conocida (geocodificada) */
+  lastAddress?: string;
   /** Velocidad actual en km/h */
   speed?: number;
   /** Fecha de creación del registro */
@@ -183,14 +185,30 @@ export interface TrackedVehicle {
   driverId?: string;
   
   driverName?: string;
+  /** Teléfono del conductor */
+  driverPhone?: string;
   /** ID de la orden activa */
   activeOrderId?: string;
   /** Número de la orden activa */
   activeOrderNumber?: string;
+  /** Referencia externa (booking, guía, viaje) */
+  reference?: string;
+  /** Tipo de servicio */
+  serviceType?: string;
   /** Empresa/operador logístico */
   companyName?: string;
+  /** Timestamp desde cuando está detenido */
+  stoppedSince?: string;
   /** Última actualización */
   lastUpdate: string;
+  /** Velocidad actual en km/h (atajo) */
+  speed: number;
+  /** Km restantes para próximo mantenimiento */
+  kmToMaintenance?: number;
+  /** Días restantes para próximo mantenimiento */
+  daysToMaintenance?: number;
+  /** Tipo de mantenimiento próximo */
+  maintenanceType?: string;
 }
 
 /**
@@ -234,6 +252,10 @@ export interface TrackedOrder {
   id: string;
   /** Número de orden */
   orderNumber: string;
+  /** Referencia externa (booking, guía, viaje) */
+  reference?: string;
+  /** Tipo de servicio */
+  serviceType?: string;
   
   customerId: string;
   
@@ -261,6 +283,8 @@ export interface ControlTowerFilters {
   carrierId?: string;
   /** Búsqueda por número de orden */
   orderNumber?: string;
+  /** Búsqueda por referencia (booking, guía, viaje) */
+  reference?: string;
   /** Filtrar por cliente */
   customerId?: string;
   /** Mostrar solo órdenes activas */
@@ -528,4 +552,285 @@ export interface RouteExportOptions {
   includeEvents?: boolean;
   
   filename?: string;
+}
+
+/**
+ * Segmento de viaje en rastreo histórico (tramo entre paradas)
+ * @interface TripSegment
+ */
+export interface TripSegment {
+  /** Índice del segmento */
+  index: number;
+  /** Tipo: movimiento o parada */
+  type: "moving" | "stopped";
+  /** Índice del punto de inicio en la ruta */
+  startPointIndex: number;
+  /** Índice del punto de fin en la ruta */
+  endPointIndex: number;
+  /** Coordenadas de inicio */
+  startCoords: { lat: number; lng: number };
+  /** Coordenadas de fin */
+  endCoords: { lat: number; lng: number };
+  /** Duración en segundos */
+  durationSeconds: number;
+  /** Distancia en km (solo para segmentos de movimiento) */
+  distanceKm: number;
+  /** Velocidad promedio en km/h (solo para segmentos de movimiento) */
+  avgSpeedKmh: number;
+  /** Velocidad máxima en km/h (solo para segmentos de movimiento) */
+  maxSpeedKmh: number;
+  /** Timestamp de inicio */
+  startTime: string;
+  /** Timestamp de fin */
+  endTime: string;
+  /** Etiqueta del segmento (ej: "A → B", "Parada 1") */
+  label: string;
+}
+
+// ==========================================
+// ALERTAS Y REGLAS
+// ==========================================
+
+/**
+ * Severidad de una alerta
+ */
+export type AlertSeverity = "info" | "warning" | "critical";
+
+/**
+ * Estado de una alerta
+ */
+export type AlertStatus = "active" | "acknowledged" | "resolved";
+
+/**
+ * Tipo de regla de alerta
+ */
+export type AlertRuleType = "speed_limit" | "geofence" | "stop_duration" | "disconnection" | "sos";
+
+/**
+ * Alerta en tiempo real generada por el sistema
+ */
+export interface MonitoringAlert {
+  id: string;
+  vehicleId: string;
+  vehiclePlate: string;
+  driverName?: string;
+  alertType: AlertRuleType;
+  severity: AlertSeverity;
+  status: AlertStatus;
+  title: string;
+  message: string;
+  timestamp: string;
+  acknowledgedAt?: string;
+  acknowledgedBy?: string;
+  resolvedAt?: string;
+  position?: { lat: number; lng: number };
+  data?: Record<string, unknown>;
+}
+
+/**
+ * Regla de alerta configurable
+ */
+export interface AlertRule {
+  id: string;
+  name: string;
+  type: AlertRuleType;
+  enabled: boolean;
+  severity: AlertSeverity;
+  conditions: AlertRuleCondition;
+  notifyEmail?: boolean;
+  notifySms?: boolean;
+  notifySound?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Condiciones de una regla de alerta
+ */
+export interface AlertRuleCondition {
+  /** Límite de velocidad en km/h */
+  speedLimit?: number;
+  /** IDs de geocercas aplicables */
+  geofenceIds?: string[];
+  /** Duración máxima de parada en minutos */
+  maxStopMinutes?: number;
+  /** Duración máxima de desconexión en minutos */
+  maxDisconnectionMinutes?: number;
+  /** IDs de vehículos específicos (vacío = todos) */
+  vehicleIds?: string[];
+}
+
+// ==========================================
+// GEOCERCAS EN MAPA
+// ==========================================
+
+/**
+ * Geocerca para visualización en mapa de monitoreo
+ */
+export interface MapGeofence {
+  id: string;
+  name: string;
+  type: "polygon" | "circle";
+  coordinates: Array<{ lat: number; lng: number }>;
+  radius?: number;
+  center?: { lat: number; lng: number };
+  color: string;
+  vehiclesInside: number;
+}
+
+// ==========================================
+// ETA DINÁMICO
+// ==========================================
+
+/**
+ * Estimación de tiempo de arribo dinámico
+ */
+export interface DynamicETA {
+  vehicleId: string;
+  milestoneId: string;
+  milestoneName: string;
+  distanceRemainingKm: number;
+  estimatedArrival: string;
+  estimatedDurationMinutes: number;
+  currentSpeedKmh: number;
+  avgSpeedKmh: number;
+  isDelayed: boolean;
+  delayMinutes: number;
+  recalculatedAt: string;
+}
+
+// ==========================================
+// RETRANSMISIÓN EXTENDIDA
+// ==========================================
+
+/**
+ * Registro de historial de conexión
+ */
+export interface ConnectionHistoryEntry {
+  id: string;
+  vehicleId: string;
+  status: RetransmissionStatus;
+  startTime: string;
+  endTime?: string;
+  durationSeconds: number;
+}
+
+/**
+ * Tendencia de conectividad (para gráficos)
+ */
+export interface ConnectivityTrend {
+  timestamp: string;
+  onlinePercentage: number;
+  temporaryLossPercentage: number;
+  disconnectedPercentage: number;
+  totalVehicles: number;
+}
+
+/**
+ * Responsable asignado a un caso de retransmisión
+ */
+export interface RetransmissionAssignment {
+  recordId: string;
+  assignedTo: string;
+  assignedBy: string;
+  assignedAt: string;
+  notes?: string;
+  status: "pending" | "in_progress" | "resolved";
+}
+
+// ==========================================
+// HISTÓRICO EXTENDIDO
+// ==========================================
+
+/**
+ * Punto de datos para gráfico de velocidad
+ */
+export interface SpeedChartPoint {
+  timestamp: string;
+  speed: number;
+  isStopped: boolean;
+  isOverSpeed: boolean;
+  distanceKm: number;
+}
+
+/**
+ * Punto de datos para gráfico de altitud
+ */
+export interface AltitudeChartPoint {
+  timestamp: string;
+  altitude: number;
+  distanceKm: number;
+}
+
+/**
+ * Filtro de eventos para ruta histórica
+ */
+export interface RouteEventFilter {
+  showStops: boolean;
+  showSpeedAlerts: boolean;
+  showGeofenceEvents: boolean;
+  showIgnitionEvents: boolean;
+  speedThreshold?: number;
+}
+
+/**
+ * Resultado de detección de desvío
+ */
+export interface RouteDeviation {
+  index: number;
+  point: { lat: number; lng: number };
+  distanceFromPlannedKm: number;
+  timestamp: string;
+  severity: "minor" | "major";
+}
+
+// ==========================================
+// MULTIVENTANA EXTENDIDA
+// ==========================================
+
+/**
+ * Historial de velocidad para sparkline
+ */
+export interface SpeedHistoryPoint {
+  timestamp: string;
+  speed: number;
+}
+
+/**
+ * Configuración de campos visibles en un panel
+ */
+export interface PanelFieldConfig {
+  showSpeed: boolean;
+  showHeading: boolean;
+  showDriver: boolean;
+  showOrder: boolean;
+  showReference: boolean;
+  showETA: boolean;
+  showCoordinates: boolean;
+}
+
+/**
+ * Estado expandido de un panel
+ */
+export interface PanelExpandState {
+  vehicleId: string;
+  isExpanded: boolean;
+}
+
+/**
+ * KPIs globales de monitoreo
+ */
+export interface MonitoringKPIs {
+  totalVehicles: number;
+  activeVehicles: number;
+  activePercentage: number;
+  movingVehicles: number;
+  stoppedVehicles: number;
+  disconnectedVehicles: number;
+  totalKmToday: number;
+  avgSpeedFleet: number;
+  onTimeDeliveryRate: number;
+  activeAlerts: number;
+  totalOrders: number;
+  completedOrders: number;
 }

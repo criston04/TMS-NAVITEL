@@ -16,6 +16,14 @@ import type { OrderStatus } from '@/types/order';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
+// Animated SVG icons with framer-motion
+import {
+  AnimatedPackageIcon,
+  AnimatedTruckIcon,
+  AnimatedCheckIcon,
+  AnimatedWarningIcon,
+} from './animated-kpi-icons';
+
 /**
  * Props del componente OrderStatsCards
  */
@@ -186,104 +194,91 @@ function OrderStatsCardsComponent({
     return { total, active, attention };
   }, [statusCounts]);
 
-  // Estados a mostrar (los más relevantes primero)
-  const primaryStatuses: OrderStatus[] = ['pending', 'in_transit', 'delayed', 'completed'];
-  const secondaryStatuses: OrderStatus[] = ['assigned', 'at_milestone', 'closed', 'cancelled', 'draft'];
-
   return (
-    <div className={cn('space-y-4', className)}>
-      {/* Resumen general */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total órdenes</p>
-                <span className="text-3xl font-bold">{totals.total.toLocaleString()}</span>
-              </div>
-              <div className="p-3 rounded-full bg-primary/10">
-                <Package className="w-8 h-8 text-primary" />
-              </div>
+    <div className={cn('grid grid-cols-2 md:grid-cols-4 gap-4', className)}>
+      {/* Total órdenes */}
+      <Card className="transition-all duration-200 hover:shadow-md">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total órdenes</p>
+              <span className="text-3xl font-bold">{totals.total.toLocaleString()}</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">En curso</p>
-                <span className="text-3xl font-bold text-indigo-500">
-                  {totals.active.toLocaleString()}
-                </span>
-              </div>
-              <div className="p-3 rounded-full bg-indigo-50 dark:bg-indigo-900/20">
-                <Truck className="w-8 h-8 text-indigo-500" />
-              </div>
+            <div className="w-14 h-14 flex items-center justify-center">
+              <AnimatedPackageIcon size={56} />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Requieren atención</p>
-                <span className="text-3xl font-bold text-orange-500">
-                  {totals.attention.toLocaleString()}
-                </span>
-              </div>
-              <div className="p-3 rounded-full bg-orange-50 dark:bg-orange-900/20">
-                <AlertTriangle className="w-8 h-8 text-orange-500" />
-              </div>
+      {/* En curso */}
+      <Card
+        className={cn(
+          'cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02]',
+          activeStatus === 'in_transit' && 'ring-2 ring-primary',
+        )}
+        onClick={() => onStatusClick?.('in_transit')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">En curso</p>
+              <span className="text-3xl font-bold text-indigo-500">
+                {totals.active.toLocaleString()}
+              </span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="w-14 h-14 flex items-center justify-center">
+              <AnimatedTruckIcon size={56} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Estados principales */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {primaryStatuses.map((status) => {
-          const config = STATUS_CARD_CONFIG[status];
-          return (
-            <StatCard
-              key={status}
-              title={config.title}
-              value={statusCounts[status]}
-              icon={config.icon}
-              iconClassName={config.iconClassName}
-              bgClassName={config.bgClassName}
-              isActive={activeStatus === status}
-              onClick={() => onStatusClick?.(status)}
-            />
-          );
-        })}
-      </div>
+      {/* Completadas */}
+      <Card
+        className={cn(
+          'cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02]',
+          activeStatus === 'completed' && 'ring-2 ring-primary',
+        )}
+        onClick={() => onStatusClick?.('completed')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Completadas</p>
+              <span className="text-3xl font-bold text-green-500">
+                {statusCounts.completed.toLocaleString()}
+              </span>
+            </div>
+            <div className="w-14 h-14 flex items-center justify-center">
+              <AnimatedCheckIcon size={56} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Estados secundarios (colapsables en mobile) */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {secondaryStatuses.map((status) => {
-          const config = STATUS_CARD_CONFIG[status];
-          return (
-            <Card
-              key={status}
-              className={cn(
-                'cursor-pointer transition-all hover:bg-muted/50',
-                activeStatus === status && 'ring-2 ring-primary',
-              )}
-              onClick={() => onStatusClick?.(status)}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <config.icon className={cn('w-4 h-4', config.iconClassName)} />
-                  <span className="text-sm">{config.title}</span>
-                  <span className="ml-auto font-semibold">{statusCounts[status]}</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Requieren atención */}
+      <Card
+        className={cn(
+          'cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02]',
+          activeStatus === 'delayed' && 'ring-2 ring-primary',
+        )}
+        onClick={() => onStatusClick?.('delayed')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Requieren atención</p>
+              <span className="text-3xl font-bold text-orange-500">
+                {totals.attention.toLocaleString()}
+              </span>
+            </div>
+            <div className="w-14 h-14 flex items-center justify-center">
+              <AnimatedWarningIcon size={56} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

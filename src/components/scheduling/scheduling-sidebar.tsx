@@ -80,7 +80,9 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
       result = result.filter(
         o =>
           o.orderNumber?.toLowerCase().includes(search) ||
-          o.customer?.name.toLowerCase().includes(search)
+          o.customer?.name.toLowerCase().includes(search) ||
+          o.reference?.toLowerCase().includes(search) ||
+          o.externalReference?.toLowerCase().includes(search)
       );
     }
 
@@ -219,7 +221,7 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
-            placeholder="Buscar orden..."
+            placeholder="Buscar orden, cliente o referencia..."
             value={searchValue}
             onChange={handleSearchChange}
             className="pl-7 h-7 text-xs"

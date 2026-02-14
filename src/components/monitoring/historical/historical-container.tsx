@@ -3,17 +3,24 @@
 import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
-import { History, PanelLeftClose, PanelLeft } from "lucide-react";
+import { History, PanelLeftClose, PanelLeft, Gauge, Mountain, Filter as FilterIcon, Download, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useHistoricalRoute } from "@/hooks/monitoring/use-historical-route";
 import { useRoutePlayback } from "@/hooks/monitoring/use-route-playback";
 import { SearchForm } from "./search-form";
 import { RouteStatsPanel } from "./route-stats-panel";
+import { TripSegmentsPanel } from "./trip-segments-panel";
 import { PlaybackControls } from "./playback-controls";
 import { ExportButton } from "./export-button";
+import { SpeedChart } from "./speed-chart";
+import { AltitudeChart } from "./altitude-chart";
+import { EventFilterPanel } from "./event-filter-panel";
+import { StopsHeatMap } from "./stops-heat-map";
+import { RoutePdfReport } from "./route-pdf-report";
 import { MapSkeleton } from "../common/skeletons/map-skeleton";
-import type { HistoricalRouteParams, RouteExportFormat, HistoricalRoutePoint } from "@/types/monitoring";
+import type { HistoricalRouteParams, RouteExportFormat, HistoricalRoutePoint, TripSegment } from "@/types/monitoring";
 
 // Dynamic import del mapa
 const HistoricalMap = dynamic(
@@ -36,6 +43,7 @@ export function HistoricalContainer({
   className,
 }: HistoricalContainerProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarTab, setSidebarTab] = useState<"search" | "analysis">("search");
   
   const [vehicles, setVehicles] = useState<Array<{ id: string; plate: string }>>([]);
   
@@ -83,6 +91,18 @@ export function HistoricalContainer({
     await exportRoute(format);
   }, [route, exportRoute]);
 
+  /**
+   * Maneja selección de segmento de viaje (navega al punto del segmento)
+   */
+  const handleSegmentSelect = useCallback((segment: TripSegment) => {
+    if (!route) return;
+    playback.seekTo(segment.startPointIndex);
+    const point = route.points[segment.startPointIndex];
+    if (point) {
+      setCurrentPlaybackPoint(point);
+    }
+  }, [route, playback]);
+
   return (
     <div className={cn("flex h-full w-full", className)}>
       {/* Sidebar */}
@@ -108,46 +128,126 @@ export function HistoricalContainer({
         </div>
 
         {/* Contenido */}
-        <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="space-y-6 p-4">
-            {/* Formulario de búsqueda */}
-            <SearchForm
-              onSearch={handleSearch}
-              vehicles={vehicles}
-              isLoading={isLoading}
-            />
+        <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as "search" | "analysis")} className="flex-1 flex flex-col min-h-0">
+          {route && (
+            <TabsList className="grid w-full grid-cols-2 mx-4 mt-3 mb-2" style={{ width: 'calc(100% - 2rem)' }}>
+              <TabsTrigger value="search" className="gap-1.5 text-xs">
+                <History className="h-3.5 w-3.5" />
+                Búsqueda
+              </TabsTrigger>
+              <TabsTrigger value="analysis" className="gap-1.5 text-xs">
+                <Gauge className="h-3.5 w-3.5" />
+                Análisis
+              </TabsTrigger>
+            </TabsList>
+          )}
 
-            {/* Resultados */}
-            {route && (
-              <>
-                <Separator />
+          <TabsContent value="search" className="flex-1 m-0 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="space-y-6 p-4">
+              {/* Formulario de búsqueda */}
+              <SearchForm
+                onSearch={handleSearch}
+                vehicles={vehicles}
+                isLoading={isLoading}
+              />
 
-                {/* Estadísticas */}
-                {stats && (
-                  <RouteStatsPanel stats={stats} />
-                )}
+              {/* Resultados */}
+              {route && (
+                <>
+                  <Separator />
 
-                <Separator />
+                  {/* Estadísticas */}
+                  {stats && (
+                    <RouteStatsPanel stats={stats} />
+                  )}
 
-                {/* Exportar */}
-                <div className="flex justify-end">
-                  <ExportButton
-                    route={route}
-                    onExport={handleExport}
+                  <Separator />
+
+                  {/* Segmentación de viaje */}
+                  <TripSegmentsPanel
+                    points={route.points}
+                    onSegmentSelect={handleSegmentSelect}
                   />
-                </div>
-              </>
-            )}
 
-            {/* Error */}
-            {error && (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-                <p className="font-medium">Error al cargar la ruta</p>
-                <p>{error.message}</p>
+                </>
+              )}
+
+              {/* Error */}
+              {error && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                  <p className="font-medium">Error al cargar la ruta</p>
+                  <p>{error.message}</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Tab de análisis detallado */}
+          <TabsContent value="analysis" className="flex-1 m-0 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {route && (
+              <div className="space-y-4 p-4">
+                {/* Gráfico de velocidad */}
+                <SpeedChart
+                  points={route.points}
+                  speedLimit={80}
+                  currentIndex={playback.currentIndex}
+                />
+
+                {/* Gráfico de altitud */}
+                <AltitudeChart points={route.points} />
+
+                {/* Paradas detectadas */}
+                <StopsHeatMap points={route.points} />
+
+                {/* Filtros de eventos */}
+                <EventFilterPanel
+                  filters={{
+                    showStops: true,
+                    showSpeedAlerts: true,
+                    showGeofenceEvents: false,
+                    showIgnitionEvents: false,
+                  }}
+                  onFiltersChange={() => {}}
+                />
+
+                <Separator />
+
+                {/* Exportar - sección integrada */}
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Download className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium">Exportar ruta</p>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {route.points.length} puntos
+                    </span>
+                    <span>·</span>
+                    <span>{stats?.totalDistanceKm.toFixed(1)} km</span>
+                    <span>·</span>
+                    <span>{stats ? Math.round(stats.totalTimeSeconds / 60) : 0} min</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <ExportButton
+                      route={route}
+                      onExport={handleExport}
+                      className="w-full"
+                    />
+                    <RoutePdfReport
+                      vehiclePlate={route.vehiclePlate || "—"}
+                      date={route.startDate || new Date().toLocaleDateString("es-PE")}
+                      points={route.points}
+                      distanceKm={stats?.totalDistanceKm ?? 0}
+                      durationMin={(stats?.totalTimeSeconds ?? 0) / 60}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Área del mapa */}

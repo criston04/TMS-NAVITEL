@@ -77,6 +77,12 @@ export function VehicleMiniMap({
       }).addTo(map);
 
       mapRef.current = map;
+      
+      // Invalidar tamaño después de que el contenedor se estabilice
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+      
       setIsMapReady(true);
     };
 
@@ -128,8 +134,11 @@ export function VehicleMiniMap({
         markerRef.current = L.marker([position.lat, position.lng], { icon }).addTo(map);
       }
 
-      // Centrar mapa en la nueva posición
-      map.setView([position.lat, position.lng], map.getZoom(), { animate: true });
+      // Auto-seguimiento: siempre centrar el mapa en el vehículo con animación suave
+      map.flyTo([position.lat, position.lng], map.getZoom(), {
+        animate: true,
+        duration: 1.0,
+      });
     };
 
     updateMarker();
@@ -183,4 +192,4 @@ export function VehicleMiniMap({
     </div>
   );
 }
-
+

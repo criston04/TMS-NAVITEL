@@ -1,9 +1,11 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import {
   MoreHorizontal,
   AlertTriangle,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 import type { Order } from '@/types/order';
 import {
@@ -26,6 +28,20 @@ import {
 import { cn } from '@/lib/utils';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from './order-card';
 
+// SERVICE TYPE LABELS
+
+const SERVICE_TYPE_LABELS: Record<string, string> = {
+  distribucion: 'Distribución',
+  importacion: 'Importación',
+  exportacion: 'Exportación',
+  transporte_minero: 'Minería',
+  transporte_residuos: 'Residuos',
+  interprovincial: 'Interprovincial',
+  mudanza: 'Mudanza',
+  courier: 'Courier',
+  otro: 'Otro',
+};
+
 // PROPS
 
 interface OrderTableProps {
@@ -47,6 +63,48 @@ function formatDate(date: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(date));
+}
+
+function formatShortDate(date: string) {
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(date));
+}
+
+/**
+ * Calcula el progreso de hitos: completados vs total
+ */
+function getMilestoneProgress(order: Order): { completed: number; total: number } {
+  const total = order.milestones.length;
+  const completed = order.milestones.filter(
+    m => m.status === 'completed' || m.status === 'skipped'
+  ).length;
+  return { completed, total };
+}
+
+/**
+ * Calcula la ETA del próximo hito pendiente
+ */
+function getNextMilestoneETA(order: Order): string | null {
+  const sorted = [...order.milestones].sort((a, b) => a.sequence - b.sequence);
+  const next = sorted.find(
+    m => m.status === 'pending' || m.status === 'approaching' || m.status === 'in_progress' || m.status === 'delayed'
+  );
+  return next?.estimatedArrival || null;
+}
+
+/**
+ * Obtiene la fecha de cita (estimatedArrival del primer hito de destino)
+ */
+function getAppointmentDate(order: Order): string | null {
+  // Fecha cita = estimatedArrival del último hito (destino)
+  const destination = order.milestones
+    .filter(m => m.type === 'destination')
+    .sort((a, b) => a.sequence - b.sequence)[0];
+  return destination?.estimatedArrival || null;
 }
 
 // COMPONENTE
@@ -72,10 +130,15 @@ function OrderTableComponent({
               />
             </TableHead>
             <TableHead className="w-30">Orden</TableHead>
+            <TableHead className="w-28">Referencia</TableHead>
             <TableHead className="min-w-35">Cliente</TableHead>
+            <TableHead className="w-28">Tipo Servicio</TableHead>
             <TableHead className="min-w-50">Ruta</TableHead>
+            <TableHead className="w-24">Progreso</TableHead>
             <TableHead className="w-30">Estado</TableHead>
             <TableHead className="w-25">Prioridad</TableHead>
+            <TableHead className="w-32">ETA Próximo</TableHead>
+            <TableHead className="w-32">Fecha Cita</TableHead>
             <TableHead className="w-35">Conductor/Vehículo</TableHead>
             <TableHead className="w-35 text-right">Creación</TableHead>
             <TableHead className="w-12.5"></TableHead>
@@ -88,6 +151,9 @@ function OrderTableComponent({
             const origin = order.milestones[0];
             const destination = order.milestones.at(-1);
             const isSelected = selectedIds.has(order.id);
+            const progress = getMilestoneProgress(order);
+            const nextETA = getNextMilestoneETA(order);
+            const appointmentDate = getAppointmentDate(order);
 
             return (
               <TableRow 
@@ -107,6 +173,23 @@ function OrderTableComponent({
                 <TableCell className="font-medium font-mono">
                   {order.orderNumber}
                 </TableCell>
+
+                {/* Referencia */}
+                <TableCell>
+                  <div className="flex flex-col text-xs">
+                    {order.reference ? (
+                      <span className="font-medium truncate max-w-24" title={order.reference}>
+                        {order.reference}
+                      </span>
+                    ) : order.externalReference ? (
+                      <span className="text-muted-foreground truncate max-w-24" title={order.externalReference}>
+                        {order.externalReference}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground italic">—</span>
+                    )}
+                  </div>
+                </TableCell>
                 
                 {/* Cliente */}
                 <TableCell>
@@ -121,6 +204,13 @@ function OrderTableComponent({
                     )}
                   </div>
                 </TableCell>
+
+                {/* Tipo de Servicio */}
+                <TableCell>
+                  <Badge variant="outline" className="text-xs whitespace-nowrap font-normal">
+                    {SERVICE_TYPE_LABELS[order.serviceType] || order.serviceType || '—'}
+                  </Badge>
+                </TableCell>
                 
                 {/* Ruta - Compacta */}
                 <TableCell>
@@ -132,6 +222,22 @@ function OrderTableComponent({
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                       <span className="truncate max-w-37.5">{destination?.geofenceName}</span>
+                    </div>
+                  </div>
+                </TableCell>
+
+                {/* Progreso de hitos */}
+                <TableCell>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-1 text-xs font-medium">
+                      <CheckCircle2 className="w-3 h-3 text-green-500" />
+                      <span>{progress.completed} de {progress.total}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-1.5">
+                      <div
+                        className="bg-green-500 h-1.5 rounded-full transition-all"
+                        style={{ width: `${progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}%` }}
+                      />
                     </div>
                   </div>
                 </TableCell>
@@ -155,6 +261,31 @@ function OrderTableComponent({
                     {order.priority === 'urgent' && <AlertTriangle className="w-3 h-3" />}
                     {priorityConfig.label}
                   </div>
+                </TableCell>
+
+                {/* ETA Próximo Hito */}
+                <TableCell>
+                  {nextETA ? (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatShortDate(nextETA)}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      {order.status === 'completed' || order.status === 'closed' ? 'Completado' : '—'}
+                    </span>
+                  )}
+                </TableCell>
+
+                {/* Fecha Cita (destino) */}
+                <TableCell>
+                  {appointmentDate ? (
+                    <span className="text-xs text-muted-foreground">
+                      {formatShortDate(appointmentDate)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">—</span>
+                  )}
                 </TableCell>
                 
                 {/* Recursos */}

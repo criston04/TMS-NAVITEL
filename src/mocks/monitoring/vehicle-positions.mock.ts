@@ -23,6 +23,33 @@ const driverNames = [
 ];
 
 /**
+ * Teléfonos de conductores de ejemplo
+ */
+const driverPhones = [
+  "+51 999 111 222",
+  "+51 999 222 333",
+  "+51 999 333 444",
+  "+51 999 444 555",
+  "+51 999 555 666",
+  "+51 999 666 777",
+  "+51 999 777 888",
+  "+51 999 888 999",
+  "+51 999 999 000",
+  "+51 999 000 111",
+];
+
+/**
+ * Tipos de mantenimiento
+ */
+const maintenanceTypes = [
+  "Cambio de aceite",
+  "Revisión general",
+  "Cambio de frenos",
+  "Inspección de neumáticos",
+  "Servicio completo",
+];
+
+/**
  * Empresas/operadores de ejemplo
  */
 const companyNames = [
@@ -32,6 +59,26 @@ const companyNames = [
   "TransAndina SRL",
   "Distribuciones Rápidas",
 ];
+
+/**
+ * Tipos de servicio de ejemplo
+ */
+const serviceTypes = [
+  "Carga Completa",
+  "Carga Parcial",
+  "Express",
+  "Refrigerado",
+  "Paquetería",
+];
+
+/**
+ * Genera una referencia de booking
+ */
+function generateReference(index: number): string {
+  const prefixes = ["BK", "GU", "VJ", "REF"];
+  const prefix = prefixes[index % prefixes.length];
+  return `${prefix}-2024-${String(index + 1).padStart(6, "0")}`;
+}
 
 /**
  * Rutas predefinidas en Lima para simulación realista
@@ -168,6 +215,7 @@ function generateVehiclePositions(): TrackedVehicle[] {
       ? "stopped" 
       : getMovementStatus(position.speed);
 
+    const hasOrder = index < 5;
     trackedVehicles.push({
       id: vehicle.id,
       plate: vehicle.plate,
@@ -178,10 +226,18 @@ function generateVehiclePositions(): TrackedVehicle[] {
       connectionStatus,
       driverId: `drv-${String(index + 1).padStart(3, "0")}`,
       driverName: driverNames[index % driverNames.length],
-      activeOrderId: index < 5 ? `ord-${String(index + 1).padStart(5, "0")}` : undefined,
-      activeOrderNumber: index < 5 ? `ORD-2024-${String(index + 1).padStart(5, "0")}` : undefined,
+      driverPhone: driverPhones[index % driverPhones.length],
+      activeOrderId: hasOrder ? `ord-${String(index + 1).padStart(5, "0")}` : undefined,
+      activeOrderNumber: hasOrder ? `ORD-2024-${String(index + 1).padStart(5, "0")}` : undefined,
+      reference: hasOrder ? generateReference(index) : undefined,
+      serviceType: hasOrder ? serviceTypes[index % serviceTypes.length] : undefined,
       companyName: companyNames[index % companyNames.length],
+      stoppedSince: movementStatus === "stopped" ? new Date(Date.now() - Math.floor(Math.random() * 3600000)).toISOString() : undefined,
       lastUpdate: new Date().toISOString(),
+      speed: position.speed,
+      kmToMaintenance: index % 4 === 0 ? Math.floor(Math.random() * 500) : index % 3 === 0 ? Math.floor(Math.random() * 3000) + 500 : undefined,
+      daysToMaintenance: index % 5 === 0 ? Math.floor(Math.random() * 10) : undefined,
+      maintenanceType: (index % 4 === 0 || index % 5 === 0) ? maintenanceTypes[index % maintenanceTypes.length] : undefined,
     });
   });
 

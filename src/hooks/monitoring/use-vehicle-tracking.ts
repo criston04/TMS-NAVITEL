@@ -133,6 +133,7 @@ export function useVehicleTracking(
           position: positionMessage.position,
           movementStatus: positionMessage.movementStatus,
           connectionStatus: positionMessage.connectionStatus,
+          speed: positionMessage.position.speed,
           lastUpdate: positionMessage.timestamp,
         };
 
@@ -308,6 +309,7 @@ export function useVehicleTracking(
                 speed: Math.round(newSpeed),
                 heading: newHeading,
               },
+              speed: Math.round(newSpeed),
               lastUpdate: new Date().toISOString(),
             };
             
@@ -320,6 +322,7 @@ export function useVehicleTracking(
                 ...vehicle.position,
                 speed: 0,
               },
+              speed: 0,
               lastUpdate: new Date().toISOString(),
             };
             newMap.set(id, updatedVehicle);

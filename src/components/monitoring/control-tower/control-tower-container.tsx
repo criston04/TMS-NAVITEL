@@ -10,16 +10,23 @@ import {
   WifiOff, 
   RefreshCw,
   Filter,
-  List
+  List,
+  Bell,
+  LayoutDashboard,
+  Settings2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVehicleTracking } from "@/hooks/monitoring/use-vehicle-tracking";
 import { useTrackedOrder } from "@/hooks/monitoring/use-tracked-order";
+import { useMonitoringAlerts } from "@/hooks/monitoring/use-monitoring-alerts";
 import { ControlTowerFilters } from "./control-tower-filters";
 import { VehicleInfoCard } from "./vehicle-info-card";
 import { VehicleListSidebar } from "./vehicle-list-sidebar";
+import { AlertPanel } from "./alert-panel";
+import { AlertRulesConfig } from "./alert-rules-config";
+import { MonitoringDashboard } from "./monitoring-dashboard";
 import { MapSkeleton } from "../common/skeletons/map-skeleton";
 import type { TrackedVehicle } from "@/types/monitoring";
 
@@ -44,8 +51,9 @@ export function ControlTowerContainer({
   className,
 }: ControlTowerContainerProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<"vehicles" | "filters">("vehicles");
+  const [activeTab, setActiveTab] = useState<"vehicles" | "filters" | "alerts" | "config">("vehicles");
   const [carriers, setCarriers] = useState<string[]>([]);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const {
     vehiclesList,
@@ -64,6 +72,19 @@ export function ControlTowerContainer({
   });
 
   const { order, isLoading: _isLoadingOrder } = useTrackedOrder(selectedVehicle?.id);
+
+  // Hook de alertas de monitoreo
+  const {
+    alerts,
+    rules,
+    activeCount,
+    criticalCount,
+    acknowledge: acknowledgeAlert,
+    resolve: resolveAlert,
+    addRule,
+    toggleRule,
+    deleteRule,
+  } = useMonitoringAlerts({ vehicles: vehiclesList });
 
   // Cargar lista de transportistas
   useEffect(() => {
@@ -114,16 +135,29 @@ export function ControlTowerContainer({
           </Button>
         </div>
 
-        {/* Tabs: Vehículos / Filtros */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "vehicles" | "filters")} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-2 mx-4 mt-3 mb-2" style={{ width: 'calc(100% - 2rem)' }}>
-            <TabsTrigger value="vehicles" className="gap-1.5">
-              <List className="h-4 w-4" />
+        {/* Tabs: Vehículos / Filtros / Alertas / Config */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "vehicles" | "filters" | "alerts" | "config")} className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-4 mx-4 mt-3 mb-2" style={{ width: 'calc(100% - 2rem)' }}>
+            <TabsTrigger value="vehicles" className="gap-1.5 text-xs">
+              <List className="h-3.5 w-3.5" />
               Vehículos
             </TabsTrigger>
-            <TabsTrigger value="filters" className="gap-1.5">
-              <Filter className="h-4 w-4" />
+            <TabsTrigger value="filters" className="gap-1.5 text-xs">
+              <Filter className="h-3.5 w-3.5" />
               Filtros
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="gap-1.5 text-xs relative">
+              <Bell className="h-3.5 w-3.5" />
+              Alertas
+              {activeCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 min-w-4 rounded-full bg-red-500 text-[9px] text-white flex items-center justify-center px-1">
+                  {activeCount}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="config" className="gap-1.5 text-xs">
+              <Settings2 className="h-3.5 w-3.5" />
+              Config
             </TabsTrigger>
           </TabsList>
 
@@ -144,6 +178,36 @@ export function ControlTowerContainer({
                 filters={filters}
                 onFiltersChange={setFilters}
                 carriers={carriers}
+              />
+            </ScrollArea>
+          </TabsContent>
+
+          {/* Alertas */}
+          <TabsContent value="alerts" className="flex-1 m-0 min-h-0">
+            <ScrollArea className="h-full">
+              <AlertPanel
+                alerts={alerts}
+                onAcknowledge={acknowledgeAlert}
+                onResolve={resolveAlert}
+                onCenterOnVehicle={(vehicleId: string) => {
+                  const vehicle = vehiclesList.find((v) => v.id === vehicleId);
+                  if (vehicle) {
+                    selectVehicle(vehicle.id);
+                    centerOnVehicle(vehicle.id);
+                  }
+                }}
+              />
+            </ScrollArea>
+          </TabsContent>
+
+          {/* Configuración de alertas */}
+          <TabsContent value="config" className="flex-1 m-0 min-h-0">
+            <ScrollArea className="h-full">
+              <AlertRulesConfig
+                rules={rules}
+                onAddRule={addRule}
+                onToggleRule={toggleRule}
+                onDeleteRule={deleteRule}
               />
             </ScrollArea>
           </TabsContent>
@@ -196,6 +260,28 @@ export function ControlTowerContainer({
           <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
           Actualizar
         </Button>
+
+        {/* Toggle KPI Dashboard */}
+        <Button
+          variant={showDashboard ? "default" : "outline"}
+          size="sm"
+          className="absolute left-4 top-28 z-[1000] shadow-lg"
+          onClick={() => setShowDashboard(!showDashboard)}
+        >
+          <LayoutDashboard className="h-4 w-4 mr-2" />
+          KPIs
+        </Button>
+
+        {/* KPI Dashboard panel */}
+        {showDashboard && (
+          <div className="absolute left-4 right-4 top-40 z-[1000]">
+            <MonitoringDashboard
+              vehicles={vehiclesList}
+              alerts={alerts}
+              isLoading={isLoading}
+            />
+          </div>
+        )}
 
         {/* Error */}
         {error && (

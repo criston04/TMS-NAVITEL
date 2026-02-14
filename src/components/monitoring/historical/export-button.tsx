@@ -74,6 +74,7 @@ export function ExportButton({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
+          size="sm"
           disabled={!route || isExporting}
           className={cn("gap-2", className)}
         >

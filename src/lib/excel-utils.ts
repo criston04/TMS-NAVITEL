@@ -177,5 +177,24 @@ export const EXPORT_CONFIGS: Record<string, ExcelExportOptions> = {
       { key: 'operationalStatus', header: 'Estado Operacional' },
       { key: 'isEnabled', header: 'Habilitado', transform: (v: unknown) => v ? 'Sí' : 'No' },
     ]
+  },
+  products: {
+    filename: 'productos',
+    sheetName: 'Productos',
+    columns: [
+      { key: 'sku', header: 'SKU' },
+      { key: 'name', header: 'Nombre' },
+      { key: 'description', header: 'Descripción' },
+      { key: 'category', header: 'Categoría' },
+      { key: 'unitOfMeasure', header: 'Unidad de Medida' },
+      { key: 'dimensions.weight', header: 'Peso (kg)' },
+      { key: 'dimensions.volume', header: 'Volumen (m³)' },
+      { key: 'unitPrice', header: 'Precio Unitario' },
+      { key: 'barcode', header: 'Código de Barras' },
+      { key: 'transportConditions.requiresRefrigeration', header: 'Requiere Refrigeración', transform: (v: unknown) => v ? 'Sí' : 'No' },
+      { key: 'transportConditions.requiresSpecialHandling', header: 'Manejo Especial', transform: (v: unknown) => v ? 'Sí' : 'No' },
+      { key: 'transportConditions.stackable', header: 'Apilable', transform: (v: unknown) => v ? 'Sí' : 'No' },
+      { key: 'status', header: 'Estado' },
+    ]
   }
 };

@@ -4,7 +4,7 @@
 
 import type { NavGroup } from "@/types/navigation";
 import {
-  Radio,
+  LayoutDashboard,
   Package,
   CalendarDays,
   FileText,
@@ -24,14 +24,13 @@ import {
   BarChart3,
   Navigation,
   Wrench,
-  Settings,
 } from "lucide-react";
 
 export const navigationConfig: NavGroup[] = [
   {
     groupTitle: "OPERACIONES",
     items: [
-      { title: "Control Tower", href: "/", icon: Radio },
+      { title: "Dashboard", href: "/", icon: LayoutDashboard },
       { title: "Ordenes", href: "/orders", icon: Package },
       { title: "Programacion", href: "/scheduling", icon: CalendarDays },
       { title: "Planificador de Rutas", href: "/route-planner", icon: Navigation },
@@ -76,12 +75,6 @@ export const navigationConfig: NavGroup[] = [
       { title: "Productos", href: "/master/products", icon: Box },
       { title: "Geocercas", href: "/master/geofences", icon: MapPinned },
       { title: "Workflows", href: "/master/workflows", icon: Route },
-    ],
-  },
-  {
-    groupTitle: "CONFIGURACIÓN",
-    items: [
-      { title: "Configuración", href: "/settings", icon: Settings },
     ],
   },
 ];

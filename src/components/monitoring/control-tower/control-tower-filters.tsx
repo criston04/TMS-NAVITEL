@@ -42,6 +42,7 @@ export function ControlTowerFilters({
     if (filters.unitSearch) count++;
     if (filters.carrierId) count++;
     if (filters.orderNumber) count++;
+    if (filters.reference) count++;
     if (filters.customerId) count++;
     if (filters.activeOrdersOnly) count++;
     if (filters.connectionStatus && filters.connectionStatus !== "all") count++;
@@ -82,6 +83,17 @@ export function ControlTowerFilters({
           placeholder="ORD-2024-00001"
           value={filters.orderNumber || ""}
           onChange={(e) => updateFilter("orderNumber", e.target.value)}
+          className="mt-1"
+        />
+      </div>
+
+      {/* Búsqueda por referencia */}
+      <div>
+        <Label className="text-xs text-muted-foreground">Referencia (Booking / Guía / Viaje)</Label>
+        <Input
+          placeholder="BK-2024-000001, GU-..., VJ-..."
+          value={filters.reference || ""}
+          onChange={(e) => updateFilter("reference", e.target.value)}
           className="mt-1"
         />
       </div>

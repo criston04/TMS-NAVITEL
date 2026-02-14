@@ -331,6 +331,10 @@ export function GeofencesMap({
         new L.Draw.Circle(map, drawControl.options.draw.circle).enable();
       };
 
+      (window as any).__flyToCoordinates = (lat: number, lng: number, zoom = 16) => {
+        map.flyTo([lat, lng], zoom, { duration: 1.5 });
+      };
+
       (window as any).__zoomToGeofence = (geofenceId: string) => {
         const geofence = geofences.find(g => g.id === geofenceId);
         if (!geofence) return;
@@ -542,51 +546,61 @@ export function GeofencesMap({
           const kml = parser.parseFromString(text, "text/xml");
           const geojson = togeojson.kml(kml);
 
+          const features = geojson.features || [];
           const importedGeofences: Geofence[] = [];
-          
-          L.geoJSON(geojson, {
-            style: {
-              color: '#00c9ff', // Paleta: Cyan brillante
-              fillOpacity: 0.2
-            },
-            onEachFeature: (feature: any, layer: any) => {
-              // Habilitar dragging
-              if (layer.dragging) {
-                layer.dragging.enable();
-              }
-              
-              drawnItems.addLayer(layer);
-              
-              const geofence: Geofence = {
-                id: `kml-${Date.now()}-${Math.random()}`,
-                code: `KML-${Date.now()}`,
-                name: feature.properties?.name || "Geocerca importada",
-                description: feature.properties?.description || "",
-                type: feature.geometry.type.toLowerCase() === 'point' ? 'circle' : 'polygon',
-                category: 'other' as GeofenceCategory,
-                geometry: {
-                  type: 'polygon',
-                  coordinates: feature.geometry.coordinates.map((coord: any) => ({
-                    lat: coord[1],
-                    lng: coord[0]
-                  }))
-                } as PolygonGeometry,
-                color: '#00c9ff', // Paleta: Cyan brillante
-                opacity: 0.2,
-                tags: [],
-                alerts: {
-                  onEntry: false,
-                  onExit: false,
-                  onDwell: false
-                },
-                status: 'active' as EntityStatus,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              };
-              
-              importedGeofences.push(geofence);
-            }
-          }).addTo(map);
+          const BATCH_SIZE = 50;
+
+          // Procesar features en lotes para evitar bloquear el UI
+          const processBatch = (startIdx: number): Promise<void> => {
+            return new Promise((resolve) => {
+              requestAnimationFrame(() => {
+                const endIdx = Math.min(startIdx + BATCH_SIZE, features.length);
+                for (let i = startIdx; i < endIdx; i++) {
+                  const feature = features[i];
+                  if (!feature.geometry) continue;
+
+                  const layer = L.geoJSON(feature, {
+                    style: { color: '#00c9ff', fillOpacity: 0.2 },
+                  });
+
+                  layer.eachLayer((l: any) => {
+                    if (l.dragging) l.dragging.enable();
+                    drawnItems.addLayer(l);
+                  });
+
+                  const geofence: Geofence = {
+                    id: `kml-${Date.now()}-${i}`,
+                    code: `KML-${Date.now()}-${i}`,
+                    name: feature.properties?.name || `Geocerca importada ${i + 1}`,
+                    description: feature.properties?.description || "",
+                    type: feature.geometry.type.toLowerCase() === 'point' ? 'circle' : 'polygon',
+                    category: 'other' as GeofenceCategory,
+                    geometry: {
+                      type: 'polygon',
+                      coordinates: ((feature.geometry as any).coordinates || []).map((coord: any) => ({
+                        lat: coord[1],
+                        lng: coord[0]
+                      }))
+                    } as PolygonGeometry,
+                    color: '#00c9ff',
+                    opacity: 0.2,
+                    tags: [],
+                    alerts: { onEntry: false, onExit: false, onDwell: false },
+                    status: 'active' as EntityStatus,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                  };
+                  importedGeofences.push(geofence);
+                }
+                resolve();
+              });
+            });
+          };
+
+          // Procesar todos los lotes secuencialmente
+          for (let i = 0; i < features.length; i += BATCH_SIZE) {
+            await processBatch(i);
+          }
 
           if (importedGeofences.length > 0 && onKMLImported) {
             onKMLImported(importedGeofences);
@@ -691,6 +705,7 @@ export function GeofencesMap({
       delete (window as any).__drawPolygon;
       delete (window as any).__drawCircle;
       delete (window as any).__importKML;
+      delete (window as any).__flyToCoordinates;
       delete (window as any).__zoomToGeofence;
       delete (window as any).__editGeofence;
       delete (window as any).__cancelEditing;

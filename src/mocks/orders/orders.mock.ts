@@ -7,6 +7,7 @@ import type {
   MilestoneStatus,
   CargoType,
   OrderStatusHistory,
+  ServiceType,
 } from '@/types/order';
 
 /**
@@ -274,6 +275,46 @@ const orderStatuses: OrderStatus[] = [
 const syncStatuses: OrderSyncStatus[] = ['not_sent', 'pending', 'sent', 'sent', 'sent', 'error'];
 
 /**
+ * Tipos de servicio para distribución realista
+ */
+const serviceTypes: ServiceType[] = [
+  'distribucion', 'distribucion', 'distribucion',
+  'importacion', 'importacion',
+  'exportacion',
+  'transporte_minero', 'transporte_minero',
+  'interprovincial',
+  'courier',
+  'transporte_residuos',
+  'otro',
+];
+
+/**
+ * Genera una referencia contextual según el tipo de servicio
+ */
+const generateReference = (serviceType: ServiceType): string | undefined => {
+  if (Math.random() > 0.75) return undefined; // 25% sin referencia
+  const num = Math.floor(Math.random() * 100000);
+  switch (serviceType) {
+    case 'importacion':
+      return `BL-${num.toString().padStart(6, '0')}`;
+    case 'exportacion':
+      return `BK-${num.toString().padStart(6, '0')}`;
+    case 'distribucion':
+      return `GR-${num.toString().padStart(6, '0')}`;
+    case 'transporte_minero':
+      return `GM-${num.toString().padStart(6, '0')}`;
+    case 'courier':
+      return `PKG-${num.toString().padStart(8, '0')}`;
+    case 'transporte_residuos':
+      return `MR-${num.toString().padStart(6, '0')}`;
+    case 'interprovincial':
+      return `GT-${num.toString().padStart(6, '0')}`;
+    default:
+      return `REF-${num.toString().padStart(6, '0')}`;
+  }
+};
+
+/**
  * Genera una orden completa mock
  * @param index - Índice para generar número de orden único
  * @returns Orden completa
@@ -288,6 +329,8 @@ const generateOrder = (index: number): Order => {
   const milestonesCount = Math.floor(Math.random() * 4) + 2; // 2-5 hitos
   const milestones = generateMilestones(`ord-${String(index).padStart(5, '0')}`, milestonesCount, status);
   const cargoType = randomItem(cargoTypes);
+  const serviceType = randomItem(serviceTypes);
+  const reference = generateReference(serviceType);
   
   const baseDate = new Date();
   const createdAt = randomDate(new Date(baseDate.getTime() - 30 * 24 * 3600000), baseDate);
@@ -314,6 +357,8 @@ const generateOrder = (index: number): Order => {
     workflowName: ['Importación Marítima Standard', 'Exportación Aérea Express', 'Distribución Urbana Lima'][Math.floor(Math.random() * 3)],
     status,
     priority: randomItem(priorities),
+    serviceType,
+    reference,
     syncStatus,
     syncErrorMessage: syncStatus === 'error' ? 'Error de conexión con sistema externo' : undefined,
     lastSyncAttempt: syncStatus !== 'not_sent' ? new Date().toISOString() : undefined,
@@ -406,6 +451,8 @@ export const filterOrders = (filters: {
   gpsOperatorId?: string;
   status?: OrderStatus | OrderStatus[];
   priority?: OrderPriority | OrderPriority[];
+  serviceType?: ServiceType;
+  dateType?: 'creation' | 'scheduled' | 'execution';
   dateFrom?: string;
   dateTo?: string;
   page?: number;
@@ -420,7 +467,8 @@ export const filterOrders = (filters: {
     filtered = filtered.filter(o =>
       o.orderNumber.toLowerCase().includes(searchLower) ||
       o.customer?.name.toLowerCase().includes(searchLower) ||
-      o.externalReference?.toLowerCase().includes(searchLower)
+      o.externalReference?.toLowerCase().includes(searchLower) ||
+      o.reference?.toLowerCase().includes(searchLower)
     );
   }
   
@@ -451,12 +499,31 @@ export const filterOrders = (filters: {
     filtered = filtered.filter(o => priorities.includes(o.priority));
   }
   
-  // Filtro por rango de fechas
+  // Filtro por rango de fechas (con dateType)
+  const dateField = filters.dateType === 'creation' 
+    ? 'createdAt' 
+    : filters.dateType === 'execution' 
+      ? 'actualStartDate' 
+      : 'scheduledStartDate';
+  
   if (filters.dateFrom) {
-    filtered = filtered.filter(o => new Date(o.scheduledStartDate) >= new Date(filters.dateFrom!));
+    filtered = filtered.filter(o => {
+      const val = o[dateField as keyof Order] as string | undefined;
+      if (!val) return false;
+      return new Date(val) >= new Date(filters.dateFrom!);
+    });
   }
   if (filters.dateTo) {
-    filtered = filtered.filter(o => new Date(o.scheduledStartDate) <= new Date(filters.dateTo!));
+    filtered = filtered.filter(o => {
+      const val = o[dateField as keyof Order] as string | undefined;
+      if (!val) return false;
+      return new Date(val) <= new Date(filters.dateTo!);
+    });
+  }
+  
+  // Filtro por tipo de servicio
+  if (filters.serviceType) {
+    filtered = filtered.filter(o => o.serviceType === filters.serviceType);
   }
   
   // Ordenamiento

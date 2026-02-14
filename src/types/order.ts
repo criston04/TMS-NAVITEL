@@ -53,6 +53,21 @@ export type OrderPriority =
   | 'urgent';         // Urgente
 
 /**
+ * Tipos de servicio de transporte
+ * @enum {string}
+ */
+export type ServiceType =
+  | 'distribucion'         // Distribución local/nacional
+  | 'importacion'          // Importación marítima/aérea/terrestre
+  | 'exportacion'          // Exportación marítima/aérea/terrestre
+  | 'transporte_minero'    // Transporte de mineral/concentrado
+  | 'transporte_residuos'  // Transporte de residuos peligrosos
+  | 'interprovincial'      // Transporte interprovincial de carga
+  | 'mudanza'              // Mudanza comercial/industrial
+  | 'courier'              // Paquetería y courier
+  | 'otro';                // Otro tipo de servicio
+
+/**
  * Tipos de carga
  * @enum {string}
  */
@@ -108,6 +123,19 @@ export interface OrderMilestone {
     name: string;
     phone: string;
     email?: string;
+  };
+  /** Indica si el hito fue llenado manualmente (contingencia sin GPS) */
+  isManual?: boolean;
+  /** Datos del llenado manual */
+  manualEntryData?: {
+    /** Usuario que registró manualmente */
+    registeredBy: string;
+    /** Fecha/hora del registro manual */
+    registeredAt: string;
+    /** Observación del operador */
+    observation: string;
+    /** Motivo de la entrada manual */
+    reason: 'sin_senal_gps' | 'falla_equipo' | 'carga_retroactiva' | 'correccion' | 'otro';
   };
 }
 
@@ -325,6 +353,10 @@ export interface Order {
   closureData?: OrderClosureData;
   /** Historial de estados */
   statusHistory: OrderStatusHistory[];
+  /** Tipo de servicio de la orden */
+  serviceType: ServiceType;
+  /** Referencia del documento (booking, guía, BL, factura, etc.) */
+  reference?: string;
   /** Referencia externa (del sistema del cliente) */
   externalReference?: string;
   /** Notas generales */
@@ -346,6 +378,8 @@ export interface CreateOrderDTO {
   driverId?: string;
   workflowId?: string;
   priority: OrderPriority;
+  serviceType: ServiceType;
+  reference?: string;
   cargo: OrderCargo;
   milestones: Omit<OrderMilestone, 'id' | 'orderId' | 'status' | 'actualEntry' | 'actualExit' | 'delayMinutes'>[];
   scheduledStartDate: string;
@@ -382,10 +416,14 @@ export interface OrderFilters {
   priority?: OrderPriority | OrderPriority[];
   /** Filtrar por estado de sincronización */
   syncStatus?: OrderSyncStatus;
+  /** Tipo de fecha para el filtro de rango */
+  dateType?: 'creation' | 'scheduled' | 'execution';
   /** Fecha de inicio del rango */
   dateFrom?: string;
   /** Fecha de fin del rango */
   dateTo?: string;
+  /** Filtrar por tipo de servicio */
+  serviceType?: ServiceType;
   /** Filtrar por etiquetas */
   tags?: string[];
   /** Ordenar por campo */

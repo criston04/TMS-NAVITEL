@@ -355,6 +355,10 @@ export interface SharedOrder {
   scheduledStartDate: string;
   scheduledEndDate: string;
   createdAt: string;
+  /** Referencia del documento (booking, guía, BL, factura, etc.) */
+  reference?: string;
+  /** Referencia externa (del sistema del cliente) */
+  externalReference?: string;
 }
 
 // Generar fecha base (hoy)
@@ -386,6 +390,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(today),
     scheduledEndDate: formatDate(addDays(today, 1)),
     createdAt: formatDate(addDays(today, -3)),
+    reference: 'BK-2026-0451',
+    externalReference: 'ALC-PO-78901',
   },
   {
     id: 'ord-00002',
@@ -408,6 +414,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(addDays(today, 1)),
     scheduledEndDate: formatDate(addDays(today, 2)),
     createdAt: formatDate(addDays(today, -1)),
+    reference: 'GU-2026-1023',
+    externalReference: 'GLO-SHIP-4421',
   },
   {
     id: 'ord-00003',
@@ -428,6 +436,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(addDays(today, 2)),
     scheduledEndDate: formatDate(addDays(today, 4)),
     createdAt: formatDate(today),
+    reference: 'BL-2026-0087',
+    externalReference: 'MLB-IMP-2026-003',
   },
   {
     id: 'ord-00004',
@@ -450,6 +460,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(addDays(today, -1)),
     scheduledEndDate: formatDate(today),
     createdAt: formatDate(addDays(today, -5)),
+    reference: 'FAC-2026-3301',
+    externalReference: 'BKS-DIS-7789',
   },
   {
     id: 'ord-00005',
@@ -470,6 +482,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(addDays(today, 3)),
     scheduledEndDate: formatDate(addDays(today, 5)),
     createdAt: formatDate(today),
+    reference: 'GU-2026-0556',
+    externalReference: 'PPE-HAZ-1102',
   },
   {
     id: 'ord-00006',
@@ -492,6 +506,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(addDays(today, -4)),
     scheduledEndDate: formatDate(addDays(today, -2)),
     createdAt: formatDate(addDays(today, -7)),
+    reference: 'FAC-2026-2890',
+    externalReference: 'SDM-WH-5503',
   },
   {
     id: 'ord-00007',
@@ -510,6 +526,7 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(addDays(today, 1)),
     scheduledEndDate: formatDate(addDays(today, 2)),
     createdAt: formatDate(addDays(today, -2)),
+    reference: 'BK-2026-0712',
   },
   {
     id: 'ord-00008',
@@ -530,6 +547,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     scheduledStartDate: formatDate(addDays(today, 1)),
     scheduledEndDate: formatDate(addDays(today, 3)),
     createdAt: formatDate(today),
+    reference: 'BL-2026-0155',
+    externalReference: 'SPC-IM-6612',
   },
 ];
 

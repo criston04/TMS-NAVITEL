@@ -14,6 +14,8 @@ interface MultiWindowGridProps {
   gridConfig: MultiWindowGridConfig;
   /** Callback al remover un panel */
   onRemovePanel: (vehicleId: string) => void;
+  /** Obtener historial de velocidades */
+  getSpeedHistory?: (vehicleId: string) => number[];
   /** Clase adicional */
   className?: string;
 }
@@ -45,6 +47,7 @@ export function MultiWindowGrid({
   vehicles,
   gridConfig,
   onRemovePanel,
+  getSpeedHistory,
   className,
 }: MultiWindowGridProps) {
   if (panels.length === 0) {
@@ -87,6 +90,7 @@ export function MultiWindowGrid({
           <VehiclePanel
             key={panel.id}
             vehicle={vehicle}
+            speedHistory={getSpeedHistory?.(panel.vehicleId)}
             onRemove={onRemovePanel}
           />
         );

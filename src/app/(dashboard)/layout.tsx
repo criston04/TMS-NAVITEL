@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Navbar } from "@/components/layout/navbar";
+import { CustomerCategoriesProvider } from "@/contexts/customer-categories-context";
 
 export default function DashboardLayout({
   children,
@@ -17,7 +18,11 @@ export default function DashboardLayout({
         <Navbar />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto min-h-0">{children}</main>
+        <main className="flex-1 overflow-y-auto min-h-0">
+          <CustomerCategoriesProvider>
+            {children}
+          </CustomerCategoriesProvider>
+        </main>
       </div>
     </div>
   );

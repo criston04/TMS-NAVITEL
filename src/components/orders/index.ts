@@ -4,6 +4,7 @@ export { OrderList } from './order-list';
 export { OrderTable } from './order-table';
 export { OrderFilters } from './order-filters';
 export { OrderTimeline } from './order-timeline';
+export { MilestoneManualEntryModal } from './milestone-manual-entry-modal';
 export { OrderStatsCards, OrderMiniStats } from './order-stats';
 export { OrderBulkActions } from './order-bulk-actions';
 export { OrderForm } from './order-form';

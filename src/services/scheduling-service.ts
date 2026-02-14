@@ -6,12 +6,23 @@ import type {
   ResourceSuggestion,
   HOSValidationResult,
   SchedulingKPIs,
+  ScheduleAuditLog,
+  BlockedDay,
+  SchedulingNotification,
+  GanttResourceRow,
+  BulkAssignmentResult,
 } from '@/types/scheduling';
 import {
   MOCK_VEHICLES,
   MOCK_DRIVERS,
   generateMockPendingOrders,
+  generateMockAllOrders,
   generateMockSuggestions,
+  generateMockAuditLogs,
+  generateMockBlockedDays,
+  generateMockNotifications,
+  generateMockGanttData,
+  mockAutoSchedule,
   findVehicleById,
   findDriverById,
   DEFAULT_KPIS,
@@ -63,6 +74,18 @@ class SchedulingService {
 
     await this.delay();
     return generateMockPendingOrders(12);
+  }
+
+  /**
+   * Obtiene todas las órdenes (todos los estados)
+   */
+  async getAllOrders(): Promise<Order[]> {
+    if (!this.useMocks) {
+      return apiClient.get<Order[]>(`${API_ENDPOINTS.operations.scheduling}/all-orders`);
+    }
+
+    await this.delay();
+    return generateMockAllOrders();
   }
 
   /**
@@ -456,6 +479,249 @@ class SchedulingService {
       fleetUtilization: Math.min(100, currentKPIs.fleetUtilization + 3),
       driverUtilization: Math.min(100, currentKPIs.driverUtilization + 2),
     };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  BULK ASSIGNMENT (Feature 1)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Asigna múltiples órdenes a un mismo par vehículo/conductor
+   */
+  async bulkAssign(
+    orderIds: string[],
+    vehicleId: string,
+    driverId: string,
+    scheduledDate: Date,
+    notes?: string
+  ): Promise<BulkAssignmentResult> {
+    if (!this.useMocks) {
+      return apiClient.post<BulkAssignmentResult>(
+        `${API_ENDPOINTS.operations.scheduling}/bulk-assign`,
+        { orderIds, vehicleId, driverId, scheduledDate: scheduledDate.toISOString(), notes }
+      );
+    }
+
+    await this.delay(1200);
+
+    const result: BulkAssignmentResult = {
+      total: orderIds.length,
+      success: 0,
+      failed: 0,
+      errors: [],
+    };
+
+    const vehicle = findVehicleById(vehicleId);
+    const driver = findDriverById(driverId);
+
+    if (!vehicle) {
+      result.failed = orderIds.length;
+      result.errors = orderIds.map(id => ({
+        orderId: id,
+        orderNumber: id,
+        error: 'Vehículo no encontrado',
+      }));
+      return result;
+    }
+
+    if (!driver) {
+      result.failed = orderIds.length;
+      result.errors = orderIds.map(id => ({
+        orderId: id,
+        orderNumber: id,
+        error: 'Conductor no encontrado',
+      }));
+      return result;
+    }
+
+    // Simular asignación exitosa para todas
+    result.success = orderIds.length;
+    return result;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  RESCHEDULE (Feature 3)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Reprograma una orden ya asignada a otra fecha/hora
+   */
+  async rescheduleOrder(
+    orderId: string,
+    newDate: Date,
+    newResourceId?: string
+  ): Promise<SchedulingServiceResult<ScheduledOrder>> {
+    if (!this.useMocks) {
+      return apiClient.post<SchedulingServiceResult<ScheduledOrder>>(
+        `${API_ENDPOINTS.operations.scheduling}/reschedule`,
+        { orderId, newDate: newDate.toISOString(), newResourceId }
+      );
+    }
+
+    await this.delay(600);
+    return { success: true };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  AUTO-SCHEDULING (Feature 7)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Ejecuta auto-programación de órdenes pendientes
+   */
+  async autoSchedule(
+    pendingOrders: Order[],
+    vehicles: MockVehicle[],
+    drivers: MockDriver[]
+  ): Promise<{ assigned: number; failed: number; errors: string[] }> {
+    if (!this.useMocks) {
+      return apiClient.post<{ assigned: number; failed: number; errors: string[] }>(
+        `${API_ENDPOINTS.operations.scheduling}/auto-schedule`,
+        { orderIds: pendingOrders.map(o => o.id) }
+      );
+    }
+
+    await this.delay(2000);
+    return mockAutoSchedule(pendingOrders, vehicles, drivers);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  AUDIT LOG (Feature 9)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Obtiene el historial de cambios
+   */
+  async getAuditLogs(): Promise<ScheduleAuditLog[]> {
+    if (!this.useMocks) {
+      return apiClient.get<ScheduleAuditLog[]>(
+        `${API_ENDPOINTS.operations.scheduling}/audit-logs`
+      );
+    }
+
+    await this.delay(400);
+    return generateMockAuditLogs();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  BLOCKED DAYS (Feature 10)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Obtiene los días bloqueados
+   */
+  async getBlockedDays(): Promise<BlockedDay[]> {
+    if (!this.useMocks) {
+      return apiClient.get<BlockedDay[]>(
+        `${API_ENDPOINTS.operations.scheduling}/blocked-days`
+      );
+    }
+
+    await this.delay(300);
+    return generateMockBlockedDays();
+  }
+
+  /**
+   * Bloquea un día
+   */
+  async blockDay(day: Omit<BlockedDay, 'id' | 'createdAt'>): Promise<BlockedDay> {
+    if (!this.useMocks) {
+      return apiClient.post<BlockedDay>(
+        `${API_ENDPOINTS.operations.scheduling}/blocked-days`,
+        day
+      );
+    }
+
+    await this.delay(400);
+    return {
+      ...day,
+      id: `block-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Desbloquea un día
+   */
+  async unblockDay(blockId: string): Promise<void> {
+    if (!this.useMocks) {
+      await apiClient.delete(`${API_ENDPOINTS.operations.scheduling}/blocked-days/${blockId}`);
+      return;
+    }
+
+    await this.delay(300);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  NOTIFICATIONS (Feature 6)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Obtiene notificaciones del módulo
+   */
+  async getNotifications(): Promise<SchedulingNotification[]> {
+    if (!this.useMocks) {
+      return apiClient.get<SchedulingNotification[]>(
+        `${API_ENDPOINTS.operations.scheduling}/notifications`
+      );
+    }
+
+    await this.delay(300);
+    return generateMockNotifications();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  GANTT (Feature 8)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Obtiene datos para la vista Gantt multi-día
+   */
+  async getGanttData(startDate: Date, days: number = 7): Promise<GanttResourceRow[]> {
+    if (!this.useMocks) {
+      return apiClient.get<GanttResourceRow[]>(
+        `${API_ENDPOINTS.operations.scheduling}/gantt`,
+        { params: { startDate: startDate.toISOString(), days } }
+      );
+    }
+
+    await this.delay(500);
+    return generateMockGanttData(startDate, days);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  EXPORT (Feature 5)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Genera CSV de la programación
+   */
+  generateScheduleCSV(orders: Order[]): string {
+    const headers = [
+      'Orden', 'Referencia', 'Cliente', 'Estado', 'Prioridad',
+      'Vehículo', 'Conductor', 'Origen', 'Destino',
+      'Fecha Prog.', 'Peso (kg)',
+    ];
+
+    const rows = orders.map(o => {
+      const origin = o.milestones?.find(m => m.type === 'origin');
+      const dest = o.milestones?.find(m => m.type === 'destination');
+      return [
+        o.orderNumber || '',
+        o.reference || '',
+        o.customer?.name || '',
+        o.status || '',
+        o.priority || '',
+        o.vehicle?.plate || '',
+        o.driver?.fullName || '',
+        origin?.geofenceName || '',
+        dest?.geofenceName || '',
+        o.scheduledStartDate || '',
+        String(o.cargo?.weightKg || 0),
+      ].map(v => `"${v}"`).join(',');
+    });
+
+    return [headers.join(','), ...rows].join('\n');
   }
 }
 

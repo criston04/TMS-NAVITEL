@@ -1,4 +1,3 @@
-## Rol
 # Guía de Desarrollo Frontend - TMS Navitel
 
 ## Stack Tecnológico

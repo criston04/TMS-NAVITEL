@@ -35,3 +35,4 @@ export * from "./useWorkflowManagement";
 export * from "./useCustomerDetail";
 export * from "./useMaintenance";
 export * from "./use-scheduling";
+export * from "./useProducts";

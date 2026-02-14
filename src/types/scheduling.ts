@@ -509,3 +509,124 @@ export interface SchedulingKPIs {
   /** Tendencia semanal (% cambio) */
   weeklyTrend: number;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// BULK ASSIGNMENT (Feature 1)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Resultado de una asignación masiva
+ * @interface BulkAssignmentResult
+ */
+export interface BulkAssignmentResult {
+  /** Total de órdenes procesadas */
+  total: number;
+  /** Asignaciones exitosas */
+  success: number;
+  /** Asignaciones fallidas */
+  failed: number;
+  /** Errores por orden */
+  errors: { orderId: string; orderNumber: string; error: string }[];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NOTIFICATIONS (Feature 6)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Tipos de notificación del módulo
+ */
+export type SchedulingNotificationType =
+  | 'conflict'
+  | 'assignment'
+  | 'reschedule'
+  | 'auto_schedule'
+  | 'day_blocked'
+  | 'bulk_assignment'
+  | 'hos_warning'
+  | 'info';
+
+/**
+ * Severidad de una notificación
+ */
+export type NotificationSeverity = 'info' | 'warning' | 'error' | 'success';
+
+/**
+ * Notificación del módulo de programación
+ * @interface SchedulingNotification
+ */
+export interface SchedulingNotification {
+  id: string;
+  type: SchedulingNotificationType;
+  severity: NotificationSeverity;
+  title: string;
+  message: string;
+  /** Marca de tiempo */
+  timestamp: string;
+  /** Si fue leída */
+  isRead: boolean;
+  /** ID de orden asociada (opcional) */
+  relatedOrderId?: string;
+  /** Acción sugerida */
+  actionLabel?: string;
+  /** Descartada */
+  isDismissed?: boolean;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BLOCKED DAYS (Feature 10)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Día bloqueado para programación
+ * @interface BlockedDay
+ */
+export interface BlockedDay {
+  id: string;
+  /** Fecha bloqueada */
+  date: string;
+  /** Razón del bloqueo */
+  reason: string;
+  /** Tipo de bloqueo */
+  blockType: 'full_day' | 'partial' | 'holiday';
+  /** Si aplica a todos los recursos */
+  appliesToAll: boolean;
+  /** IDs de recursos específicos bloqueados */
+  resourceIds?: string[];
+  /** Creado por */
+  createdBy: string;
+  /** Fecha de creación */
+  createdAt: string;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GANTT VIEW (Feature 8)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Rango de días para la vista Gantt
+ * @interface GanttDateRange
+ */
+export interface GanttDateRange {
+  startDate: Date;
+  endDate: Date;
+  totalDays: number;
+}
+
+/**
+ * Datos de recurso para Gantt multi-día
+ * @interface GanttResourceRow
+ */
+export interface GanttResourceRow {
+  resourceId: string;
+  type: 'vehicle' | 'driver';
+  name: string;
+  code?: string;
+  /** Asignaciones distribuidas por día */
+  dailyAssignments: {
+    date: Date;
+    orders: ScheduledOrder[];
+    utilization: number;
+    isBlocked: boolean;
+  }[];
+}

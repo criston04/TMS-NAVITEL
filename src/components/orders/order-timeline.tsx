@@ -226,14 +226,21 @@ function TimelineItem({
           </div>
 
           {/* Badge de estado */}
-          <span
-            className={cn(
-              'text-xs px-2 py-0.5 rounded-full',
-              statusConfig.className,
+          <div className="flex items-center gap-1.5">
+            {milestone.isManual && (
+              <span className="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border border-orange-200 dark:border-orange-800">
+                Manual
+              </span>
             )}
-          >
-            {statusConfig.label}
-          </span>
+            <span
+              className={cn(
+                'text-xs px-2 py-0.5 rounded-full',
+                statusConfig.className,
+              )}
+            >
+              {statusConfig.label}
+            </span>
+          </div>
         </div>
 
         {/* Tiempos */}
@@ -274,6 +281,24 @@ function TimelineItem({
                 <ArrowDown className="w-3 h-3 -rotate-90" />
                 <span>Salida: {formatTime(new Date(milestone.actualExit))}</span>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Info de registro manual */}
+        {milestone.isManual && milestone.manualEntryData && (
+          <div className="mt-2 text-xs border border-orange-200 dark:border-orange-800 rounded-lg bg-orange-50 dark:bg-orange-950/20 p-2 space-y-0.5">
+            <div className="flex items-center gap-1 font-medium text-orange-700 dark:text-orange-400">
+              <span className="w-3 h-3 inline-block">✍️</span>
+              Registro manual
+            </div>
+            <p className="text-muted-foreground">
+              Por: <span className="font-medium">{milestone.manualEntryData.registeredBy}</span>
+            </p>
+            {milestone.manualEntryData.observation && (
+              <p className="text-muted-foreground italic">
+                &ldquo;{milestone.manualEntryData.observation}&rdquo;
+              </p>
             )}
           </div>
         )}

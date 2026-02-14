@@ -102,6 +102,8 @@ const driverFormSchema = z.object({
 
   status: z.enum(["active", "inactive", "suspended", "on_leave", "terminated"]).default("active"),
   hireDate: z.string().optional(),
+  operatorId: z.string().optional(),
+  operatorName: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -188,6 +190,8 @@ export function DriverFormModal({
       ],
       status: "active",
       hireDate: "",
+      operatorId: "",
+      operatorName: "",
       notes: "",
     },
   });
@@ -266,6 +270,8 @@ export function DriverFormModal({
           : [{ name: "", relationship: "", phone: "", secondaryPhone: "", address: "" }],
         status: driver.status,
         hireDate: driver.hireDate || "",
+        operatorId: driver.operatorId || "",
+        operatorName: driver.operatorName || "",
         notes: driver.notes || "",
       });
     }
@@ -964,6 +970,44 @@ export function DriverFormModal({
                               <FormControl>
                                 <Input type="date" {...field} />
                               </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Empresa Transportista / Operador Logístico */}
+                      <Separator className="my-2" />
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Empresa Transportista / Operador</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="operatorId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Código / RUC de Empresa</FormLabel>
+                              <FormControl>
+                                <Input placeholder="20512345678" {...field} />
+                              </FormControl>
+                              <FormDescription className="text-xs">
+                                RUC o código interno del operador logístico
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="operatorName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nombre de Empresa</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Transportes Nacional S.A.C." {...field} />
+                              </FormControl>
+                              <FormDescription className="text-xs">
+                                Razón social de la empresa transportista
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}

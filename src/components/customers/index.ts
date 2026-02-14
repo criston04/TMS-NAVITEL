@@ -9,3 +9,4 @@ export { CustomerStats } from "./customer-stats";
 export { CustomerPagination } from "./customer-pagination";
 export { CustomerOperationalStatsCard } from "./customer-operational-stats";
 export { CustomerAuditHistory } from "./customer-audit-history";
+export { CustomerCategorySettingsDialog } from "./customer-category-settings";

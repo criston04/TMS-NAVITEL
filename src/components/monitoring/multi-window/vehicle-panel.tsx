@@ -1,11 +1,15 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
-import { X, MapPin, Clock, Navigation } from "lucide-react";
+import { X, MapPin, Clock, Navigation, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConnectionStatusBadge } from "../common/connection-status-badge";
 import { MovementStatusBadge } from "../common/movement-status-badge";
+import { SpeedSparkline } from "./speed-sparkline";
+import { HeadingIndicator } from "./heading-indicator";
+import { EtaMiniDisplay } from "./eta-mini-display";
 import type { TrackedVehicle } from "@/types/monitoring";
 
 // Dynamic import del mini mapa
@@ -22,6 +26,8 @@ const VehicleMiniMap = dynamic(
 interface VehiclePanelProps {
   /** Vehículo a mostrar */
   vehicle: TrackedVehicle;
+  /** Historial de velocidades para sparkline */
+  speedHistory?: number[];
   /** Callback al remover */
   onRemove: (vehicleId: string) => void;
   /** Clase adicional */
@@ -51,18 +57,29 @@ function formatCoords(lat: number, lng: number): string {
  */
 export function VehiclePanel({
   vehicle,
+  speedHistory,
   onRemove,
   className,
 }: VehiclePanelProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Determine if vehicle has active alert (speed > 80 or disconnected)
+  const hasAlert = vehicle.speed > 80 || vehicle.connectionStatus === "disconnected";
+
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md",
+        "flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:shadow-md",
+        hasAlert && "border-red-500/50 ring-1 ring-red-500/20",
+        isFullscreen && "fixed inset-4 z-[10001] shadow-2xl",
         className
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2">
+      <div className={cn(
+        "flex items-center justify-between border-b px-3 py-2",
+        hasAlert ? "bg-red-500/5" : "bg-muted/30"
+      )}>
         <div className="flex items-center gap-2">
           <span className="font-bold">{vehicle.plate}</span>
           <ConnectionStatusBadge 
@@ -71,14 +88,29 @@ export function VehiclePanel({
             size="sm"
           />
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => onRemove(vehicle.id)}
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-0.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            title={isFullscreen ? "Minimizar" : "Pantalla completa"}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="h-3 w-3" />
+            ) : (
+              <Maximize2 className="h-3 w-3" />
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => onRemove(vehicle.id)}
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
 
       {/* Mini mapa */}
@@ -90,18 +122,34 @@ export function VehiclePanel({
 
       {/* Info */}
       <div className="flex-1 space-y-2 p-3">
-        {/* Estado de movimiento */}
+        {/* Estado de movimiento + Sparkline */}
         <div className="flex items-center justify-between">
           <MovementStatusBadge
             status={vehicle.movementStatus}
             speed={vehicle.position.speed}
             size="sm"
           />
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Navigation className="h-3 w-3" />
-            {vehicle.position.heading}°
+          {speedHistory && speedHistory.length > 1 && (
+            <SpeedSparkline speeds={speedHistory} speedLimit={80} />
+          )}
+        </div>
+
+        {/* Heading indicator */}
+        <div className="flex items-center justify-between">
+          <HeadingIndicator heading={vehicle.position.heading} size={24} />
+          <span className="text-xs font-mono text-muted-foreground">
+            {vehicle.speed} km/h
           </span>
         </div>
+
+        {/* ETA mini display */}
+        {vehicle.activeOrderNumber && (
+          <EtaMiniDisplay
+            destinationName={vehicle.activeOrderNumber}
+            distanceKm={Math.round(Math.random() * 50 + 5)}
+            isDelayed={Math.random() > 0.7}
+          />
+        )}
 
         {/* Posición */}
         <div className="flex items-start gap-1.5 text-xs">
@@ -123,6 +171,22 @@ export function VehiclePanel({
             <span className="font-medium text-primary">
               Orden: {vehicle.activeOrderNumber}
             </span>
+          </div>
+        )}
+
+        {/* Referencia y tipo de servicio */}
+        {(vehicle.reference || vehicle.serviceType) && (
+          <div className="flex flex-wrap gap-1">
+            {vehicle.reference && (
+              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                Ref: {vehicle.reference}
+              </span>
+            )}
+            {vehicle.serviceType && (
+              <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800 dark:bg-violet-900/30 dark:text-violet-400">
+                {vehicle.serviceType}
+              </span>
+            )}
           </div>
         )}
       </div>

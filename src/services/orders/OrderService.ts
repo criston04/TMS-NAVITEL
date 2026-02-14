@@ -385,6 +385,7 @@ class OrderService {
         workflowName: workflowAssignment.workflowName || undefined, // ← Nombre del workflow
         status: 'draft',
         priority: enrichedData.priority,
+        serviceType: enrichedData.serviceType,
         syncStatus: 'not_sent',
         cargo: enrichedData.cargo,
         milestones: enrichedData.milestones.map((m, index) => ({

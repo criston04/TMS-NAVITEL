@@ -68,10 +68,7 @@ import {
   getDocumentLength,
 } from "@/lib/validators/document-validators";
 import { AddressGeocoder } from "./address-geocoder";
-import { 
-  CUSTOMER_CATEGORIES, 
-  CATEGORY_VALUES 
-} from "@/config/customer-categories.config";
+import { useCustomerCategories } from "@/contexts/customer-categories-context";
 
 // Schema de validación con validación personalizada de documentos
 const addressSchema = z.object({
@@ -121,9 +118,7 @@ const customerSchema = z.object({
   phone: z.string().min(6, "Teléfono muy corto"),
   phone2: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
-  category: z.string().refine((val) => CATEGORY_VALUES.includes(val), {
-    message: "Categoría inválida",
-  }).optional(),
+  category: z.string().min(1, "Categoría requerida").optional(),
   notes: z.string().optional(),
   industry: z.string().optional(),
   tags: z.string().optional(), // Comma separated
@@ -155,8 +150,7 @@ const CUSTOMER_TYPES: { value: CustomerType; label: string; icon: typeof Buildin
   { value: "persona", label: "Persona Natural", icon: User },
 ];
 
-// Categorías se importan desde config centralizada
-const CATEGORIES = CUSTOMER_CATEGORIES;
+// CATEGORIES ahora viene del hook useCustomerCategories()
 
 const PAYMENT_TERMS: { value: PaymentTerms; label: string; days: number }[] = [
   { value: "immediate", label: "Contado", days: 0 },
@@ -180,6 +174,7 @@ export function CustomerFormModal({
   onFindByDocument,
 }: CustomerFormModalProps) {
   const [activeTab, setActiveTab] = useState("general");
+  const { categories: CATEGORIES } = useCustomerCategories();
   const [documentValidation, setDocumentValidation] = useState<{
     isValid: boolean;
     message: string;
@@ -188,53 +183,56 @@ export function CustomerFormModal({
   const [isCheckingDocument, setIsCheckingDocument] = useState(false);
   const isEditing = !!customer;
 
+  // Valores por defecto como constante para reutilizar en reset
+  const INITIAL_VALUES: CustomerFormData = {
+    type: "empresa",
+    documentType: "RUC",
+    documentNumber: "",
+    name: "",
+    tradeName: "",
+    email: "",
+    phone: "",
+    phone2: "",
+    website: "",
+    category: "standard",
+    notes: "",
+    industry: "",
+    tags: "",
+    addresses: [
+      {
+        label: "Principal",
+        street: "",
+        city: "",
+        state: "",
+        country: "Perú",
+        isDefault: true,
+      },
+    ],
+    contacts: [
+      {
+        name: "",
+        email: "",
+        phone: "",
+        position: "",
+        isPrimary: true,
+        notifyDeliveries: true,
+        notifyIncidents: true,
+      },
+    ],
+    billing: {
+      paymentTerms: "30_days",
+      currency: "PEN",
+      requiresPO: false,
+      billingEmail: "",
+      volumeDiscount: 0,
+      creditLimit: 0,
+      taxExempt: false,
+    },
+  };
+
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
-    defaultValues: {
-      type: "empresa",
-      documentType: "RUC",
-      documentNumber: "",
-      name: "",
-      tradeName: "",
-      email: "",
-      phone: "",
-      phone2: "",
-      website: "",
-      category: "standard",
-      notes: "",
-      industry: "",
-      tags: "",
-      addresses: [
-        {
-          label: "Principal",
-          street: "",
-          city: "",
-          state: "",
-          country: "Perú",
-          isDefault: true,
-        },
-      ],
-      contacts: [
-        {
-          name: "",
-          email: "",
-          phone: "",
-          position: "",
-          isPrimary: true,
-          notifyDeliveries: true,
-          notifyIncidents: true,
-        },
-      ],
-      billing: {
-        paymentTerms: "30_days",
-        currency: "PEN",
-        requiresPO: false,
-        billingEmail: "",
-        volumeDiscount: 0,
-        creditLimit: 0,
-        taxExempt: false,
-      },
-    },
+    defaultValues: INITIAL_VALUES,
   });
 
   // Watch para validación en tiempo real del documento
@@ -342,11 +340,14 @@ export function CustomerFormModal({
       setTimeout(() => validateDocumentRealTime(), 100);
       setExistingCustomer(null);
     } else {
-      form.reset();
+      // Reset explícito a valores iniciales para evitar estado residual
+      form.reset(INITIAL_VALUES);
+      setActiveTab("general");
       setDocumentValidation(null);
       setExistingCustomer(null);
     }
-  }, [customer, form, validateDocumentRealTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer, form]);
 
   const handleSubmit = async (data: CustomerFormData) => {
     // Validar documento antes de enviar
@@ -418,9 +419,22 @@ export function CustomerFormModal({
     }
   };
 
+  // Manejar cierre del dialog reseteando el formulario
+  const handleClose = useCallback((open: boolean) => {
+    if (!open) {
+      // Reset inmediato antes de cerrar para limpiar estado
+      form.reset(INITIAL_VALUES);
+      setActiveTab("general");
+      setDocumentValidation(null);
+      setExistingCustomer(null);
+    }
+    onClose();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClose, form]);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-300 w-[95vw] h-[85vh] max-h-195 flex flex-col p-0 gap-0 overflow-hidden border shadow-2xl rounded-xl">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-[1200px] w-[95vw] h-[85vh] max-h-[780px] flex flex-col p-0 gap-0 overflow-hidden border shadow-2xl rounded-xl">
         {/* Header limpio y elegante */}
         <DialogHeader className="px-6 py-4 shrink-0 border-b bg-muted/30">
           <div className="flex items-center gap-3">
@@ -505,7 +519,7 @@ export function CustomerFormModal({
                 );
               })()}
 
-              <ScrollArea className="flex-1 min-h-0">
+              <ScrollArea type="always" className="flex-1 min-h-0">
                 <div className="px-8 py-6">
                   {/* Tab General */}
                   <TabsContent value="general" className="mt-0 space-y-5">

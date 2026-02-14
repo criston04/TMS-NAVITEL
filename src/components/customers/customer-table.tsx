@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { Customer } from "@/types/models";
 import { cn } from "@/lib/utils";
-import { CATEGORY_BADGE_MAP, CATEGORY_LABEL_MAP } from "@/config/customer-categories.config";
+import { useCustomerCategories } from "@/contexts/customer-categories-context";
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -50,9 +50,7 @@ interface CustomerTableProps {
   onToggleStatus: (customer: Customer) => void;
 }
 
-const CATEGORY_COLORS: Record<string, string> = CATEGORY_BADGE_MAP;
-
-const CATEGORY_LABELS: Record<string, string> = CATEGORY_LABEL_MAP;
+// CATEGORY_COLORS y CATEGORY_LABELS ahora vienen del hook useCustomerCategories()
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text);
@@ -93,6 +91,7 @@ export function CustomerTable({
   onDelete,
   onToggleStatus,
 }: CustomerTableProps) {
+  const { badgeMap: CATEGORY_COLORS, labelMap: CATEGORY_LABELS } = useCustomerCategories();
   const allSelected = customers.length > 0 && selectedIds.size === customers.length;
   const someSelected = selectedIds.size > 0 && selectedIds.size < customers.length;
 

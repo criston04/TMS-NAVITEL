@@ -19,6 +19,7 @@ import {
   Lock,
   Calendar,
   FileText,
+  ClipboardEdit,
 } from 'lucide-react';
 // No se necesitan imports de tipo aquí, se infieren de los hooks
 
@@ -35,8 +36,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { OrderTimeline, STATUS_CONFIG, PRIORITY_CONFIG } from '@/components/orders';
+import { OrderTimeline, STATUS_CONFIG, PRIORITY_CONFIG, MilestoneManualEntryModal } from '@/components/orders';
 import { cn } from '@/lib/utils';
+import type { OrderMilestone } from '@/types/order';
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -117,6 +119,8 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const router = useRouter();
   
   const [activeTab, setActiveTab] = useState<'timeline' | 'incidents' | 'history'>('timeline');
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
+  const [selectedMilestone, setSelectedMilestone] = useState<OrderMilestone | null>(null);
 
   const { order, isLoading, error, startTrip, sendToExternal } = useOrder(id, {
     realtimeUpdates: true,
@@ -147,6 +151,34 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
       await exportOrders([order]);
     }
   }, [order, exportOrders]);
+
+  /**
+   * Abre modal de llenado manual para un hito
+   */
+  const handleMilestoneManualEntry = useCallback((milestone: OrderMilestone) => {
+    setSelectedMilestone(milestone);
+    setManualEntryOpen(true);
+  }, []);
+
+  /**
+   * Guarda el registro manual de un hito
+   */
+  const handleSaveManualEntry = useCallback((milestoneId: string, data: {
+    actualEntry: string;
+    actualExit?: string;
+    isManual: true;
+    manualEntryData: {
+      registeredBy: string;
+      registeredAt: string;
+      observation: string;
+      reason: 'sin_senal_gps' | 'falla_equipo' | 'carga_retroactiva' | 'correccion' | 'otro';
+    };
+  }) => {
+    // En producción esto llamaría al servicio para actualizar el hito
+    console.log('Manual milestone entry saved:', milestoneId, data);
+    setManualEntryOpen(false);
+    setSelectedMilestone(null);
+  }, []);
 
   // Loading
   if (isLoading) {
@@ -298,11 +330,25 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
             <Card>
               <CardContent className="p-6">
                 {activeTab === 'timeline' && (
-                  <OrderTimeline
-                    order={order}
-                    showTimes
-                    interactive
-                  />
+                  <div className="space-y-4">
+                    {/* Botón de registro manual */}
+                    {order.status !== 'completed' && order.status !== 'closed' && order.status !== 'cancelled' && (
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
+                        <div className="flex items-center gap-2">
+                          <ClipboardEdit className="w-4 h-4 text-orange-500" />
+                          <span className="text-sm text-orange-700 dark:text-orange-400">
+                            ¿Sin señal GPS? Registre un hito manualmente haciendo clic en él.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <OrderTimeline
+                      order={order}
+                      showTimes
+                      interactive
+                      onMilestoneClick={handleMilestoneManualEntry}
+                    />
+                  </div>
                 )}
 
                 {activeTab === 'incidents' && (
@@ -404,6 +450,36 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                   </div>
                 )}
 
+                {order.serviceType && (
+                  <div className="flex items-center gap-3">
+                    <Truck className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Tipo de servicio</p>
+                      <p className="font-medium capitalize">{order.serviceType.replace(/_/g, ' ')}</p>
+                    </div>
+                  </div>
+                )}
+
+                {order.reference && (
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Referencia</p>
+                      <p className="font-medium font-mono">{order.reference}</p>
+                    </div>
+                  </div>
+                )}
+
+                {order.externalReference && (
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Ref. externa</p>
+                      <p className="font-medium font-mono text-muted-foreground">{order.externalReference}</p>
+                    </div>
+                  </div>
+                )}
+
                 <Separator />
 
                 {order.vehicle && (
@@ -497,6 +573,14 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Modal de registro manual de hitos */}
+      <MilestoneManualEntryModal
+        open={manualEntryOpen}
+        onClose={() => { setManualEntryOpen(false); setSelectedMilestone(null); }}
+        milestone={selectedMilestone}
+        onSave={handleSaveManualEntry}
+      />
     </PageWrapper>
   );
 }

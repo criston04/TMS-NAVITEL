@@ -576,6 +576,7 @@ export function OrderFormWizard({
       driverId: driverId || undefined,
       workflowId: selectedWorkflow?.id || undefined,
       priority,
+      serviceType: 'distribucion',
       // Número de orden manual (si no es automático)
       ...((!autoGenerateNumber && orderNumber) && { orderNumber }),
       // Referencia externa

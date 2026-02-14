@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   GripVertical,
   Truck,
+  FileText,
 } from 'lucide-react';
 import type { Order, OrderPriority } from '@/types/order';
 import type { ScheduledOrder, ScheduleStatus } from '@/types/scheduling';
@@ -185,9 +186,17 @@ export const SchedulingOrderCard = memo(function SchedulingOrderCard({
           </div>
 
           {/* Cliente */}
-          <p className="text-xs text-muted-foreground truncate mb-1.5">
+          <p className="text-xs text-muted-foreground truncate mb-1">
             {order.customer?.name || 'Sin cliente'}
           </p>
+
+          {/* Referencia */}
+          {order.reference && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+              <FileText className="h-3 w-3 shrink-0 text-primary/60" />
+              <span className="truncate font-mono text-[11px]">{order.reference}</span>
+            </div>
+          )}
 
           {/* Destino */}
           {destination && (

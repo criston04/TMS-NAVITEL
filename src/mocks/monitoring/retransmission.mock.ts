@@ -22,6 +22,22 @@ const operatorNames = [
 ];
 
 /**
+ * Direcciones de ejemplo para retransmisión
+ */
+const sampleAddresses = [
+  "Av. Javier Prado 1234, San Isidro, Lima",
+  "Av. Arequipa 567, Miraflores, Lima",
+  "Calle Los Pinos 890, Surco, Lima",
+  "Av. La Marina 345, San Miguel, Lima",
+  "Jr. De la Unión 678, Cercado de Lima",
+  "Av. Brasil 1012, Jesús María, Lima",
+  "Av. Benavides 2345, Surco, Lima",
+  "Av. Primavera 789, San Borja, Lima",
+  "Av. Angamos 456, Surquillo, Lima",
+  "Av. Universitaria 1100, San Martín de Porres, Lima",
+];
+
+/**
  * Comentarios de ejemplo para retransmisión
  */
 const sampleComments = [
@@ -133,6 +149,7 @@ function generateRetransmissionMock(): RetransmissionRecord[] {
       lastLocation: vehicle.lastLocation 
         ? { lat: vehicle.lastLocation.lat, lng: vehicle.lastLocation.lng }
         : undefined,
+      lastAddress: sampleAddresses[index % sampleAddresses.length],
       speed: movementStatus === "moving" ? Math.floor(Math.random() * 80) + 20 : 0,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: lastConnection,
@@ -171,6 +188,7 @@ function generateRetransmissionMock(): RetransmissionRecord[] {
         lat: -12.0464 + (Math.random() - 0.5) * 0.2,
         lng: -77.0428 + (Math.random() - 0.5) * 0.2,
       },
+      lastAddress: sampleAddresses[Math.floor(Math.random() * sampleAddresses.length)],
       speed: movementStatus === "moving" ? Math.floor(Math.random() * 80) + 20 : 0,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: lastConnection,

@@ -28,6 +28,7 @@ import {
   CustomerTable,
   CustomerStats,
   CustomerPagination,
+  CustomerCategorySettingsDialog,
 } from "@/components/customers";
 
 /**
@@ -158,6 +159,7 @@ export default function CustomersPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <CustomerCategorySettingsDialog />
             <Button variant="outline" size="sm" onClick={refresh} disabled={isLoading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
               Actualizar

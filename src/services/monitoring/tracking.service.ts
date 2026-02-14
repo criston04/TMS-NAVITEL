@@ -119,6 +119,14 @@ export class TrackingService {
             v.activeOrderNumber?.includes(filters.orderNumber!)
           );
         }
+
+        // Filtro por referencia (booking, guía, viaje)
+        if (filters.reference) {
+          const refSearch = filters.reference.toLowerCase();
+          vehicles = vehicles.filter(v =>
+            v.reference?.toLowerCase().includes(refSearch)
+          );
+        }
         
         // Filtro por cliente
         if (filters.customerId) {
@@ -197,6 +205,8 @@ export class TrackingService {
       return {
         id: vehicle.activeOrderId,
         orderNumber: vehicle.activeOrderNumber!,
+        reference: vehicle.reference,
+        serviceType: vehicle.serviceType,
         customerId: "cust-001",
         customerName: "Empresa Demo SAC",
         status: "in_transit",

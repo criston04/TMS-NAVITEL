@@ -316,6 +316,7 @@ export function OrderForm({
       driverId: driverId || undefined,
       workflowId: workflowInfo?.workflowId || undefined,
       priority,
+      serviceType: 'distribucion',
       cargo: {
         description: cargoDescription,
         type: cargoType,
