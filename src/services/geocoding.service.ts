@@ -148,7 +148,7 @@ class GeocodingService {
   }
 
   /**
-   * Obtiene sugerencias de direcciones
+   * Obtiene sugerencias de direcciones con precisión a nivel de calle
    */
   async getSuggestions(query: string, country = "Peru"): Promise<Array<{
     address: string;
@@ -167,8 +167,10 @@ class GeocodingService {
     const params = new URLSearchParams({
       q: `${query}, ${country}`,
       format: "json",
-      limit: "5",
+      limit: "8",
       countrycodes: "pe",
+      addressdetails: "1",
+      dedupe: "1",
     });
 
     try {

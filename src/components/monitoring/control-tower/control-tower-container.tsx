@@ -137,7 +137,7 @@ export function ControlTowerContainer({
 
         {/* Tabs: Vehículos / Filtros / Alertas / Config */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "vehicles" | "filters" | "alerts" | "config")} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-4 mx-4 mt-3 mb-2" style={{ width: 'calc(100% - 2rem)' }}>
+          <TabsList className="grid w-full grid-cols-4 mx-4 mt-3 mb-2 overflow-visible" style={{ width: 'calc(100% - 2rem)' }}>
             <TabsTrigger value="vehicles" className="gap-1.5 text-xs">
               <List className="h-3.5 w-3.5" />
               Vehículos

@@ -16,151 +16,95 @@ export function AnimatedPackageIcon({ size = 56 }: { size?: number }) {
       xmlns="http://www.w3.org/2000/svg"
       initial="initial"
       animate="animate"
+      style={{ overflow: 'visible' }}
     >
-      {/* Box body */}
-      <motion.rect
-        x="12"
-        y="28"
-        width="40"
-        height="28"
-        rx="3"
-        fill="#3B82F6"
-        stroke="#2563EB"
-        strokeWidth="1.5"
-        animate={{
-          y: [28, 26, 28],
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
+      {/* Grupo flotante - todo se mueve junto */}
+      <motion.g
+        animate={{ y: [0, -3, 0] }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {/* Box body */}
+        <rect
+          x="12"
+          y="30"
+          width="40"
+          height="24"
+          rx="3"
+          fill="#3B82F6"
+          stroke="#2563EB"
+          strokeWidth="1.5"
+        />
 
-      {/* Box front face detail */}
-      <motion.rect
-        x="12"
-        y="28"
-        width="40"
-        height="6"
-        rx="0"
-        fill="#2563EB"
-        animate={{
-          y: [28, 26, 28],
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
+        {/* Box front face detail (darker top strip) */}
+        <rect
+          x="12"
+          y="30"
+          width="40"
+          height="5"
+          fill="#2563EB"
+        />
 
-      {/* Vertical tape */}
-      <motion.rect
-        x="29"
-        y="28"
-        width="6"
-        height="28"
-        fill="#60A5FA"
-        opacity={0.6}
-        animate={{
-          y: [28, 26, 28],
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
+        {/* Vertical tape */}
+        <rect
+          x="29"
+          y="30"
+          width="6"
+          height="24"
+          fill="#60A5FA"
+          opacity={0.5}
+        />
 
-      {/* Lid left */}
-      <motion.path
-        d="M12 28 L12 24 Q12 22 14 22 L30 22 L30 28 Z"
-        fill="#60A5FA"
-        stroke="#2563EB"
-        strokeWidth="1.5"
-        animate={{
-          y: [0, -2, 0],
-          rotate: [0, -5, 0],
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        style={{ originX: '30px', originY: '28px' }}
-      />
+        {/* Lid left - solo rotación, sin translación */}
+        <motion.path
+          d="M12 30 L12 25 Q12 22 15 22 L32 22 L32 30 Z"
+          fill="#60A5FA"
+          stroke="#2563EB"
+          strokeWidth="1.5"
+          animate={{ rotate: [0, -6, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ transformOrigin: '32px 30px' }}
+        />
 
-      {/* Lid right */}
-      <motion.path
-        d="M34 28 L34 22 L50 22 Q52 22 52 24 L52 28 Z"
-        fill="#60A5FA"
-        stroke="#2563EB"
-        strokeWidth="1.5"
-        animate={{
-          y: [0, -2, 0],
-          rotate: [0, 5, 0],
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        style={{ originX: '34px', originY: '28px' }}
-      />
+        {/* Lid right - solo rotación, sin translación */}
+        <motion.path
+          d="M32 30 L32 22 L49 22 Q52 22 52 25 L52 30 Z"
+          fill="#60A5FA"
+          stroke="#2563EB"
+          strokeWidth="1.5"
+          animate={{ rotate: [0, 6, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ transformOrigin: '32px 30px' }}
+        />
+      </motion.g>
 
       {/* Sparkle top-right */}
       <motion.circle
-        cx="50"
-        cy="16"
+        cx="52"
+        cy="14"
         r="2"
         fill="#FBBF24"
-        animate={{
-          scale: [0, 1.2, 0],
-          opacity: [0, 1, 0],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          delay: 0.5,
-          ease: 'easeInOut',
-        }}
+        animate={{ scale: [0, 1.2, 0], opacity: [0, 1, 0] }}
+        transition={{ duration: 2, repeat: Infinity, delay: 0.5, ease: 'easeInOut' }}
       />
 
       {/* Sparkle top-left */}
       <motion.circle
-        cx="18"
-        cy="14"
+        cx="14"
+        cy="12"
         r="1.5"
         fill="#34D399"
-        animate={{
-          scale: [0, 1.3, 0],
-          opacity: [0, 1, 0],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          delay: 1,
-          ease: 'easeInOut',
-        }}
+        animate={{ scale: [0, 1.3, 0], opacity: [0, 1, 0] }}
+        transition={{ duration: 2, repeat: Infinity, delay: 1, ease: 'easeInOut' }}
       />
 
-      {/* Sparkle right */}
+      {/* Sparkle right cross */}
       <motion.path
-        d="M56 24 L58 22 M56 22 L58 24"
+        d="M58 24 L60 22 M58 22 L60 24"
         stroke="#F59E0B"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{
-          scale: [0, 1, 0],
-          opacity: [0, 1, 0],
-        }}
-        transition={{
-          duration: 1.8,
-          repeat: Infinity,
-          delay: 0.3,
-          ease: 'easeInOut',
-        }}
+        animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, delay: 0.3, ease: 'easeInOut' }}
       />
     </motion.svg>
   );
@@ -178,6 +122,7 @@ export function AnimatedTruckIcon({ size = 56 }: { size?: number }) {
       viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      style={{ overflow: 'visible' }}
     >
       {/* Road line */}
       <motion.line
@@ -394,6 +339,7 @@ export function AnimatedCheckIcon({ size = 56 }: { size?: number }) {
       viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      style={{ overflow: 'visible' }}
     >
       {/* Background circle pulse */}
       <motion.circle
@@ -536,161 +482,102 @@ export function AnimatedWarningIcon({ size = 56 }: { size?: number }) {
       viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      style={{ overflow: 'visible' }}
     >
       {/* Glow pulse behind triangle */}
       <motion.path
-        d="M32 8 L58 54 L6 54 Z"
+        d="M32 6 L60 56 L4 56 Z"
         fill="#FDE68A"
-        animate={{
-          scale: [0.95, 1.08, 0.95],
-          opacity: [0.2, 0.5, 0.2],
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        style={{ originX: '32px', originY: '40px' }}
+        animate={{ scale: [0.95, 1.06, 0.95], opacity: [0.15, 0.4, 0.15] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ transformOrigin: '32px 42px' }}
       />
 
-      {/* Triangle body with bounce */}
+      {/* Main group with subtle bounce */}
+      <motion.g
+        animate={{ y: [0, -2, 0] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {/* Triangle body */}
+        <path
+          d="M32 10 L58 54 L6 54 Z"
+          fill="#F59E0B"
+          stroke="#D97706"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+
+        {/* Triangle inner highlight */}
+        <path
+          d="M32 18 L48 50 L16 50 Z"
+          fill="#FBBF24"
+          opacity={0.35}
+        />
+
+        {/* Exclamation mark body */}
+        <motion.rect
+          x="29.5"
+          y="24"
+          width="5"
+          height="16"
+          rx="2.5"
+          fill="white"
+          animate={{ rotate: [0, -3, 0, 3, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ transformOrigin: '32px 32px' }}
+        />
+
+        {/* Exclamation dot */}
+        <motion.circle
+          cx="32"
+          cy="45"
+          r="2.8"
+          fill="white"
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </motion.g>
+
+      {/* Alert wave left */}
       <motion.path
-        d="M32 12 L56 52 L8 52 Z"
-        fill="#F59E0B"
-        stroke="#D97706"
-        strokeWidth="2"
-        strokeLinejoin="round"
-        animate={{
-          y: [0, -2, 0],
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {/* Triangle highlight */}
-      <motion.path
-        d="M32 18 L20 46 L44 46 Z"
-        fill="#FBBF24"
-        opacity={0.4}
-        animate={{
-          y: [0, -2, 0],
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {/* Exclamation body - shaking */}
-      <motion.rect
-        x="29.5"
-        y="24"
-        width="5"
-        height="14"
-        rx="2.5"
-        fill="white"
-        animate={{
-          y: [24, 22, 24],
-          rotate: [0, -3, 0, 3, 0],
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        style={{ originX: '32px', originY: '31px' }}
-      />
-
-      {/* Exclamation dot */}
-      <motion.circle
-        cx="32"
-        cy="44"
-        r="2.5"
-        fill="white"
-        animate={{
-          y: [0, -2, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {/* Alert waves left */}
-      <motion.path
-        d="M10 28 Q6 32 10 36"
+        d="M8 28 Q4 32 8 36"
         stroke="#F59E0B"
         strokeWidth="2"
         strokeLinecap="round"
         fill="none"
-        animate={{
-          x: [-2, 0, -2],
-          opacity: [0, 0.7, 0],
-        }}
-        transition={{
-          duration: 1.2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
+        animate={{ x: [-2, 0, -2], opacity: [0, 0.7, 0] }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Alert waves right */}
+      {/* Alert wave right */}
       <motion.path
-        d="M54 28 Q58 32 54 36"
+        d="M56 28 Q60 32 56 36"
         stroke="#F59E0B"
         strokeWidth="2"
         strokeLinecap="round"
         fill="none"
-        animate={{
-          x: [2, 0, 2],
-          opacity: [0, 0.7, 0],
-        }}
-        transition={{
-          duration: 1.2,
-          repeat: Infinity,
-          delay: 0.3,
-          ease: 'easeInOut',
-        }}
+        animate={{ x: [2, 0, 2], opacity: [0, 0.7, 0] }}
+        transition={{ duration: 1.2, repeat: Infinity, delay: 0.3, ease: 'easeInOut' }}
       />
 
-      {/* Small attention dots */}
+      {/* Attention dot top-left */}
       <motion.circle
         cx="8"
-        cy="18"
-        r="1.5"
-        fill="#FBBF24"
-        animate={{
-          scale: [0, 1, 0],
-          opacity: [0, 0.8, 0],
-        }}
-        transition={{
-          duration: 1.8,
-          repeat: Infinity,
-          delay: 0.5,
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.circle
-        cx="56"
         cy="16"
         r="1.5"
         fill="#FBBF24"
-        animate={{
-          scale: [0, 1.2, 0],
-          opacity: [0, 0.8, 0],
-        }}
-        transition={{
-          duration: 1.8,
-          repeat: Infinity,
-          delay: 1,
-          ease: 'easeInOut',
-        }}
+        animate={{ scale: [0, 1, 0], opacity: [0, 0.8, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, delay: 0.5, ease: 'easeInOut' }}
+      />
+
+      {/* Attention dot top-right */}
+      <motion.circle
+        cx="56"
+        cy="14"
+        r="1.5"
+        fill="#FBBF24"
+        animate={{ scale: [0, 1.2, 0], opacity: [0, 0.8, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, delay: 1, ease: 'easeInOut' }}
       />
     </motion.svg>
   );

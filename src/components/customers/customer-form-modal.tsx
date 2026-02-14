@@ -475,7 +475,7 @@ export function CustomerFormModal({
                 const hasBillingErrors = !!errors.billing;
                 return (
               <div className="px-8 pt-3 pb-2 bg-background/50 backdrop-blur-sm border-b">
-                <TabsList className="grid w-full max-w-lg grid-cols-4 h-10 p-1 bg-muted/50 rounded-lg">
+                <TabsList className="grid w-full max-w-lg grid-cols-4 h-10 p-1 bg-muted/50 rounded-lg overflow-visible">
                   <TabsTrigger 
                     value="general" 
                     className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 gap-1.5 text-sm relative"

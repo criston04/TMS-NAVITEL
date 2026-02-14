@@ -110,7 +110,7 @@ function StopItem({
             <motion.div
               className="flex items-center justify-center mt-1 cursor-grab active:cursor-grabbing"
               onPointerDown={(e) => dragControls.start(e)}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <GripVertical className="h-5 w-5 text-muted-foreground/50" />
@@ -125,7 +125,7 @@ function StopItem({
                   ? "bg-gradient-to-br from-green-400 to-green-600"
                   : "bg-gradient-to-br from-[#3DBAFF] to-blue-600"
               )}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.05 }}
             >
               {index + 1}
             </motion.div>
@@ -331,7 +331,7 @@ export function StopSequenceEnhanced({
           axis="y"
           values={items}
           onReorder={handleReorder}
-          className="space-y-3"
+          className="space-y-3 p-1"
         >
           <AnimatePresence mode="popLayout">
             {items.map((stop, index) => (

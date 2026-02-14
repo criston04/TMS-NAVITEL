@@ -5,12 +5,11 @@
    Panel de selección de órdenes
    ============================================ */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, Package2, MapPin, Weight, Box, AlertCircle } from "lucide-react";
+import { Search, Filter, Package2, MapPin, Weight, Box, AlertCircle, CheckSquare, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { TransportOrder, OrderFilters } from "@/types/route-planner";
@@ -77,6 +76,19 @@ export function OrderList({ orders }: OrderListProps) {
     }
   };
 
+  /* ============================================
+     SELECT ALL FILTERED ORDERS
+     ============================================ */
+  const selectAll = useCallback(() => {
+    filteredOrders.forEach((order) => {
+      if (!selectedOrders.find((o) => o.id === order.id)) {
+        addOrder(order);
+      }
+    });
+  }, [filteredOrders, selectedOrders, addOrder]);
+
+  const allSelected = filteredOrders.length > 0 && filteredOrders.every((o) => selectedOrders.find((s) => s.id === o.id));
+
   return (
     <div className="flex h-full flex-col bg-card border-r border-border">
       {/* Header */}
@@ -99,7 +111,7 @@ export function OrderList({ orders }: OrderListProps) {
           />
         </div>
 
-        {/* Filter Toggle */}
+        {/* Filter Toggle & Actions */}
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -110,6 +122,12 @@ export function OrderList({ orders }: OrderListProps) {
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
+          {!allSelected && filteredOrders.length > 0 && (
+            <Button variant="outline" size="sm" onClick={selectAll} className="gap-1.5">
+              <CheckSquare className="h-3.5 w-3.5" />
+              Todos
+            </Button>
+          )}
           {selectedOrders.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearOrders}>
               Limpiar ({selectedOrders.length})
@@ -185,13 +203,32 @@ export function OrderList({ orders }: OrderListProps) {
                   exit={{ opacity: 0, y: -10 }}
                   onClick={() => toggleOrder(order)}
                   className={cn(
-                    "relative p-3 rounded-lg border border-border bg-card cursor-pointer transition-all hover:shadow-md",
-                    isSelected && "border-[#3DBAFF] bg-[#3DBAFF]/5 ring-1 ring-[#3DBAFF]/20"
+                    "relative p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md",
+                    isSelected
+                      ? "border-[#3DBAFF] bg-[#3DBAFF]/5 ring-1 ring-[#3DBAFF]/20"
+                      : "border-border bg-card"
                   )}
                 >
-                  {/* Checkbox */}
+                  {/* Selection indicator */}
                   <div className="absolute top-3 right-3">
-                    <Checkbox checked={!!isSelected} />
+                    <div
+                      className={cn(
+                        "flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all",
+                        isSelected
+                          ? "border-[#3DBAFF] bg-[#3DBAFF]"
+                          : "border-muted-foreground/30 bg-background"
+                      )}
+                    >
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </motion.div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Order Number & Priority */}

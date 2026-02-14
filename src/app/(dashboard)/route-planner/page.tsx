@@ -45,7 +45,7 @@ function RoutePlannerContent() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col bg-background">
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* ============================================
             LEFT PANEL: Orders
             ============================================ */}
@@ -53,42 +53,44 @@ function RoutePlannerContent() {
           initial={false}
           animate={{
             width: leftPanelCollapsed ? "0px" : "340px",
+            minWidth: leftPanelCollapsed ? "0px" : "340px",
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative overflow-hidden border-r border-border bg-card"
+          className="overflow-hidden border-r border-border bg-card"
+          style={{ flexShrink: 0 }}
         >
-          <motion.div
-            animate={{ opacity: leftPanelCollapsed ? 0 : 1 }}
-            className={cn(leftPanelCollapsed && "pointer-events-none")}
-          >
-            {!leftPanelCollapsed && <OrderList orders={mockOrders} />}
-          </motion.div>
+          <div className="w-[340px] h-full">
+            <OrderList orders={mockOrders} />
+          </div>
         </motion.div>
 
-        {/* Left Collapse Button - Always visible */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
-          className="absolute left-[340px] top-4 z-20 h-10 w-10 rounded-full p-0 shadow-xl bg-[#3DBAFF] hover:bg-[#3DBAFF]/90 border-2 border-white dark:border-gray-800 transition-all hover:scale-110"
+        {/* Left Collapse Button - OUTSIDE panel, in the center area */}
+        <div
+          className="absolute z-[1010]"
           style={{
-            transform: leftPanelCollapsed ? 'translateX(-340px)' : 'translateX(0)',
-            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            top: "calc(50% - 18px)",
+            left: leftPanelCollapsed ? "8px" : "324px",
+            transition: "left 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {leftPanelCollapsed ? (
-            <ChevronRight className="h-5 w-5 text-white" />
-          ) : (
-            <ChevronLeft className="h-5 w-5 text-white" />
-          )}
-        </Button>
+          <button
+            onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+            className="flex h-9 w-9 items-center justify-center rounded-full shadow-lg bg-[#3DBAFF] hover:bg-[#3DBAFF]/90 border-2 border-white dark:border-gray-800 transition-transform hover:scale-110 active:scale-95"
+          >
+            {leftPanelCollapsed ? (
+              <ChevronRight className="h-4 w-4 text-white" />
+            ) : (
+              <ChevronLeft className="h-4 w-4 text-white" />
+            )}
+          </button>
+        </div>
 
         {/* ============================================
             CENTER CONTENT: Map & KPIs
             ============================================ */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden min-w-0">
           {/* Map Area */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-h-0">
             <RouteMap
               route={currentRoute}
               selectedOrders={selectedOrders}
@@ -178,28 +180,31 @@ function RoutePlannerContent() {
           {/* ============================================
               ACTIONS BAR
               ============================================ */}
-          <div className="border-t border-border bg-card px-6 py-4">
+          <div className="border-t border-border bg-card px-6 py-3">
             <RouteActionsEnhanced />
           </div>
         </div>
 
-        {/* Right Collapse Button - Always visible */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
-          className="absolute right-[360px] top-4 z-20 h-10 w-10 rounded-full p-0 shadow-xl bg-[#3DBAFF] hover:bg-[#3DBAFF]/90 border-2 border-white dark:border-gray-800 transition-all hover:scale-110"
+        {/* Right Collapse Button - OUTSIDE panel, in the center area */}
+        <div
+          className="absolute z-[1010]"
           style={{
-            transform: rightPanelCollapsed ? 'translateX(360px)' : 'translateX(0)',
-            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            top: "calc(50% - 18px)",
+            right: rightPanelCollapsed ? "8px" : "344px",
+            transition: "right 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {rightPanelCollapsed ? (
-            <ChevronLeft className="h-5 w-5 text-white" />
-          ) : (
-            <ChevronRight className="h-5 w-5 text-white" />
-          )}
-        </Button>
+          <button
+            onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+            className="flex h-9 w-9 items-center justify-center rounded-full shadow-lg bg-[#3DBAFF] hover:bg-[#3DBAFF]/90 border-2 border-white dark:border-gray-800 transition-transform hover:scale-110 active:scale-95"
+          >
+            {rightPanelCollapsed ? (
+              <ChevronLeft className="h-4 w-4 text-white" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-white" />
+            )}
+          </button>
+        </div>
 
         {/* ============================================
             RIGHT PANEL: Configuration
@@ -208,15 +213,13 @@ function RoutePlannerContent() {
           initial={false}
           animate={{
             width: rightPanelCollapsed ? "0px" : "360px",
+            minWidth: rightPanelCollapsed ? "0px" : "360px",
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative overflow-hidden border-l border-border bg-card"
+          className="overflow-hidden border-l border-border bg-card"
+          style={{ flexShrink: 0 }}
         >
-          <motion.div
-            animate={{ opacity: rightPanelCollapsed ? 0 : 1 }}
-            className={cn(rightPanelCollapsed && "pointer-events-none")}
-          >
-            {!rightPanelCollapsed && (
+          <div className="w-[360px] h-full">
             <div className="flex h-full flex-col">
               {/* Header */}
               <div className="border-b border-border p-4">
@@ -338,10 +341,9 @@ function RoutePlannerContent() {
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </motion.div>
-      </motion.div>
-    </div>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ export default function GeofencesPage() {
       onExit: false,
       onDwell: false,
     },
+    structuredAddress: {},
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,6 +62,9 @@ export default function GeofencesPage() {
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const addressSearchRef = useRef<HTMLDivElement>(null);
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const addressDropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
   // Marcar como montado para evitar errores de hidratación
   useEffect(() => {
@@ -123,10 +128,13 @@ export default function GeofencesPage() {
     return () => clearTimeout(timer);
   }, [addressQuery]);
 
-  // Cerrar sugerencias al hacer click fuera
+  // Cerrar sugerencias al hacer click fuera (excluye el portal dropdown)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (addressSearchRef.current && !addressSearchRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const isInsideInput = addressSearchRef.current?.contains(target);
+      const isInsideDropdown = addressDropdownRef.current?.contains(target);
+      if (!isInsideInput && !isInsideDropdown) {
         setShowAddressSuggestions(false);
       }
     };
@@ -134,12 +142,21 @@ export default function GeofencesPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Actualizar posición del dropdown cuando se muestra
+  useEffect(() => {
+    if (showAddressSuggestions && addressInputRef.current) {
+      const rect = addressInputRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+  }, [showAddressSuggestions, addressSuggestions]);
+
   // Navegar a una dirección seleccionada
   const handleSelectAddress = useCallback((suggestion: { address: string; lat: number; lng: number }) => {
     setAddressQuery(suggestion.address.split(",")[0]); // Mostrar solo la parte principal
     setShowAddressSuggestions(false);
-    // Volar a las coordenadas en el mapa
-    (window as any).__flyToCoordinates?.(suggestion.lat, suggestion.lng, 16);
+    // Volar a las coordenadas en el mapa y poner marcador
+    (window as any).__flyToCoordinates?.(suggestion.lat, suggestion.lng, 18);
+    (window as any).__addSearchMarker?.(suggestion.lat, suggestion.lng, suggestion.address);
     success("Ubicación encontrada", suggestion.address.substring(0, 80));
   }, [success]);
 
@@ -525,6 +542,7 @@ export default function GeofencesPage() {
                     <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
                   )}
                   <Input
+                    ref={addressInputRef}
                     placeholder="Buscar dirección o lugar..."
                     className="pl-10 pr-10 h-10 border-blue-200 dark:border-blue-800 focus:border-blue-400"
                     value={addressQuery}
@@ -533,15 +551,19 @@ export default function GeofencesPage() {
                   />
                   {addressQuery && (
                     <button
-                      onClick={() => { setAddressQuery(""); setAddressSuggestions([]); setShowAddressSuggestions(false); }}
+                      onClick={() => { setAddressQuery(""); setAddressSuggestions([]); setShowAddressSuggestions(false); (window as any).__removeSearchMarker?.(); }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   )}
-                  {/* Dropdown de sugerencias */}
-                  {showAddressSuggestions && addressSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
+                  {/* Dropdown de sugerencias - Portal para evitar clipping */}
+                  {showAddressSuggestions && addressSuggestions.length > 0 && dropdownPos && typeof document !== 'undefined' && createPortal(
+                    <div
+                      ref={addressDropdownRef}
+                      style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 99999 }}
+                      className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-64 overflow-y-auto"
+                    >
                       {addressSuggestions.map((s, idx) => (
                         <button
                           key={idx}
@@ -552,7 +574,8 @@ export default function GeofencesPage() {
                           <span className="line-clamp-2 text-gray-700 dark:text-gray-300">{s.address}</span>
                         </button>
                       ))}
-                    </div>
+                    </div>,
+                    document.body
                   )}
                 </div>
 

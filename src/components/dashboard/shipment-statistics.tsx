@@ -15,16 +15,16 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const data = [
-  { name: "1 Jan", shipment: 38, delivery: 22 },
-  { name: "2 Jan", shipment: 44, delivery: 28 },
-  { name: "3 Jan", shipment: 32, delivery: 22 },
-  { name: "4 Jan", shipment: 36, delivery: 32 },
-  { name: "5 Jan", shipment: 30, delivery: 24 },
-  { name: "6 Jan", shipment: 48, delivery: 40 },
-  { name: "7 Jan", shipment: 44, delivery: 31 },
-  { name: "8 Jan", shipment: 40, delivery: 32 },
-  { name: "9 Jan", shipment: 42, delivery: 26 },
-  { name: "10 Jan", shipment: 36, delivery: 24 },
+  { name: "1 Ene", shipment: 38, delivery: 22 },
+  { name: "2 Ene", shipment: 44, delivery: 28 },
+  { name: "3 Ene", shipment: 32, delivery: 22 },
+  { name: "4 Ene", shipment: 36, delivery: 32 },
+  { name: "5 Ene", shipment: 30, delivery: 24 },
+  { name: "6 Ene", shipment: 48, delivery: 40 },
+  { name: "7 Ene", shipment: 44, delivery: 31 },
+  { name: "8 Ene", shipment: 40, delivery: 32 },
+  { name: "9 Ene", shipment: 42, delivery: 26 },
+  { name: "10 Ene", shipment: 36, delivery: 24 },
 ];
 
 export function ShipmentStatistics() {
@@ -32,17 +32,17 @@ export function ShipmentStatistics() {
     <Card className="h-full rounded-2xl border-none shadow-sm bg-white dark:bg-card/50">
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div>
-          <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Shipment Statistics</CardTitle>
+          <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Estadísticas de Envíos</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            Total number of deliveries 23.8k
+            Total de entregas 23.8k
           </p>
         </div>
         <Button variant="outline" size="sm" className="bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-slate-800 dark:text-indigo-400 dark:border-slate-700 h-8 gap-1">
-          January <ChevronDown className="h-3 w-3" />
+          Enero <ChevronDown className="h-3 w-3" />
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="h-70 w-full mt-4">
+        <div className="w-full mt-4" style={{ height: '280px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={data}
@@ -78,7 +78,7 @@ export function ShipmentStatistics() {
                                             style={{ backgroundColor: (entry.fill || entry.stroke) as string }}
                                         />
                                         <span className="text-xs font-medium text-slate-700">
-                                            {entry.dataKey === 'shipment' ? 'Shipments' : 'Deliveries'}: {entry.value}%
+                                            {entry.dataKey === 'shipment' ? 'Envíos' : 'Entregas'}: {entry.value}%
                                         </span>
                                     </div>
                                 ))}
@@ -113,11 +113,11 @@ export function ShipmentStatistics() {
         <div className="flex justify-center gap-6 mt-2">
             <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Shipment</span>
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Envíos</span>
             </div>
             <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Delivery</span>
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Entregas</span>
             </div>
         </div>
       </CardContent>

@@ -24,6 +24,7 @@ import {
   BarChart3,
   Navigation,
   Wrench,
+  ClipboardList,
 } from "lucide-react";
 
 export const navigationConfig: NavGroup[] = [
@@ -34,6 +35,8 @@ export const navigationConfig: NavGroup[] = [
       { title: "Ordenes", href: "/orders", icon: Package },
       { title: "Programacion", href: "/scheduling", icon: CalendarDays },
       { title: "Planificador de Rutas", href: "/route-planner", icon: Navigation },
+      { title: "Workflows", href: "/master/workflows", icon: Route },
+      { title: "Bitácora", href: "/bitacora", icon: ClipboardList },
     ],
   },
   {
@@ -74,7 +77,6 @@ export const navigationConfig: NavGroup[] = [
       { title: "Operadores Logisticos", href: "/master/operators", icon: Building2 },
       { title: "Productos", href: "/master/products", icon: Box },
       { title: "Geocercas", href: "/master/geofences", icon: MapPinned },
-      { title: "Workflows", href: "/master/workflows", icon: Route },
     ],
   },
 ];

@@ -18,7 +18,7 @@ import {
 import { Card } from "@/components/ui/card";
 import type { Route as RouteType } from "@/types/route-planner";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface KpiCardsProps {
   route: RouteType | null;
@@ -43,6 +43,7 @@ function useAnimatedValue(
   decimals: number = 0
 ): string {
   const [displayValue, setDisplayValue] = useState(0);
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
     const startTime = Date.now();
@@ -59,17 +60,33 @@ function useAnimatedValue(
       setDisplayValue(currentValue);
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
   }, [endValue, duration]);
 
   return decimals > 0
     ? displayValue.toFixed(decimals)
     : Math.round(displayValue).toString();
 }
+
+/* ============================================
+   EMPTY KPI DATA (placeholder metrics)
+   ============================================ */
+const emptyKpis = [
+  { icon: Route, label: "Distancia Total", color: "text-[#3DBAFF]", bgColor: "bg-[#3DBAFF]/10" },
+  { icon: Clock, label: "Tiempo Estimado", color: "text-purple-500", bgColor: "bg-purple-500/10" },
+  { icon: MapPin, label: "Paradas", color: "text-green-500", bgColor: "bg-green-500/10" },
+  { icon: DollarSign, label: "Costo Estimado", color: "text-orange-500", bgColor: "bg-orange-500/10" },
+];
 
 /* ============================================
    SINGLE KPI CARD
@@ -84,12 +101,27 @@ function KpiCard({
   isEmpty?: boolean;
 }) {
   if (isEmpty || !data) {
+    const emptyData = emptyKpis[index] || emptyKpis[0];
+    const Icon = emptyData.icon;
     return (
-      <Card className="p-4 bg-muted/20 border-dashed">
-        <div className="h-20 flex items-center justify-center">
-          <div className="text-sm text-muted-foreground">Sin datos</div>
-        </div>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.05 }}
+        className="h-full"
+      >
+        <Card className="px-3 py-2.5 h-full bg-muted/10 border border-dashed border-border/60 hover:border-border transition-colors">
+          <div className="flex items-center gap-3">
+            <div className={cn("p-1.5 rounded-lg", emptyData.bgColor)}>
+              <Icon className={cn("h-4 w-4", emptyData.color)} />
+            </div>
+            <div>
+              <div className="text-base font-semibold text-muted-foreground/40">--</div>
+              <div className="text-[11px] text-muted-foreground/60">{emptyData.label}</div>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
     );
   }
 
@@ -105,7 +137,7 @@ function KpiCard({
         damping: 20,
         stiffness: 300,
       }}
-      whileHover={{ scale: 1.02, y: -2 }}
+      whileHover={{ scale: 1.01, y: -1 }}
       className="h-full"
     >
       <Card
@@ -182,7 +214,7 @@ export function KpiCards({ route }: KpiCardsProps) {
 
   if (!route) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-4">
+      <div className="grid grid-cols-4 gap-3 px-4 py-3">
         {[...Array(4)].map((_, i) => (
           <KpiCard key={i} index={i} isEmpty />
         ))}

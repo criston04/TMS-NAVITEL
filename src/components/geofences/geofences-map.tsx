@@ -50,6 +50,7 @@ export function GeofencesMap({
   const drawnLayerRef = useRef<any>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [editingGeofence, setEditingGeofence] = useState<Geofence | null>(null);
+  const [kmlImportProgress, setKmlImportProgress] = useState<{ current: number; total: number } | null>(null);
   const eventsRegisteredRef = useRef(false);
   const initializingRef = useRef(false);
 
@@ -335,6 +336,35 @@ export function GeofencesMap({
         map.flyTo([lat, lng], zoom, { duration: 1.5 });
       };
 
+      // Marcador de búsqueda de dirección
+      let searchMarker: any = null;
+      (window as any).__addSearchMarker = (lat: number, lng: number, label: string) => {
+        // Remover marcador anterior si existe
+        if (searchMarker) {
+          map.removeLayer(searchMarker);
+        }
+        const shortLabel = label.split(',')[0];
+        const icon = L.divIcon({
+          className: 'search-marker-icon',
+          html: `<div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="background:#0ea5e9;color:white;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);max-width:220px;overflow:hidden;text-overflow:ellipsis;">${shortLabel}</div>
+            <div style="width:3px;height:16px;background:#0ea5e9;"></div>
+            <div style="width:12px;height:12px;background:#0ea5e9;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>
+          </div>`,
+          iconSize: [0, 0],
+          iconAnchor: [0, 50],
+        });
+        searchMarker = L.marker([lat, lng], { icon }).addTo(map);
+        // Añadir popup con la dirección completa
+        searchMarker.bindPopup(`<div style="font-size:13px;max-width:250px;"><b>📍 Dirección encontrada</b><br/>${label}</div>`).openPopup();
+      };
+      (window as any).__removeSearchMarker = () => {
+        if (searchMarker) {
+          map.removeLayer(searchMarker);
+          searchMarker = null;
+        }
+      };
+
       (window as any).__zoomToGeofence = (geofenceId: string) => {
         const geofence = geofences.find(g => g.id === geofenceId);
         if (!geofence) return;
@@ -546,9 +576,22 @@ export function GeofencesMap({
           const kml = parser.parseFromString(text, "text/xml");
           const geojson = togeojson.kml(kml);
 
-          const features = geojson.features || [];
+          const MAX_FEATURES = 500;
+          const allFeatures = geojson.features || [];
+          
+          if (allFeatures.length > MAX_FEATURES) {
+            const proceed = confirm(
+              `El archivo KML contiene ${allFeatures.length} elementos. Se importarán solo los primeros ${MAX_FEATURES}. ¿Desea continuar?`
+            );
+            if (!proceed) return;
+          }
+
+          const features = allFeatures.slice(0, MAX_FEATURES);
           const importedGeofences: Geofence[] = [];
           const BATCH_SIZE = 50;
+          const totalFeatures = features.length;
+
+          setKmlImportProgress({ current: 0, total: totalFeatures });
 
           // Procesar features en lotes para evitar bloquear el UI
           const processBatch = (startIdx: number): Promise<void> => {
@@ -592,6 +635,7 @@ export function GeofencesMap({
                   };
                   importedGeofences.push(geofence);
                 }
+                setKmlImportProgress({ current: endIdx, total: totalFeatures });
                 resolve();
               });
             });
@@ -601,6 +645,8 @@ export function GeofencesMap({
           for (let i = 0; i < features.length; i += BATCH_SIZE) {
             await processBatch(i);
           }
+
+          setKmlImportProgress(null);
 
           if (importedGeofences.length > 0 && onKMLImported) {
             onKMLImported(importedGeofences);
@@ -612,6 +658,7 @@ export function GeofencesMap({
           }
         } catch (error) {
           console.error("Error importing KML:", error);
+          setKmlImportProgress(null);
           alert("Error al importar el archivo KML");
         }
       };
@@ -706,6 +753,8 @@ export function GeofencesMap({
       delete (window as any).__drawCircle;
       delete (window as any).__importKML;
       delete (window as any).__flyToCoordinates;
+      delete (window as any).__addSearchMarker;
+      delete (window as any).__removeSearchMarker;
       delete (window as any).__zoomToGeofence;
       delete (window as any).__editGeofence;
       delete (window as any).__cancelEditing;
@@ -1094,6 +1143,31 @@ export function GeofencesMap({
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-sm text-muted-foreground">Cargando mapa...</p>
             </div>
+          </div>
+        )}
+        {/* Barra de progreso de importación KML */}
+        {kmlImportProgress && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 px-5 py-3 min-w-[320px]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                Importando KML...
+              </span>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {kmlImportProgress.current} / {kmlImportProgress.total}
+              </span>
+            </div>
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.round((kmlImportProgress.current / kmlImportProgress.total) * 100)}%`,
+                }}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1 text-center">
+              {Math.round((kmlImportProgress.current / kmlImportProgress.total) * 100)}% completado
+            </p>
           </div>
         )}
       </div>

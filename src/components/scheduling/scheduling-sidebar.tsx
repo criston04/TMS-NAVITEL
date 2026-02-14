@@ -158,7 +158,7 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
             <Package className="h-4 w-4 text-muted-foreground" />
             <Badge
               variant="secondary"
-              className="absolute -top-1.5 -right-2 flex items-center justify-center h-3.5 min-w-3.5 p-0 text-[9px]"
+              className="absolute -top-1 -right-1.5 flex items-center justify-center h-3.5 min-w-3.5 p-0 text-[9px]"
             >
               {stats.total}
             </Badge>
@@ -169,7 +169,7 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
               <AlertCircle className="h-4 w-4 text-red-500" />
               <Badge
                 variant="destructive"
-                className="absolute -top-1.5 -right-2 flex items-center justify-center h-3.5 min-w-3.5 p-0 text-[9px]"
+                className="absolute -top-1 -right-1.5 flex items-center justify-center h-3.5 min-w-3.5 p-0 text-[9px]"
               >
                 {stats.urgent}
               </Badge>

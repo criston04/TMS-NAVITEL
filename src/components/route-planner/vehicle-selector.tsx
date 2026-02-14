@@ -138,7 +138,7 @@ function VehicleCard({
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 z-10"
+            className="absolute -top-1.5 -right-1.5 z-10"
           >
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#3DBAFF] shadow-lg">
               <Check className="h-4 w-4 text-white" />
@@ -319,7 +319,7 @@ export function VehicleSelector({ vehicles, compact = false }: VehicleSelectorPr
             exit={{ opacity: 0, height: 0 }}
           >
             <ScrollArea className="max-h-[400px]">
-              <div className="space-y-3 pr-2">
+              <div className="space-y-3 p-3">
                 {/* Available Vehicles */}
                 {availableVehicles.map((vehicle) => (
                   <VehicleCard

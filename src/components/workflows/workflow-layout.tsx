@@ -59,8 +59,8 @@ export const WorkflowLayout = memo(function WorkflowLayout({
   // HANDLERS
   // ----------------------------------------
 
-  const _handleSelectWorkflow = useCallback((workflow: Workflow) => {
-    // Navigate to detail view
+  const handleSelectWorkflow = useCallback((workflow: Workflow) => {
+    // Navigate to detail view in read-only mode
     setSelectedWorkflow(workflow);
     setIsEditing(false); // View mode initially
     setActiveView('detail');
@@ -185,6 +185,7 @@ export const WorkflowLayout = memo(function WorkflowLayout({
               workflows={workflows}
               isLoading={isLoading}
               onCreateNew={handleCreateNew}
+              onSelect={handleSelectWorkflow}
               onEdit={handleEdit}
               onDuplicate={handleDuplicate}
               onDelete={handleDeleteRequest}

@@ -8,37 +8,37 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 
 const vehicles = [
-  { id: "VOL-468031", start: "Cagnes-sur-Mer, France", end: "Catania, Italy", warning: "No Warnings", progress: 49 },
-  { id: "VOL-302781", start: "Köln, Germany", end: "Laspezia, Italy", warning: "Ecu Not Responding", progress: 24, warningColor: "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400" },
-  { id: "VOL-715822", start: "Chambray-lès-Tours, France", end: "Hamm, Germany", warning: "Oil Leakage", progress: 7, warningColor: "bg-[#34b7ff]/10 text-[#34b7ff] dark:bg-[#34b7ff]/20 dark:text-[#34b7ff]" },
-  { id: "VOL-451430", start: "Berlin, Germany", end: "Gelsenkirchen, Germany", warning: "No Warnings", progress: 95 },
-  { id: "VOL-921577", start: "Cergy-Pontoise, France", end: "Berlin, Germany", warning: "No Warnings", progress: 65 },
+  { id: "VEH-468031", start: "Lima, Perú", end: "Arequipa, Perú", warning: "Sin alertas", progress: 49 },
+  { id: "VEH-302781", start: "Trujillo, Perú", end: "Chiclayo, Perú", warning: "ECU sin respuesta", progress: 24, warningColor: "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400" },
+  { id: "VEH-715822", start: "Cusco, Perú", end: "Puno, Perú", warning: "Fuga de aceite", progress: 7, warningColor: "bg-[#34b7ff]/10 text-[#34b7ff] dark:bg-[#34b7ff]/20 dark:text-[#34b7ff]" },
+  { id: "VEH-451430", start: "Piura, Perú", end: "Tumbes, Perú", warning: "Sin alertas", progress: 95 },
+  { id: "VEH-921577", start: "Huancayo, Perú", end: "Lima, Perú", warning: "Sin alertas", progress: 65 },
 ];
 
 export function OnRouteVehicles() {
   return (
     <Card className="rounded-2xl border-none shadow-sm bg-white dark:bg-card/50">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">On route vehicles</CardTitle>
+        <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Vehículos en Ruta</CardTitle>
         <Button variant="ghost" size="icon" className="h-8 w-8">
             <MoreVertical className="h-4 w-4 text-muted-foreground" />
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md">
-            <div className="grid grid-cols-[30px_50px_1fr_1.5fr_1.5fr_1fr_1.5fr] gap-4 py-3 px-4 text-xs font-bold text-muted-foreground uppercase tracking-wider border-b">
+        <div className="rounded-md overflow-x-auto">
+            <div className="grid grid-cols-[30px_50px_1fr_1.5fr_1.5fr_1fr_1.5fr] gap-4 py-3 px-4 text-xs font-bold text-muted-foreground uppercase tracking-wider border-b min-w-[700px]">
                 <div></div>
                 <div></div>
-                <div>Location</div>
-                <div>Starting Route</div>
-                <div>Ending Route</div>
-                <div>Warnings</div>
-                <div>Progress</div>
+                <div>Ubicación</div>
+                <div>Ruta Origen</div>
+                <div>Ruta Destino</div>
+                <div>Alertas</div>
+                <div>Progreso</div>
             </div>
             
-            <div className="divide-y">
+            <div className="divide-y min-w-[700px]">
             {vehicles.map((v) => (
-                <div key={v.id} className="grid grid-cols-[30px_50px_1fr_1.5fr_1.5fr_1fr_1.5fr] gap-4 py-4 px-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div key={v.id} className="grid grid-cols-[30px_50px_1fr_1.5fr_1.5fr_1fr_1.5fr] gap-4 py-4 px-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[700px]">
                     <div className="flex items-center">
                         <Checkbox className="rounded-sm border-slate-300" />
                     </div>
@@ -66,7 +66,7 @@ export function OnRouteVehicles() {
 
             {/* Pagination Mock */}
             <div className="flex items-center justify-between pt-6 px-4">
-                <span className="text-sm text-muted-foreground">Showing 1 to 5 of 25 entries</span>
+                <span className="text-sm text-muted-foreground">Mostrando 1 a 5 de 25 registros</span>
                 <div className="flex items-center gap-1">
                      <Button variant="secondary" size="icon" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">|&lt;</span></Button>
                      <Button variant="secondary" size="icon" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">&lt;</span></Button>

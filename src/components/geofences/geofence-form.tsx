@@ -32,7 +32,8 @@ import {
 import { cn } from "@/lib/utils";
 import { 
   GeofenceCategory, 
-  GeofenceAlerts 
+  GeofenceAlerts,
+  GeofenceAddress 
 } from "@/types/models/geofence";
 import { geofenceCategories, geofenceColors } from "@/mocks/master/geofences.mock";
 
@@ -61,6 +62,7 @@ export interface GeofenceFormData {
   category: GeofenceCategory;
   alerts: GeofenceAlerts;
   customerId?: string;
+  structuredAddress?: GeofenceAddress;
 }
 
 /**
@@ -320,6 +322,86 @@ export default function GeofenceForm({
         )}
       </div>
       
+      {/* Dirección Estructurada */}
+      <div className="space-y-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
+        <Label className="text-base font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-100">
+          <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
+            <MapPin className="h-4 w-4 text-slate-500" />
+          </div>
+          Dirección
+        </Label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="geo-city" className="text-xs text-slate-600 dark:text-slate-400 font-medium">Ciudad</Label>
+            <Input
+              id="geo-city"
+              value={formData.structuredAddress?.city || ""}
+              onChange={(e) =>
+                onFormDataChange({
+                  structuredAddress: {
+                    ...formData.structuredAddress,
+                    city: e.target.value,
+                  },
+                })
+              }
+              placeholder="Ej. Lima"
+              className="h-9 text-sm bg-white dark:bg-slate-900"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="geo-district" className="text-xs text-slate-600 dark:text-slate-400 font-medium">Distrito</Label>
+            <Input
+              id="geo-district"
+              value={formData.structuredAddress?.district || ""}
+              onChange={(e) =>
+                onFormDataChange({
+                  structuredAddress: {
+                    ...formData.structuredAddress,
+                    district: e.target.value,
+                  },
+                })
+              }
+              placeholder="Ej. San Isidro"
+              className="h-9 text-sm bg-white dark:bg-slate-900"
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="geo-street" className="text-xs text-slate-600 dark:text-slate-400 font-medium">Calle / Avenida</Label>
+          <Input
+            id="geo-street"
+            value={formData.structuredAddress?.street || ""}
+            onChange={(e) =>
+              onFormDataChange({
+                structuredAddress: {
+                  ...formData.structuredAddress,
+                  street: e.target.value,
+                },
+              })
+            }
+            placeholder="Ej. Av. Javier Prado 1234"
+            className="h-9 text-sm bg-white dark:bg-slate-900"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="geo-reference" className="text-xs text-slate-600 dark:text-slate-400 font-medium">Referencia</Label>
+          <Input
+            id="geo-reference"
+            value={formData.structuredAddress?.reference || ""}
+            onChange={(e) =>
+              onFormDataChange({
+                structuredAddress: {
+                  ...formData.structuredAddress,
+                  reference: e.target.value,
+                },
+              })
+            }
+            placeholder="Ej. Frente al parque central"
+            className="h-9 text-sm bg-white dark:bg-slate-900"
+          />
+        </div>
+      </div>
+
       {/* Alertas - Diseño mejorado */}
       <div className="space-y-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between">

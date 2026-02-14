@@ -204,7 +204,7 @@ function OrderStatsCardsComponent({
               <p className="text-sm text-muted-foreground">Total órdenes</p>
               <span className="text-3xl font-bold">{totals.total.toLocaleString()}</span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center">
+            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
               <AnimatedPackageIcon size={56} />
             </div>
           </div>
@@ -227,7 +227,7 @@ function OrderStatsCardsComponent({
                 {totals.active.toLocaleString()}
               </span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center">
+            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
               <AnimatedTruckIcon size={56} />
             </div>
           </div>
@@ -250,7 +250,7 @@ function OrderStatsCardsComponent({
                 {statusCounts.completed.toLocaleString()}
               </span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center">
+            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
               <AnimatedCheckIcon size={56} />
             </div>
           </div>
@@ -273,7 +273,7 @@ function OrderStatsCardsComponent({
                 {totals.attention.toLocaleString()}
               </span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center">
+            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
               <AnimatedWarningIcon size={56} />
             </div>
           </div>

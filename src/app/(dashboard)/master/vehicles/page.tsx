@@ -7,6 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Truck, 
   Plus, 
@@ -25,7 +32,10 @@ import {
   Eye,
   Pencil,
   UserCircle,
-  Trash2
+  Trash2,
+  Building2,
+  Filter,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
 import { vehiclesService, driversService } from "@/services/master";
@@ -251,11 +261,12 @@ export default function VehiclesPage() {
   const [statusFilter, setStatusFilter] = useState<VehicleStatus | "all">("all");
   const [operationalFilter, setOperationalFilter] = useState<VehicleOperationalStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<VehicleType | "all">("all");
+  const [operatorFilter, setOperatorFilter] = useState<string>("all");
   
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   
-  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("table");
   
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
@@ -269,13 +280,14 @@ export default function VehiclesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Verificar si hay filtros activos
-  const hasActiveFilters = statusFilter !== "all" || operationalFilter !== "all" || typeFilter !== "all";
+  const hasActiveFilters = statusFilter !== "all" || operationalFilter !== "all" || typeFilter !== "all" || operatorFilter !== "all";
   
   // Limpiar todos los filtros
   const clearFilters = useCallback(() => {
     setStatusFilter("all");
     setOperationalFilter("all");
     setTypeFilter("all");
+    setOperatorFilter("all");
     setSearch("");
   }, []);
   
@@ -305,9 +317,10 @@ export default function VehiclesPage() {
       if (statusFilter !== "all" && vehicle.status !== statusFilter) return false;
       if (operationalFilter !== "all" && vehicle.operationalStatus !== operationalFilter) return false;
       if (typeFilter !== "all" && vehicle.type !== typeFilter) return false;
+      if (operatorFilter !== "all" && (vehicle.operatorName || "Sin asignar") !== operatorFilter) return false;
       return true;
     }) ?? [];
-  }, [vehiclesRaw, statusFilter, operationalFilter, typeFilter]);
+  }, [vehiclesRaw, statusFilter, operationalFilter, typeFilter, operatorFilter]);
 
   // Calcular paginación
   const totalItems = filteredVehicles.length;
@@ -327,7 +340,7 @@ export default function VehiclesPage() {
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
-  }, [statusFilter, operationalFilter, typeFilter, search]);
+  }, [statusFilter, operationalFilter, typeFilter, operatorFilter, search]);
 
   // Handlers de selección
   const handleToggleSelect = useCallback((id: string, selected: boolean) => {
@@ -630,6 +643,7 @@ export default function VehiclesPage() {
                   <TableHead>Vehículo</TableHead>
                   <TableHead>Placa</TableHead>
                   <TableHead>Tipo</TableHead>
+                  <TableHead>Empresa</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Habilitación</TableHead>
                   <TableHead>Kilometraje</TableHead>
@@ -664,6 +678,12 @@ export default function VehiclesPage() {
                         <Badge variant="outline">{vehicle.plate}</Badge>
                       </TableCell>
                       <TableCell>{vehicle.type}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm">{vehicle.operatorName || "Sin asignar"}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <OperationalBadge status={vehicle.operationalStatus} />
                       </TableCell>
@@ -798,17 +818,65 @@ export default function VehiclesPage() {
         {renderStatsSection()}
       </div>
 
-      {/* Búsqueda */}
+      {/* Búsqueda y Filtros */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar vehículo (placa, marca)..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar vehículo (placa, marca)..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as VehicleStatus | "all")}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="active">Activo</SelectItem>
+                <SelectItem value="inactive">Inactivo</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="blocked">Bloqueado</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as VehicleType | "all")}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                <SelectItem value="camion">Camión</SelectItem>
+                <SelectItem value="tractocamion">Tractocamión</SelectItem>
+                <SelectItem value="remolque">Remolque</SelectItem>
+                <SelectItem value="semiremolque">Semiremolque</SelectItem>
+                <SelectItem value="furgoneta">Furgoneta</SelectItem>
+                <SelectItem value="pickup">Pickup</SelectItem>
+                <SelectItem value="cisterna">Cisterna</SelectItem>
+                <SelectItem value="volquete">Volquete</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={operatorFilter} onValueChange={setOperatorFilter}>
+              <SelectTrigger className="w-52">
+                <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Empresa transportista" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las empresas</SelectItem>
+                {Array.from(new Set(vehiclesRaw?.map(v => v.operatorName || "Sin asignar") ?? [])).sort().map(name => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                <X className="h-4 w-4 mr-1" />
+                Limpiar filtros
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

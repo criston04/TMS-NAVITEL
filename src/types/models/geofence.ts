@@ -78,6 +78,20 @@ export interface GeofenceAlerts {
 }
 
 /**
+ * Dirección estructurada de una geocerca
+ */
+export interface GeofenceAddress {
+  /** Ciudad */
+  city?: string;
+  /** Distrito */
+  district?: string;
+  /** Calle / Avenida */
+  street?: string;
+  /** Referencia adicional */
+  reference?: string;
+}
+
+/**
  * Entidad Geocerca
  */
 export interface Geofence extends BaseEntity {
@@ -103,8 +117,10 @@ export interface Geofence extends BaseEntity {
   color: string;
   /** Opacidad (0-1) */
   opacity: number;
-  /** Dirección (si aplica) */
+  /** Dirección (si aplica) - legacy string */
   address?: string;
+  /** Dirección estructurada */
+  structuredAddress?: GeofenceAddress;
   /** Cliente asociado (si aplica) */
   customerId?: string;
   /** Notas */

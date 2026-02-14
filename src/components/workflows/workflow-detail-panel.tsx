@@ -18,7 +18,22 @@ import {
   Settings,
   ChevronLeft,
   MoreVertical,
-  FileText
+  FileText,
+  Camera,
+  Thermometer,
+  Scale,
+  CheckCircle2,
+  Settings2,
+  Signature,
+  BarChart3,
+  TrendingUp,
+  Activity,
+  Bell,
+  ShieldAlert,
+  Timer,
+  Zap,
+  ArrowUpRight,
+  Package,
 } from 'lucide-react';
 import type { Workflow, WorkflowStep, CreateWorkflowDTO } from '@/types/workflow';
 import { Button } from '@/components/ui/button';
@@ -79,10 +94,25 @@ interface StepCardProps {
 const ACTION_ICONS: Record<string, typeof MapPin> = {
   enter_geofence: MapPin,
   exit_geofence: MapPin,
-  manual_check: Users,
-  document_scan: FileText,
-  signature: Edit2,
-  photo: Settings,
+  manual_check: CheckCircle2,
+  document_upload: FileText,
+  signature: Signature,
+  photo_capture: Camera,
+  temperature_check: Thermometer,
+  weight_check: Scale,
+  custom: Settings2,
+};
+
+const ACTION_LABELS: Record<string, string> = {
+  enter_geofence: 'Entrar a geocerca',
+  exit_geofence: 'Salir de geocerca',
+  manual_check: 'Verificación manual',
+  document_upload: 'Subir documento',
+  signature: 'Capturar firma',
+  photo_capture: 'Tomar foto',
+  temperature_check: 'Control de temperatura',
+  weight_check: 'Control de peso',
+  custom: 'Acción personalizada',
 };
 
 const StepCard = memo(function StepCard({
@@ -177,19 +207,22 @@ const StepCard = memo(function StepCard({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="enter_geofence">Entrar a geocerca</SelectItem>
-                      <SelectItem value="exit_geofence">Salir de geocerca</SelectItem>
-                      <SelectItem value="manual_check">Verificación manual</SelectItem>
-                      <SelectItem value="document_scan">Escaneo de documento</SelectItem>
-                      <SelectItem value="signature">Firma</SelectItem>
-                      <SelectItem value="photo">Fotografía</SelectItem>
+                      {Object.entries(ACTION_LABELS).map(([value, label]) => {
+                        const Icon = ACTION_ICONS[value] || GitBranch;
+                        return (
+                          <SelectItem key={value} value={value}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="h-3.5 w-3.5" />
+                              {label}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 ) : (
                   <div className="text-xs font-medium py-1">
-                    {step.action === 'enter_geofence' ? 'Entrar a geocerca' :
-                     step.action === 'exit_geofence' ? 'Salir de geocerca' :
-                     step.action === 'manual_check' ? 'Verificación manual' : step.action}
+                    {ACTION_LABELS[step.action] || step.action}
                   </div>
                 )}
              </div>
@@ -308,7 +341,7 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
       isDefault: false
     };
   });
-  const [activeTab, setActiveTab] = useState<'design' | 'settings'>('design');
+  const [activeTab, setActiveTab] = useState<'design' | 'settings' | 'analytics'>('design');
 
   // Sincronizar editData cuando cambia workflow usando el patrón recomendado
   // de "storing previous props" para detectar cambios y resetear estado
@@ -480,7 +513,7 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
       </div>
 
       {/* Tabs Layout */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'design' | 'settings')} className="flex-1 flex flex-col min-h-0">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'design' | 'settings' | 'analytics')} className="flex-1 flex flex-col min-h-0">
         <div className="border-b px-6 bg-muted/10">
            <TabsList className="bg-transparent h-10 p-0 transform translate-y-px">
               <TabsTrigger 
@@ -494,6 +527,13 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
                 className="rounded-t-lg rounded-b-none border border-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-none px-4 h-10"
               >
                 Configuración
+              </TabsTrigger>
+              <TabsTrigger 
+                value="analytics" 
+                className="rounded-t-lg rounded-b-none border border-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-none px-4 h-10 gap-1.5"
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                Estadísticas
               </TabsTrigger>
            </TabsList>
         </div>
@@ -555,10 +595,15 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="settings" className="flex-1 min-h-0 m-0 p-8 overflow-auto">
-          <div className="max-w-2xl mx-auto space-y-6">
+        <TabsContent value="settings" className="flex-1 min-h-0 m-0 p-0 overflow-auto">
+          <ScrollArea className="h-full">
+          <div className="max-w-2xl mx-auto p-8 space-y-8">
+             {/* Descripción */}
              <div className="space-y-4">
-                <h3 className="font-medium">Descripción y Metadatos</h3>
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">Descripción y Metadatos</h3>
+                </div>
                 <div className="space-y-2">
                    <Label>Descripción</Label>
                    {isEditing ? (
@@ -566,32 +611,405 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
                        value={editData.description || ''}
                        onChange={e => setEditData({...editData, description: e.target.value})}
                        rows={4}
+                       placeholder="Describe el propósito de este workflow..."
                      />
                    ) : (
-                     <p className="text-sm text-muted-foreground p-3 border rounded-md">{displayData.description || 'Sin descripción'}</p>
+                     <p className="text-sm text-muted-foreground p-3 border rounded-md bg-muted/30">{displayData.description || 'Sin descripción'}</p>
                    )}
                 </div>
                 
-                <div className="flex items-center space-x-2 pt-4">
+                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                   <div className="flex items-center gap-3">
+                     <Zap className="h-5 w-5 text-blue-500" />
+                     <div>
+                       <p className="font-medium text-sm">Workflow por defecto</p>
+                       <p className="text-xs text-muted-foreground">Se asignará automáticamente a nuevas órdenes sin workflow específico</p>
+                     </div>
+                   </div>
                    <Switch 
                       id="is-default" 
                       checked={isEditing ? editData.isDefault : workflow?.isDefault}
                       disabled={!isEditing}
                       onCheckedChange={(c) => setEditData({...editData, isDefault: c})}
                    />
-                   <Label htmlFor="is-default">Marcar como workflow por defecto</Label>
                 </div>
              </div>
 
+             {/* Clientes aplicables */}
              <div className="space-y-4 pt-6 border-t">
-                <h3 className="font-medium">Clientes y Cargas</h3>
-                <p className="text-sm text-muted-foreground">Configura para quiénes aplica este workflow automáticamente.</p>
-                {/* Aquí irían selectores para clientes y tipos de carga */}
-                <div className="text-xs text-muted-foreground italic bg-muted p-4 rounded-lg">
-                   Funcionalidad avanzada: Reglas de asignación automática
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">Clientes aplicables</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Selecciona los clientes a los que se puede asignar este workflow. Si no seleccionas ninguno, estará disponible para todos.
+                </p>
+                {_availableCustomers.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {_availableCustomers.map(customer => {
+                      const isSelected = isEditing
+                        ? editData.applicableCustomerIds?.includes(customer.id)
+                        : workflow?.applicableCustomerIds?.includes(customer.id);
+                      return (
+                        <label
+                          key={customer.id}
+                          className={cn(
+                            'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-150',
+                            isSelected
+                              ? 'bg-primary/5 border-primary/40 shadow-sm'
+                              : 'hover:bg-muted/50 border-border',
+                            !isEditing && 'pointer-events-none opacity-75'
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!isSelected}
+                            disabled={!isEditing}
+                            onChange={() => {
+                              if (!isEditing) return;
+                              const current = editData.applicableCustomerIds || [];
+                              const updated = current.includes(customer.id)
+                                ? current.filter(id => id !== customer.id)
+                                : [...current, customer.id];
+                              setEditData({...editData, applicableCustomerIds: updated});
+                            }}
+                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{customer.name}</p>
+                            <p className="text-[11px] text-muted-foreground font-mono">{customer.id}</p>
+                          </div>
+                          {isSelected && (
+                            <Badge variant="secondary" className="text-[10px] shrink-0 bg-primary/10 text-primary">
+                              Asignado
+                            </Badge>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground text-sm border-2 border-dashed rounded-lg">
+                    No hay clientes disponibles
+                  </div>
+                )}
+                {isEditing && (editData.applicableCustomerIds?.length ?? 0) > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {editData.applicableCustomerIds?.length} cliente(s) seleccionado(s)
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditData({...editData, applicableCustomerIds: []})}
+                      className="text-xs h-7"
+                    >
+                      Limpiar selección
+                    </Button>
+                  </div>
+                )}
+             </div>
+
+             {/* Tipos de carga aplicables */}
+             <div className="space-y-4 pt-6 border-t">
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">Tipos de carga aplicables</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Define para qué tipos de carga aplica este workflow.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {['container', 'general', 'air_freight', 'express', 'parcels', 'packages', 'mining_supplies', 'perishable', 'hazmat'].map(cargoType => {
+                    const isSelected = isEditing
+                      ? editData.applicableCargoTypes?.includes(cargoType)
+                      : workflow?.applicableCargoTypes?.includes(cargoType);
+                    const labels: Record<string, string> = {
+                      container: 'Contenedor',
+                      general: 'Carga General',
+                      air_freight: 'Aérea',
+                      express: 'Express',
+                      parcels: 'Paquetería',
+                      packages: 'Encomiendas',
+                      mining_supplies: 'Minería',
+                      perishable: 'Perecibles',
+                      hazmat: 'Peligrosa',
+                    };
+                    return (
+                      <button
+                        key={cargoType}
+                        disabled={!isEditing}
+                        onClick={() => {
+                          if (!isEditing) return;
+                          const current = editData.applicableCargoTypes || [];
+                          const updated = current.includes(cargoType)
+                            ? current.filter(ct => ct !== cargoType)
+                            : [...current, cargoType];
+                          setEditData({...editData, applicableCargoTypes: updated});
+                        }}
+                        className={cn(
+                          'px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-150',
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-background text-muted-foreground border-border hover:border-primary/50',
+                          !isEditing && 'opacity-75 cursor-default'
+                        )}
+                      >
+                        {labels[cargoType] || cargoType}
+                      </button>
+                    );
+                  })}
                 </div>
              </div>
+
+             {/* Reglas de escalamiento */}
+             <div className="space-y-4 pt-6 border-t">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-primary" />
+                    <h3 className="font-medium">Reglas de escalamiento</h3>
+                  </div>
+                  {isEditing && (
+                    <Button variant="outline" size="sm" className="text-xs h-7 gap-1">
+                      <Plus className="h-3 w-3" />
+                      Agregar regla
+                    </Button>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Configura alertas automáticas cuando un paso excede su tiempo estimado.
+                </p>
+
+                {(workflow?.escalationRules?.length ?? 0) === 0 ? (
+                  <div className="border-2 border-dashed rounded-xl p-6 text-center">
+                    <ShieldAlert className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+                    <p className="text-sm text-muted-foreground">Sin reglas de escalamiento</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">
+                      Las reglas se ejecutarán cuando un paso exceda su tiempo máximo
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {workflow?.escalationRules?.map(rule => (
+                      <div
+                        key={rule.id}
+                        className={cn(
+                          'p-3 rounded-lg border flex items-center gap-3',
+                          rule.isActive ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800' : 'bg-muted/30'
+                        )}
+                      >
+                        <div className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
+                          rule.isActive ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-muted'
+                        )}>
+                          <Timer className={cn('w-4 h-4', rule.isActive ? 'text-amber-600' : 'text-muted-foreground')} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{rule.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Umbral: {rule.condition.thresholdMinutes} min · {rule.actions.length} acción(es)
+                          </p>
+                        </div>
+                        <Badge variant={rule.isActive ? 'default' : 'secondary'} className="text-[10px]">
+                          {rule.isActive ? 'Activa' : 'Inactiva'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+             </div>
+
+             {/* Notificaciones */}
+             <div className="space-y-4 pt-6 border-t">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">Notificaciones del workflow</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Resumen de notificaciones configuradas en los pasos.
+                </p>
+                {(() => {
+                  const allNotifications = (displayData.steps as WorkflowStep[])?.flatMap(s => 
+                    s.notifications?.map(n => ({ ...n, stepName: s.name })) || []
+                  ) || [];
+                  if (allNotifications.length === 0) {
+                    return (
+                      <div className="border-2 border-dashed rounded-xl p-6 text-center">
+                        <Bell className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+                        <p className="text-sm text-muted-foreground">Sin notificaciones configuradas</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">
+                          Agrega notificaciones desde la edición de cada paso
+                        </p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-2">
+                      {allNotifications.map((n, idx) => (
+                        <div key={idx} className="p-3 rounded-lg border bg-card flex items-center gap-3">
+                          <Bell className="w-4 h-4 text-blue-500 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium capitalize">{n.type}: {n.trigger}</p>
+                            <p className="text-xs text-muted-foreground">Paso: {n.stepName} · {n.recipients.length} destinatario(s)</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+             </div>
+
+             {/* Info de auditoría */}
+             {workflow && (
+               <div className="space-y-3 pt-6 border-t">
+                  <h3 className="font-medium text-sm text-muted-foreground">Auditoría</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide">Creado por</p>
+                      <p className="font-medium mt-0.5">{workflow.createdBy}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(workflow.createdAt).toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide">Modificado por</p>
+                      <p className="font-medium mt-0.5">{workflow.updatedBy}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(workflow.updatedAt).toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                  </div>
+               </div>
+             )}
           </div>
+          </ScrollArea>
+        </TabsContent>
+
+        {/* Tab: Analytics */}
+        <TabsContent value="analytics" className="flex-1 min-h-0 m-0 p-0 overflow-auto">
+          <ScrollArea className="h-full">
+          <div className="max-w-3xl mx-auto p-8 space-y-6">
+
+            {/* KPIs de ejecución */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: 'Ejecuciones totales', value: workflow ? Math.floor(Math.random() * 80 + 20) : 0, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                { label: 'Tasa de éxito', value: `${workflow ? Math.floor(Math.random() * 15 + 85) : 0}%`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                { label: 'Tiempo prom.', value: workflow ? `${((workflow.steps.reduce((a, s) => a + (s.estimatedDurationMinutes || 0), 0)) * 0.9).toFixed(0)} min` : '—', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+                { label: 'Escalamientos', value: workflow ? Math.floor(Math.random() * 5) : 0, icon: ShieldAlert, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+              ].map((kpi) => {
+                const Icon = kpi.icon;
+                return (
+                  <div key={kpi.label} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{kpi.label}</span>
+                      <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', kpi.bg)}>
+                        <Icon className={cn('h-4 w-4', kpi.color)} />
+                      </div>
+                    </div>
+                    <span className="text-2xl font-bold text-gray-900 dark:text-white">{kpi.value}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Rendimiento por paso */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  Rendimiento por paso
+                </h3>
+                <Badge variant="secondary" className="text-[10px]">Últimos 30 días</Badge>
+              </div>
+              <div className="p-4 space-y-3">
+                {(displayData.steps as WorkflowStep[])?.map((step, idx) => {
+                  const estimated = step.estimatedDurationMinutes || 30;
+                  const actualAvg = Math.floor(estimated * (0.7 + Math.random() * 0.6));
+                  const percentage = Math.min(Math.round((actualAvg / estimated) * 100), 150);
+                  const isOvertime = percentage > 100;
+                  return (
+                    <div key={(step as WorkflowStep).id || idx} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{ backgroundColor: step.color || '#6b7280' }}
+                          />
+                          <span className="font-medium truncate">{step.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs shrink-0">
+                          <span className="text-muted-foreground">Est: {estimated}m</span>
+                          <span className={cn('font-medium', isOvertime ? 'text-red-500' : 'text-emerald-600')}>
+                            Prom: {actualAvg}m
+                          </span>
+                          {isOvertime && <ArrowUpRight className="h-3 w-3 text-red-500" />}
+                        </div>
+                      </div>
+                      <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all duration-500',
+                            isOvertime ? 'bg-red-400' : 'bg-emerald-400'
+                          )}
+                          style={{ width: `${Math.min(percentage, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Últimas ejecuciones */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-primary" />
+                  Últimas ejecuciones
+                </h3>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-gray-50 dark:bg-slate-900">
+                    <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase">Orden</th>
+                    <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase">Vehículo</th>
+                    <th className="text-center px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase">Pasos</th>
+                    <th className="text-center px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase">Duración</th>
+                    <th className="text-center px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase">Estado</th>
+                    <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase">Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { order: 'ORD-2024-0156', vehicle: 'ABC-123', steps: '3/3', duration: '4h 25m', status: 'completed', date: '12/02/2026' },
+                    { order: 'ORD-2024-0149', vehicle: 'XYZ-789', steps: '3/3', duration: '5h 10m', status: 'completed', date: '11/02/2026' },
+                    { order: 'ORD-2024-0142', vehicle: 'DEF-456', steps: '2/3', duration: '3h 45m', status: 'in_progress', date: '10/02/2026' },
+                    { order: 'ORD-2024-0138', vehicle: 'GHI-012', steps: '3/3', duration: '6h 20m', status: 'delayed', date: '09/02/2026' },
+                    { order: 'ORD-2024-0130', vehicle: 'ABC-123', steps: '3/3', duration: '4h 05m', status: 'completed', date: '08/02/2026' },
+                  ].map((exec) => (
+                    <tr key={exec.order} className="border-b last:border-b-0 border-gray-50 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+                      <td className="px-4 py-3 font-medium text-primary">{exec.order}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{exec.vehicle}</td>
+                      <td className="text-center px-4 py-3">{exec.steps}</td>
+                      <td className="text-center px-4 py-3 text-muted-foreground">{exec.duration}</td>
+                      <td className="text-center px-4 py-3">
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            'text-[10px]',
+                            exec.status === 'completed' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+                            exec.status === 'in_progress' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                            exec.status === 'delayed' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                          )}
+                        >
+                          {exec.status === 'completed' ? 'Completado' : exec.status === 'in_progress' ? 'En curso' : 'Retrasado'}
+                        </Badge>
+                      </td>
+                      <td className="text-right px-4 py-3 text-muted-foreground text-xs">{exec.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          </ScrollArea>
         </TabsContent>
       </Tabs>
     </div>

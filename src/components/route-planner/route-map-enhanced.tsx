@@ -14,7 +14,6 @@ import {
   Maximize2,
   Minimize2,
   Layers,
-  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Route, RouteStop, TransportOrder } from "@/types/route-planner";
 import { cn } from "@/lib/utils";
 
-// Dynamic imports for Leaflet components
+// Dynamic imports for Leaflet components (only components, not hooks)
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
@@ -43,10 +42,6 @@ const Popup = dynamic(
   () => import("react-leaflet").then((mod) => mod.Popup),
   { ssr: false }
 );
-const useMap = dynamic(
-  () => import("react-leaflet").then((mod) => mod.useMap),
-  { ssr: false }
-) as any;
 
 interface RouteMapProps {
   route: Route | null;
@@ -56,19 +51,67 @@ interface RouteMapProps {
 }
 
 /* ============================================
-   MAP CONTROLLER COMPONENT
+   FIT BOUNDS COMPONENT (uses useMap properly via dynamic component)
    ============================================ */
-function MapController({
-  center,
-  zoom,
-}: {
-  center: [number, number];
-  zoom: number;
-}) {
-  // This component would use useMap hook from react-leaflet
-  // to programmatically control the map
-  return null;
-}
+const MapBoundsController = dynamic(
+  () =>
+    import("react-leaflet").then((mod) => {
+      const { useMap } = mod;
+      // Create a proper React component that uses useMap hook
+      function BoundsController({ bounds }: { bounds: [number, number][] }) {
+        const map = useMap();
+        useEffect(() => {
+          if (bounds.length > 0 && map) {
+            const L = require("leaflet");
+            const leafletBounds = L.latLngBounds(
+              bounds.map((b: [number, number]) => L.latLng(b[0], b[1]))
+            );
+            map.fitBounds(leafletBounds, {
+              padding: [50, 50],
+              maxZoom: 15,
+              animate: true,
+              duration: 0.5,
+            });
+          }
+        }, [bounds, map]);
+        return null;
+      }
+      return { default: BoundsController };
+    }),
+  { ssr: false }
+) as any;
+
+/* ============================================
+   MAP RESIZE HANDLER (invalidates size on container resize)
+   ============================================ */
+const MapResizeHandler = dynamic(
+  () =>
+    import("react-leaflet").then((mod) => {
+      const { useMap } = mod;
+      function ResizeHandler() {
+        const map = useMap();
+        useEffect(() => {
+          if (!map) return;
+          const container = map.getContainer();
+          let timeoutId: ReturnType<typeof setTimeout> | null = null;
+          const observer = new ResizeObserver(() => {
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              map.invalidateSize();
+            }, 150);
+          });
+          observer.observe(container);
+          return () => {
+            observer.disconnect();
+            if (timeoutId) clearTimeout(timeoutId);
+          };
+        }, [map]);
+        return null;
+      }
+      return { default: ResizeHandler };
+    }),
+  { ssr: false }
+) as any;
 
 /* ============================================
    ANIMATED POLYLINE PATH
@@ -76,12 +119,15 @@ function MapController({
 function AnimatedPath({ positions }: { positions: [number, number][] }) {
   const [visiblePositions, setVisiblePositions] = useState<[number, number][]>([]);
   const animationRef = useRef<number | null>(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     if (!positions.length) return;
 
     let index = 0;
     const animate = () => {
+      if (!isMountedRef.current) return;
       if (index < positions.length) {
         setVisiblePositions(positions.slice(0, index + 1));
         index++;
@@ -94,6 +140,7 @@ function AnimatedPath({ positions }: { positions: [number, number][] }) {
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
+      isMountedRef.current = false;
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
@@ -149,33 +196,59 @@ function AnimatedPath({ positions }: { positions: [number, number][] }) {
    ============================================ */
 function EmptyMapState() {
   return (
-    <div className="flex h-full items-center justify-center bg-gradient-to-br from-muted/30 to-muted/10">
+    <div className="flex h-full items-center justify-center bg-gradient-to-br from-muted/20 via-background to-muted/10">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center"
+        className="text-center max-w-sm"
       >
-        <motion.div
-          animate={{
-            y: [0, -10, 0],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="mb-4"
-        >
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/50 mx-auto">
-            <Navigation className="h-10 w-10 text-muted-foreground/50" />
-          </div>
-        </motion.div>
-        <h3 className="text-lg font-semibold text-muted-foreground mb-1">
-          Sin ruta generada
+        {/* Animated Map Icon */}
+        <div className="relative mx-auto mb-6">
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#3DBAFF]/20 to-[#3DBAFF]/5 mx-auto shadow-lg shadow-[#3DBAFF]/10 border border-[#3DBAFF]/10">
+              <Navigation className="h-12 w-12 text-[#3DBAFF]/60" />
+            </div>
+          </motion.div>
+          {/* Decorative dots */}
+          <motion.div
+            animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+            className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-green-500/30"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
+            className="absolute -bottom-1 -left-3 h-3 w-3 rounded-full bg-[#3DBAFF]/30"
+          />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          Planifica tu ruta
         </h3>
-        <p className="text-sm text-muted-foreground/70 max-w-xs">
-          Selecciona órdenes de la lista izquierda y haz clic en "Generar Ruta" para visualizar
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Selecciona órdenes del panel izquierdo y presiona{" "}
+          <span className="font-medium text-[#3DBAFF]">"Generar Ruta"</span>{" "}
+          para visualizar el recorrido optimizado
         </p>
+        {/* Step indicators */}
+        <div className="flex items-center justify-center gap-6 mt-6 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#3DBAFF]/10 text-[#3DBAFF] text-[10px] font-bold">1</div>
+            <span>Seleccionar</span>
+          </div>
+          <div className="h-px w-4 bg-border" />
+          <div className="flex items-center gap-1.5">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#3DBAFF]/10 text-[#3DBAFF] text-[10px] font-bold">2</div>
+            <span>Generar</span>
+          </div>
+          <div className="h-px w-4 bg-border" />
+          <div className="flex items-center gap-1.5">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#3DBAFF]/10 text-[#3DBAFF] text-[10px] font-bold">3</div>
+            <span>Confirmar</span>
+          </div>
+        </div>
       </motion.div>
     </div>
   );
@@ -189,6 +262,19 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
   const [mapStyle, setMapStyle] = useState<"street" | "satellite">("street");
   const mapRef = useRef<HTMLDivElement>(null);
 
+  // Fix Leaflet default icon paths for webpack/Next.js bundlers
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const L = require("leaflet");
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+    }
+  }, []);
+
   // Calculate map center
   const center: [number, number] = useMemo(() => {
     if (route?.stops.length) {
@@ -198,6 +284,20 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
       return selectedOrders[0].pickup.coordinates;
     }
     return [-12.0464, -77.0428]; // Lima default
+  }, [route, selectedOrders]);
+
+  // Calculate bounds for all visible points
+  const bounds: [number, number][] = useMemo(() => {
+    const points: [number, number][] = [];
+    if (route?.stops.length) {
+      route.stops.forEach((s) => points.push(s.coordinates));
+    } else if (selectedOrders.length) {
+      selectedOrders.forEach((o) => {
+        points.push(o.pickup.coordinates);
+        points.push(o.delivery.coordinates);
+      });
+    }
+    return points;
   }, [route, selectedOrders]);
 
   // Toggle fullscreen
@@ -240,6 +340,14 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
           zoomControl={true}
         >
           <TileLayer url={tileUrls[mapStyle]} />
+
+          {/* Auto-resize map when container changes */}
+          <MapResizeHandler />
+
+          {/* Auto-fit bounds when points change */}
+          {bounds.length > 0 && (
+            <MapBoundsController bounds={bounds} />
+          )}
 
           {/* Route Polyline */}
           {route?.polyline && <AnimatedPath positions={route.polyline} />}
@@ -316,6 +424,18 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
                 <Marker
                   key={`${order.id}-pickup`}
                   position={order.pickup.coordinates}
+                  //@ts-ignore
+                  icon={
+                    typeof window !== "undefined"
+                      ? new (require("leaflet").DivIcon)({
+                          html: `<div class="custom-stop-marker pickup"><div class="marker-number">${index + 1}</div></div>`,
+                          className: "custom-marker-wrapper",
+                          iconSize: [32, 40],
+                          iconAnchor: [16, 40],
+                          popupAnchor: [0, -40],
+                        })
+                      : undefined
+                  }
                 >
                   <Popup>
                     <div className="p-2">
@@ -332,6 +452,18 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
                 <Marker
                   key={`${order.id}-delivery`}
                   position={order.delivery.coordinates}
+                  //@ts-ignore
+                  icon={
+                    typeof window !== "undefined"
+                      ? new (require("leaflet").DivIcon)({
+                          html: `<div class="custom-stop-marker delivery"><div class="marker-number">${index + 1}</div></div>`,
+                          className: "custom-marker-wrapper",
+                          iconSize: [32, 40],
+                          iconAnchor: [16, 40],
+                          popupAnchor: [0, -40],
+                        })
+                      : undefined
+                  }
                 >
                   <Popup>
                     <div className="p-2">
@@ -485,7 +617,6 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
           position: absolute;
           top: 0;
           left: 50%;
-          transform: translateX(-50%);
           width: 28px;
           height: 28px;
           border-radius: 50% 50% 50% 0;

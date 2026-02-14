@@ -150,6 +150,7 @@ function GeofencesPageContent() {
       onExit: false,
       onDwell: false,
     },
+    structuredAddress: {},
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);

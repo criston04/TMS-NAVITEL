@@ -68,7 +68,7 @@ export function RouteConfigPanel({ vehicles, drivers }: RouteConfigPanelProps) {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="space-y-2"
+                className="space-y-2 p-1"
               >
                 {availableVehicles.map((vehicle) => (
                   <motion.div
@@ -157,7 +157,7 @@ export function RouteConfigPanel({ vehicles, drivers }: RouteConfigPanelProps) {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="space-y-2"
+                className="space-y-2 p-1"
               >
                 {availableDrivers.map((driver) => (
                   <motion.div
