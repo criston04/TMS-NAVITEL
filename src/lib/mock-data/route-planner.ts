@@ -3,7 +3,7 @@
    Transportation Management System
    ============================================ */
 
-import type { TransportOrder, Vehicle, Driver } from "@/types/route-planner";
+import type { TransportOrder, Vehicle, Driver, RouteStop, Route, RouteConfiguration, RouteAlert, OptimizationParams } from "@/types/route-planner";
 
 /* ============================================
    MOCK ORDERS
@@ -550,4 +550,204 @@ export function estimateCost(
     tolls: Math.round(tollsCost * 100) / 100,
     total: Math.round((fuelCost + tollsCost) * 100) / 100,
   };
+}
+
+/* ============================================
+   HELPER: Cluster Orders by Proximity (k-means)
+   Groups N orders into k clusters using delivery
+   coordinates for geographic proximity.
+   ============================================ */
+export function clusterOrdersByProximity(
+  orders: TransportOrder[],
+  k: number
+): TransportOrder[][] {
+  if (orders.length === 0) return [];
+  if (k >= orders.length) return orders.map((o) => [o]);
+
+  // Initialize centroids using first k orders (spread selection)
+  const step = Math.floor(orders.length / k);
+  let centroids: [number, number][] = [];
+  for (let i = 0; i < k; i++) {
+    const order = orders[Math.min(i * step, orders.length - 1)];
+    centroids.push(order.delivery.coordinates);
+  }
+
+  let clusters: TransportOrder[][] = Array.from({ length: k }, () => []);
+  const maxIterations = 20;
+
+  for (let iter = 0; iter < maxIterations; iter++) {
+    // Reset clusters
+    const newClusters: TransportOrder[][] = Array.from({ length: k }, () => []);
+
+    // Assign each order to nearest centroid
+    for (const order of orders) {
+      let minDist = Infinity;
+      let bestCluster = 0;
+      for (let c = 0; c < k; c++) {
+        const dist = calculateDistance(order.delivery.coordinates, centroids[c]);
+        if (dist < minDist) {
+          minDist = dist;
+          bestCluster = c;
+        }
+      }
+      newClusters[bestCluster].push(order);
+    }
+
+    // Recalculate centroids
+    const newCentroids: [number, number][] = newClusters.map((cluster, i) => {
+      if (cluster.length === 0) return centroids[i]; // Keep old centroid
+      const avgLat = cluster.reduce((s, o) => s + o.delivery.coordinates[0], 0) / cluster.length;
+      const avgLng = cluster.reduce((s, o) => s + o.delivery.coordinates[1], 0) / cluster.length;
+      return [avgLat, avgLng] as [number, number];
+    });
+
+    // Check convergence
+    let converged = true;
+    for (let c = 0; c < k; c++) {
+      if (calculateDistance(centroids[c], newCentroids[c]) > 0.01) {
+        converged = false;
+        break;
+      }
+    }
+
+    centroids = newCentroids;
+    clusters = newClusters;
+    if (converged) break;
+  }
+
+  // Remove empty clusters
+  return clusters.filter((c) => c.length > 0);
+}
+
+/* ============================================
+   HELPER: Nearest-Neighbor TSP ordering
+   Orders stops within a cluster for minimum
+   total travel distance.
+   ============================================ */
+function optimizeStopOrder(stops: RouteStop[]): RouteStop[] {
+  if (stops.length <= 2) return stops;
+
+  const unvisited = [...stops];
+  const ordered: RouteStop[] = [unvisited.shift()!];
+
+  while (unvisited.length > 0) {
+    const last = ordered[ordered.length - 1];
+    let nearest = 0;
+    let nearestDist = Infinity;
+    for (let i = 0; i < unvisited.length; i++) {
+      const dist = calculateDistance(last.coordinates, unvisited[i].coordinates);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearest = i;
+      }
+    }
+    ordered.push(unvisited.splice(nearest, 1)[0]);
+  }
+
+  return ordered.map((s, i) => ({ ...s, sequence: i + 1 }));
+}
+
+/* ============================================
+   HELPER: Generate Multiple Optimized Routes
+   Takes N orders + optimization params →
+   Returns k optimized routes (one per truck).
+   ============================================ */
+export function generateMultipleOptimizedRoutes(
+  orders: TransportOrder[],
+  params: OptimizationParams,
+  config: RouteConfiguration
+): Route[] {
+  const k = Math.min(params.truckCount, orders.length);
+  const clusters = clusterOrdersByProximity(orders, k);
+
+  const routeColors = [
+    "#3DBAFF", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
+    "#EC4899", "#06B6D4", "#F97316", "#14B8A6", "#6366F1",
+  ];
+
+  return clusters.map((clusterOrders, index) => {
+    // Create stops from cluster orders
+    const stops: RouteStop[] = [];
+    let seq = 1;
+
+    clusterOrders.forEach((order) => {
+      stops.push({
+        id: `stop-${order.id}-pickup`,
+        orderId: order.id,
+        sequence: seq++,
+        type: "pickup",
+        address: order.pickup.address,
+        city: order.pickup.city,
+        coordinates: order.pickup.coordinates,
+        timeWindow: {
+          start: params.timeWindowStart,
+          end: params.timeWindowEnd,
+        },
+        duration: params.stopDuration,
+        status: "pending",
+      });
+      stops.push({
+        id: `stop-${order.id}-delivery`,
+        orderId: order.id,
+        sequence: seq++,
+        type: "delivery",
+        address: order.delivery.address,
+        city: order.delivery.city,
+        coordinates: order.delivery.coordinates,
+        timeWindow: {
+          start: params.timeWindowStart,
+          end: params.timeWindowEnd,
+        },
+        duration: params.stopDuration,
+        status: "pending",
+      });
+    });
+
+    // Optimize stop ordering within route
+    const optimizedStops = optimizeStopOrder(stops);
+
+    // Calculate metrics
+    const totalDistance = calculateTotalDistance(optimizedStops);
+    const estimatedDurationValue = estimateDuration(totalDistance, optimizedStops.length);
+    const defaultFuelConsumption = 10;
+    const costs = estimateCost(totalDistance, defaultFuelConsumption, !config.avoidTolls);
+    const totalWeight = clusterOrders.reduce((s, o) => s + o.cargo.weight, 0);
+    const totalVolume = clusterOrders.reduce((s, o) => s + o.cargo.volume, 0);
+
+    // Alerts
+    const alerts: RouteAlert[] = [];
+    const windowMinutes =
+      (parseInt(params.timeWindowEnd.split(":")[0]) - parseInt(params.timeWindowStart.split(":")[0])) * 60;
+    if (estimatedDurationValue > windowMinutes) {
+      alerts.push({
+        id: `alert-time-${index}`,
+        type: "warning",
+        severity: "medium",
+        message: `Ruta ${index + 1} excede la ventana horaria (${Math.floor(estimatedDurationValue / 60)}h vs ${Math.floor(windowMinutes / 60)}h disponibles).`,
+        code: "DELAY_RISK",
+      });
+    }
+
+    return {
+      id: `route-opt-${Date.now()}-${index}`,
+      name: `Ruta ${index + 1}`,
+      status: "generated" as const,
+      stops: optimizedStops,
+      metrics: {
+        totalDistance,
+        estimatedDuration: estimatedDurationValue,
+        estimatedCost: costs.total,
+        fuelCost: costs.fuel,
+        tollsCost: costs.tolls,
+        totalWeight,
+        totalVolume,
+      },
+      configuration: config,
+      polyline: generateRoutePolyline(optimizedStops),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      alerts: alerts.length > 0 ? alerts : undefined,
+      color: routeColors[index % routeColors.length],
+    } as Route & { color: string };
+  });
 }

@@ -195,7 +195,7 @@ const StepCard = memo(function StepCard({
 
         {/* Step Body (Config) */}
         <div className="p-3 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
              <div className="space-y-1">
                 <label className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider">Acción</label>
                 {isEditing ? (
@@ -863,7 +863,7 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
              {workflow && (
                <div className="space-y-3 pt-6 border-t">
                   <h3 className="font-medium text-sm text-muted-foreground">Auditoría</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="p-3 rounded-lg bg-muted/30">
                       <p className="text-[11px] text-muted-foreground uppercase tracking-wide">Creado por</p>
                       <p className="font-medium mt-0.5">{workflow.createdBy}</p>

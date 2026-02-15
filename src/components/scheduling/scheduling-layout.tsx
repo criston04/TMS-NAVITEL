@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -57,6 +57,14 @@ export const SchedulingLayout = memo(function SchedulingLayout({
   const [mainView, setMainView] = useState<MainView>('calendar');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const {
     pendingOrders,
@@ -196,33 +204,35 @@ export const SchedulingLayout = memo(function SchedulingLayout({
         )}
       >
         {/* Header con KPIs y controles */}
-        <div className="flex items-center justify-between border-b bg-card">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b bg-card">
           {/* KPIs */}
-          <SchedulingKPICompact kpis={kpis} isLoading={isLoading} />
+          <div className="overflow-x-auto">
+            <SchedulingKPICompact kpis={kpis} isLoading={isLoading} />
+          </div>
 
           {/* Controles */}
-          <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-2 px-2 sm:px-4 py-2 md:py-0 overflow-x-auto">
             {/* Selector de vista principal */}
             <Tabs
               value={mainView}
               onValueChange={(v) => setMainView(v as MainView)}
             >
               <TabsList className="h-8">
-                <TabsTrigger value="calendar" className="h-7 px-3 text-xs gap-1.5">
+                <TabsTrigger value="calendar" className="h-7 px-2 sm:px-3 text-xs gap-1 sm:gap-1.5">
                   <Calendar className="h-3.5 w-3.5" />
-                  Calendario
+                  <span className="hidden sm:inline">Calendario</span>
                 </TabsTrigger>
-                <TabsTrigger value="timeline" className="h-7 px-3 text-xs gap-1.5">
+                <TabsTrigger value="timeline" className="h-7 px-2 sm:px-3 text-xs gap-1 sm:gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
-                  Timeline
+                  <span className="hidden sm:inline">Timeline</span>
                 </TabsTrigger>
-                <TabsTrigger value="list" className="h-7 px-3 text-xs gap-1.5">
+                <TabsTrigger value="list" className="h-7 px-2 sm:px-3 text-xs gap-1 sm:gap-1.5">
                   <List className="h-3.5 w-3.5" />
-                  Lista
+                  <span className="hidden sm:inline">Lista</span>
                 </TabsTrigger>
-                <TabsTrigger value="gantt" className="h-7 px-3 text-xs gap-1.5">
+                <TabsTrigger value="gantt" className="h-7 px-2 sm:px-3 text-xs gap-1 sm:gap-1.5">
                   <BarChart3 className="h-3.5 w-3.5" />
-                  Gantt
+                  <span className="hidden sm:inline">Gantt</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -356,24 +366,54 @@ export const SchedulingLayout = memo(function SchedulingLayout({
         )}
 
         {/* Contenido principal */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden relative">
           {/* Sidebar de órdenes pendientes (solo en calendar/timeline) */}
           {(mainView === 'calendar' || mainView === 'timeline') && (
-            <SchedulingSidebar
-              orders={pendingOrders}
-              isLoading={isLoading}
-              filters={pendingFilters}
-              onFiltersChange={setPendingFilters}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              onOrderClick={(order) => openOrderDetail(order)}
-              isCollapsed={isSidebarCollapsed}
-              onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
-            />
+            <>
+              {/* Overlay mobile */}
+              {isMobile && !isSidebarCollapsed && (
+                <div
+                  className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                  onClick={() => setIsSidebarCollapsed(true)}
+                />
+              )}
+              <div className={cn(
+                isMobile
+                  ? 'fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-300 bg-background shadow-xl'
+                  : '',
+                isMobile && isSidebarCollapsed && '-translate-x-full',
+                isMobile && !isSidebarCollapsed && 'translate-x-0'
+              )}>
+                <SchedulingSidebar
+                  orders={pendingOrders}
+                  isLoading={isLoading}
+                  filters={pendingFilters}
+                  onFiltersChange={setPendingFilters}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onOrderClick={(order) => openOrderDetail(order)}
+                  isCollapsed={isMobile ? false : isSidebarCollapsed}
+                  onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Botón para abrir sidebar en mobile */}
+          {isMobile && isSidebarCollapsed && (mainView === 'calendar' || mainView === 'timeline') && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute left-2 top-2 z-30 shadow-md md:hidden"
+              onClick={() => setIsSidebarCollapsed(false)}
+            >
+              <Layers className="h-4 w-4 mr-1" />
+              Pendientes
+            </Button>
           )}
 
           {/* Vista principal */}
-          <div className="flex-1 p-4 overflow-hidden">
+          <div className="flex-1 p-2 sm:p-4 overflow-hidden">
             {mainView === 'calendar' ? (
               <SchedulingCalendar
                 calendarData={calendarData}

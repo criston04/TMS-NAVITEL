@@ -54,6 +54,18 @@ export function ControlTowerContainer({
   const [activeTab, setActiveTab] = useState<"vehicles" | "filters" | "alerts" | "config">("vehicles");
   const [carriers, setCarriers] = useState<string[]>([]);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setSidebarOpen(false);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const {
     vehiclesList,
@@ -116,11 +128,24 @@ export function ControlTowerContainer({
 
   return (
     <div className={cn("flex h-full w-full", className)}>
+      {/* Overlay mobile */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar con tabs */}
       <div
         className={cn(
           "flex flex-col border-r bg-background transition-all duration-300",
-          sidebarOpen ? "w-80" : "w-0 overflow-hidden"
+          isMobile
+            ? cn(
+                'fixed inset-y-0 left-0 z-50 w-[85vw] max-w-80 shadow-xl',
+                sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+              )
+            : sidebarOpen ? "w-80" : "w-0 overflow-hidden"
         )}
       >
         {/* Header del sidebar */}
@@ -137,27 +162,27 @@ export function ControlTowerContainer({
 
         {/* Tabs: Vehículos / Filtros / Alertas / Config */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "vehicles" | "filters" | "alerts" | "config")} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-4 mx-4 mt-3 mb-2 overflow-visible" style={{ width: 'calc(100% - 2rem)' }}>
-            <TabsTrigger value="vehicles" className="gap-1.5 text-xs">
+          <TabsList className="grid w-full grid-cols-4 mx-2 sm:mx-4 mt-3 mb-2 overflow-visible" style={{ width: 'calc(100% - 1rem)' }}>
+            <TabsTrigger value="vehicles" className="gap-1 sm:gap-1.5 text-xs">
               <List className="h-3.5 w-3.5" />
-              Vehículos
+              <span className="hidden sm:inline">Vehículos</span>
             </TabsTrigger>
-            <TabsTrigger value="filters" className="gap-1.5 text-xs">
+            <TabsTrigger value="filters" className="gap-1 sm:gap-1.5 text-xs">
               <Filter className="h-3.5 w-3.5" />
-              Filtros
+              <span className="hidden sm:inline">Filtros</span>
             </TabsTrigger>
-            <TabsTrigger value="alerts" className="gap-1.5 text-xs relative">
+            <TabsTrigger value="alerts" className="gap-1 sm:gap-1.5 text-xs relative">
               <Bell className="h-3.5 w-3.5" />
-              Alertas
+              <span className="hidden sm:inline">Alertas</span>
               {activeCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 min-w-4 rounded-full bg-red-500 text-[9px] text-white flex items-center justify-center px-1">
                   {activeCount}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="config" className="gap-1.5 text-xs">
+            <TabsTrigger value="config" className="gap-1 sm:gap-1.5 text-xs">
               <Settings2 className="h-3.5 w-3.5" />
-              Config
+              <span className="hidden sm:inline">Config</span>
             </TabsTrigger>
           </TabsList>
 
@@ -300,7 +325,7 @@ export function ControlTowerContainer({
 
         {/* Panel de información del vehículo seleccionado */}
         {selectedVehicle && (
-          <div className="absolute right-4 top-4 z-[1000] w-80">
+          <div className="absolute right-2 sm:right-4 top-2 sm:top-4 z-[1000] w-[calc(100%-1rem)] sm:w-80">
             <VehicleInfoCard
               vehicle={selectedVehicle}
               order={order}

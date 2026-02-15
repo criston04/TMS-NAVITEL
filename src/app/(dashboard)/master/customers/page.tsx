@@ -158,23 +158,23 @@ export default function CustomersPage() {
               Administra la información de tus clientes
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <CustomerCategorySettingsDialog />
             <Button variant="outline" size="sm" onClick={refresh} disabled={isLoading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-              Actualizar
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isLoading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Actualizar</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => setIsImportModalOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Importar
+              <Upload className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Importar</span>
             </Button>
             <Button variant="outline" size="sm" onClick={exportToCSV}>
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Exportar</span>
             </Button>
             <Button size="sm" onClick={handleOpenCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Cliente
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nuevo Cliente</span>
             </Button>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function CustomersPage() {
         {selectedIds.size > 0 && (
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="py-3 px-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <span className="text-sm">
                   <strong>{selectedIds.size}</strong> cliente(s) seleccionado(s)
                 </span>

@@ -337,13 +337,14 @@ export function ApiKeySettings() {
             </Alert>
           )}
 
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Key</TableHead>
-                <TableHead>Permisos</TableHead>
-                <TableHead>Último Uso</TableHead>
+                <TableHead className="hidden md:table-cell">Permisos</TableHead>
+                <TableHead className="hidden sm:table-cell">Último Uso</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-24">Acciones</TableHead>
               </TableRow>
@@ -448,6 +449,7 @@ export function ApiKeySettings() {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

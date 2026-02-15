@@ -141,12 +141,12 @@ function StatCard({
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold">{value.toLocaleString()}</span>
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">{title}</p>
+            <div className="flex items-baseline gap-1 sm:gap-2 mt-1">
+              <span className="text-xl sm:text-2xl font-bold">{value.toLocaleString()}</span>
               {trend !== undefined && trend !== 0 && (
                 <span
                   className={cn(
@@ -164,8 +164,8 @@ function StatCard({
               )}
             </div>
           </div>
-          <div className={cn('p-3 rounded-full', bgClassName)}>
-            <Icon className={cn('w-6 h-6', iconClassName)} />
+          <div className={cn('p-2 sm:p-3 rounded-full', bgClassName)}>
+            <Icon className={cn('w-5 h-5 sm:w-6 sm:h-6', iconClassName)} />
           </div>
         </div>
       </CardContent>
@@ -195,17 +195,17 @@ function OrderStatsCardsComponent({
   }, [statusCounts]);
 
   return (
-    <div className={cn('grid grid-cols-2 md:grid-cols-4 gap-4', className)}>
+    <div className={cn('grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4', className)}>
       {/* Total órdenes */}
       <Card className="transition-all duration-200 hover:shadow-md">
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total órdenes</p>
-              <span className="text-3xl font-bold">{totals.total.toLocaleString()}</span>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">Total órdenes</p>
+              <span className="text-2xl sm:text-3xl font-bold">{totals.total.toLocaleString()}</span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
-              <AnimatedPackageIcon size={56} />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center overflow-visible">
+              <AnimatedPackageIcon size={40} />
             </div>
           </div>
         </CardContent>
@@ -219,16 +219,16 @@ function OrderStatsCardsComponent({
         )}
         onClick={() => onStatusClick?.('in_transit')}
       >
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">En curso</p>
-              <span className="text-3xl font-bold text-indigo-500">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">En curso</p>
+              <span className="text-2xl sm:text-3xl font-bold text-indigo-500">
                 {totals.active.toLocaleString()}
               </span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
-              <AnimatedTruckIcon size={56} />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center overflow-visible">
+              <AnimatedTruckIcon size={40} />
             </div>
           </div>
         </CardContent>
@@ -242,16 +242,16 @@ function OrderStatsCardsComponent({
         )}
         onClick={() => onStatusClick?.('completed')}
       >
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Completadas</p>
-              <span className="text-3xl font-bold text-green-500">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">Completadas</p>
+              <span className="text-2xl sm:text-3xl font-bold text-green-500">
                 {statusCounts.completed.toLocaleString()}
               </span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
-              <AnimatedCheckIcon size={56} />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center overflow-visible">
+              <AnimatedCheckIcon size={40} />
             </div>
           </div>
         </CardContent>
@@ -265,16 +265,16 @@ function OrderStatsCardsComponent({
         )}
         onClick={() => onStatusClick?.('delayed')}
       >
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Requieren atención</p>
-              <span className="text-3xl font-bold text-orange-500">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">Requieren atención</p>
+              <span className="text-2xl sm:text-3xl font-bold text-orange-500">
                 {totals.attention.toLocaleString()}
               </span>
             </div>
-            <div className="w-14 h-14 flex items-center justify-center overflow-visible">
-              <AnimatedWarningIcon size={56} />
+            <div className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center overflow-visible">
+              <AnimatedWarningIcon size={40} />
             </div>
           </div>
         </CardContent>
@@ -311,10 +311,10 @@ function OrderMiniStatsComponent({ statusCounts, className }: OrderMiniStatsProp
   ];
 
   return (
-    <div className={cn('flex items-center gap-4', className)}>
+    <div className={cn('flex items-center gap-2 sm:gap-4 flex-wrap', className)}>
       {stats.map(({ status, label, color }) => (
-        <div key={status} className="flex items-center gap-1.5">
-          <span className={cn('text-lg font-bold', color)}>
+        <div key={status} className="flex items-center gap-1 sm:gap-1.5">
+          <span className={cn('text-base sm:text-lg font-bold', color)}>
             {statusCounts[status]}
           </span>
           <span className="text-xs text-muted-foreground">{label}</span>

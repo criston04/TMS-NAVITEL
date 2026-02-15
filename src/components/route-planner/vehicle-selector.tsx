@@ -31,6 +31,12 @@ import { cn } from "@/lib/utils";
 interface VehicleSelectorProps {
   vehicles: Vehicle[];
   compact?: boolean;
+  onSelect?: (vehicle: Vehicle) => void;
+  selectedVehicleId?: string;
+  /** Route-specific total weight (for multi-route mode) */
+  routeWeight?: number;
+  /** Route-specific total volume (for multi-route mode) */
+  routeVolume?: number;
 }
 
 /* ============================================
@@ -252,16 +258,24 @@ function VehicleCard({
 /* ============================================
    VEHICLE SELECTOR COMPONENT
    ============================================ */
-export function VehicleSelector({ vehicles, compact = false }: VehicleSelectorProps) {
-  const { selectedVehicle, selectVehicle, selectedOrders } = useRoutePlanner();
+export function VehicleSelector({ vehicles, compact = false, onSelect, selectedVehicleId, routeWeight, routeVolume }: VehicleSelectorProps) {
+  const { selectedVehicle: ctxVehicle, selectVehicle: ctxSelectVehicle, selectedOrders } = useRoutePlanner();
   const [isExpanded, setIsExpanded] = useState(!compact);
+
+  // Allow overriding from props (multi-route assignment)
+  const selectedVehicle = selectedVehicleId
+    ? vehicles.find((v) => v.id === selectedVehicleId) || ctxVehicle
+    : ctxVehicle;
+  const selectVehicle = onSelect
+    ? (v: Vehicle | null) => { if (v) onSelect(v); }
+    : ctxSelectVehicle;
 
   const availableVehicles = vehicles.filter((v) => v.status === "available");
   const unavailableVehicles = vehicles.filter((v) => v.status !== "available");
 
-  // Calculate total cargo
-  const totalWeight = selectedOrders.reduce((sum, o) => sum + o.cargo.weight, 0);
-  const totalVolume = selectedOrders.reduce((sum, o) => sum + o.cargo.volume, 0);
+  // Calculate total cargo - use route-specific values if provided, else from context orders
+  const totalWeight = routeWeight ?? selectedOrders.reduce((sum, o) => sum + o.cargo.weight, 0);
+  const totalVolume = routeVolume ?? selectedOrders.reduce((sum, o) => sum + o.cargo.volume, 0);
 
   return (
     <div className="space-y-3">
@@ -294,9 +308,11 @@ export function VehicleSelector({ vehicles, compact = false }: VehicleSelectorPr
       </div>
 
       {/* Current Cargo Summary */}
-      {selectedOrders.length > 0 && (
+      {(routeWeight != null || selectedOrders.length > 0) && (
         <Card className="p-3 bg-muted/30">
-          <div className="text-xs text-muted-foreground mb-2">Carga actual</div>
+          <div className="text-xs text-muted-foreground mb-2">
+            {routeWeight != null ? "Carga de la ruta" : "Carga actual"}
+          </div>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5">
               <Weight className="h-4 w-4 text-muted-foreground" />

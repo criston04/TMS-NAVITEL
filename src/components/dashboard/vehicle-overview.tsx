@@ -12,17 +12,17 @@ export function VehicleOverview() {
              {/* Icon placeholder if needed */}
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-4">
+      <CardContent className="space-y-4 sm:space-y-6 pt-4">
         {/* Labels Row */}
-        <div className="grid grid-cols-4 text-xs text-muted-foreground gap-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 text-xs text-muted-foreground gap-1">
             <span>En ruta</span>
             <span>Descargando</span>
-            <span>Cargando</span>
-            <span className="text-right">En espera</span>
+            <span className="hidden sm:block">Cargando</span>
+            <span className="hidden sm:block text-right">En espera</span>
         </div>
 
         {/* Custom Stacked Bar similar to image */}
-        <div className="flex h-12 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+        <div className="flex h-10 sm:h-12 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
             {/* En ruta - Gray/Whiteish */}
             <div className="flex h-full items-center justify-center bg-slate-100 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-200" style={{ width: '39.7%' }}>
                 39.7%

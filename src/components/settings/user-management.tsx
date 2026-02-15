@@ -227,7 +227,7 @@ export function UserManagement() {
                   placeholder="Buscar usuario..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 w-64"
+                  className="pl-9 w-full sm:w-64"
                 />
               </div>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -307,6 +307,7 @@ export function UserManagement() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -400,6 +401,7 @@ export function UserManagement() {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

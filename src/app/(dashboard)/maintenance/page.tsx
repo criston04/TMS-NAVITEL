@@ -398,7 +398,7 @@ export default function MaintenancePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100">
-      <div className="px-6 py-8 space-y-8">
+      <div className="px-4 py-6 sm:px-6 sm:py-8 space-y-8">
         {/* ================================================================ */}
         {/* HEADER */}
         {/* ================================================================ */}
@@ -412,7 +412,7 @@ export default function MaintenancePage() {
               <ChevronRight className="h-4 w-4" />
               <span className="text-slate-900 font-medium">Mantenimiento de Flota</span>
             </nav>
-            <h1 className="text-3xl font-bold text-slate-900">Mantenimiento de Flota</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Mantenimiento de Flota</h1>
             <p className="text-slate-500 mt-1">
               Gestión integral de mantenimiento preventivo y correctivo
             </p>

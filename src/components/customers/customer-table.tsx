@@ -97,16 +97,16 @@ export function CustomerTable({
 
   if (isLoading) {
     return (
-      <div className="border rounded-lg">
-        <Table>
+      <div className="border rounded-lg overflow-x-auto">
+        <Table className="min-w-[600px] lg:min-w-0">
           <TableHeader>
             <TableRow>
               <TableHead className="w-12"><Skeleton className="h-4 w-4" /></TableHead>
               <TableHead>Cliente</TableHead>
-              <TableHead>Documento</TableHead>
-              <TableHead>Contacto</TableHead>
-              <TableHead>Ciudad</TableHead>
-              <TableHead>Categoría</TableHead>
+              <TableHead className="hidden md:table-cell">Documento</TableHead>
+              <TableHead className="hidden lg:table-cell">Contacto</TableHead>
+              <TableHead className="hidden md:table-cell">Ciudad</TableHead>
+              <TableHead className="hidden sm:table-cell">Categoría</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
@@ -123,7 +123,7 @@ export function CustomerTable({
 
   if (customers.length === 0) {
     return (
-      <div className="border rounded-lg p-12 text-center">
+      <div className="border rounded-lg p-6 sm:p-12 text-center">
         <Building2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
         <h3 className="text-lg font-medium mb-1">No hay clientes</h3>
         <p className="text-muted-foreground">
@@ -134,8 +134,8 @@ export function CustomerTable({
   }
 
   return (
-    <div className="border rounded-lg">
-      <Table>
+    <div className="border rounded-lg overflow-x-auto">
+      <Table className="min-w-[600px] lg:min-w-0">
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">
@@ -151,10 +151,10 @@ export function CustomerTable({
               />
             </TableHead>
             <TableHead>Cliente</TableHead>
-            <TableHead>Documento</TableHead>
-            <TableHead>Contacto</TableHead>
-            <TableHead>Ciudad</TableHead>
-            <TableHead>Categoría</TableHead>
+            <TableHead className="hidden md:table-cell">Documento</TableHead>
+            <TableHead className="hidden lg:table-cell">Contacto</TableHead>
+            <TableHead className="hidden md:table-cell">Ciudad</TableHead>
+            <TableHead className="hidden sm:table-cell">Categoría</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead className="w-12"></TableHead>
           </TableRow>
@@ -203,7 +203,7 @@ export function CustomerTable({
                   </div>
                 </TableCell>
 
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <div className="flex items-center gap-1">
                     <span className="text-sm">
                       {customer.documentType}: {customer.documentNumber}
@@ -222,7 +222,7 @@ export function CustomerTable({
                   </div>
                 </TableCell>
 
-                <TableCell>
+                <TableCell className="hidden lg:table-cell">
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-sm">
                       <Mail className="h-3.5 w-3.5 text-muted-foreground" />
@@ -241,7 +241,7 @@ export function CustomerTable({
                   </div>
                 </TableCell>
 
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {primaryAddress && (
                     <div className="flex items-center gap-1.5 text-sm">
                       <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
@@ -250,7 +250,7 @@ export function CustomerTable({
                   )}
                 </TableCell>
 
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Badge className={cn("font-normal", CATEGORY_COLORS[category] || "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300")}>
                     {CATEGORY_LABELS[category] || category}
                   </Badge>

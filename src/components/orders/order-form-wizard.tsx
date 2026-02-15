@@ -74,7 +74,7 @@ const RoutePreviewMapLazy = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-[300px] rounded-lg border border-dashed border-muted-foreground/30 text-sm text-muted-foreground">
+      <div className="flex items-center justify-center h-[200px] sm:h-[300px] rounded-lg border border-dashed border-muted-foreground/30 text-sm text-muted-foreground">
         Cargando mapa...
       </div>
     ),
@@ -917,7 +917,7 @@ export function OrderFormWizard({
                       coordinates: m.coordinates,
                       sequence: m.sequence,
                     }))}
-                    height={300}
+                    height={250}
                   />
                 </div>
               )}
@@ -961,7 +961,7 @@ export function OrderFormWizard({
                     type="time"
                     value={scheduledStartTime}
                     onChange={(e) => setScheduledStartTime(e.target.value)}
-                    className="w-28"
+                    className="w-24 sm:w-28"
                   />
                 </div>
               </div>
@@ -980,7 +980,7 @@ export function OrderFormWizard({
                     type="time"
                     value={scheduledEndTime}
                     onChange={(e) => setScheduledEndTime(e.target.value)}
-                    className="w-28"
+                    className="w-24 sm:w-28"
                   />
                 </div>
               </div>

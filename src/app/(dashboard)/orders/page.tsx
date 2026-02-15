@@ -176,7 +176,7 @@ export default function OrdersPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Refresh */}
             <Button
               variant="outline"
@@ -188,26 +188,27 @@ export default function OrdersPage() {
             </Button>
 
             {/* Importar */}
-            <Button variant="outline" className="gap-2" onClick={handleImport}>
+            <Button variant="outline" size="sm" className="gap-1 sm:gap-2" onClick={handleImport}>
               <Upload className="w-4 h-4" />
-              Importar
+              <span className="hidden sm:inline">Importar</span>
             </Button>
 
             {/* Exportar todas */}
             <Button
               variant="outline"
-              className="gap-2"
+              size="sm"
+              className="gap-1 sm:gap-2"
               onClick={() => exportOrders(orders)}
               disabled={isExporting || orders.length === 0}
             >
               <Download className="w-4 h-4" />
-              Exportar
+              <span className="hidden sm:inline">Exportar</span>
             </Button>
 
             {/* Nueva orden */}
-            <Button className="gap-2" onClick={handleNewOrder}>
+            <Button size="sm" className="gap-1 sm:gap-2" onClick={handleNewOrder}>
               <Plus className="w-4 h-4" />
-              Nueva orden
+              <span className="hidden sm:inline">Nueva orden</span>
             </Button>
           </div>
         </div>

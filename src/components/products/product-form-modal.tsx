@@ -204,7 +204,7 @@ export function ProductFormModal({
                   <CardTitle className="text-sm">Información del Producto</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField control={form.control} name="sku" render={({ field }) => (
                       <FormItem>
                         <FormLabel>SKU *</FormLabel>
@@ -238,7 +238,7 @@ export function ProductFormModal({
                     </FormItem>
                   )} />
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Categoría *</FormLabel>
@@ -288,7 +288,7 @@ export function ProductFormModal({
                   <CardTitle className="text-sm">Dimensiones y Peso</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     <FormField control={form.control} name="length" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs">Largo (cm)</FormLabel>
@@ -337,7 +337,7 @@ export function ProductFormModal({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <FormField control={form.control} name="requiresRefrigeration" render={({ field }) => (
                       <FormItem className="flex items-center justify-between rounded-lg border p-3">
                         <div>
@@ -364,7 +364,7 @@ export function ProductFormModal({
                   </div>
 
                   {watchRefrigeration && (
-                    <div className="grid grid-cols-2 gap-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                       <FormField control={form.control} name="minTemperature" render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-xs">Temp. Mínima (°C)</FormLabel>

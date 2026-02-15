@@ -10,6 +10,7 @@ import {
   LogOut,
   Globe,
   Building2,
+  Menu,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
+import { useNavigation } from '@/hooks/use-navigation';
 
 interface TenantConfig {
   /** Nombre de la empresa */
@@ -95,6 +97,8 @@ function TenantLogo({ tenant, className }: TenantLogoProps) {
 // COMPONENTE
 
 export const Navbar = memo(function Navbar() {
+  const { isMobile, openMobileMenu } = useNavigation();
+
   return (
     <header
       className={cn(
@@ -102,54 +106,71 @@ export const Navbar = memo(function Navbar() {
         'sticky top-0 z-40',
         'flex items-center justify-between',
         // Spacing
-        'px-4 md:px-6',
+        'px-3 sm:px-4 md:px-6',
         // Sizing
         NAVBAR_HEIGHT,
         // Visual
-        'border-b bg-background/80 backdrop-blur-md'
+        'border-b bg-background/80 backdrop-blur-md',
+        // Spacing para íconos en mobile
+        'gap-2'
       )}
     >
-      {/* Search */}
-      <div className="relative w-full max-w-sm">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Buscar... ⌘K"
-          className={cn(
-            // Spacing
-            'pl-8',
-            // Sizing
-            'h-8 w-full',
-            // Visual
-            'rounded-md bg-muted/50',
-            // States
-            'focus-visible:bg-background'
-          )}
-        />
+      {/* Left side: hamburger (mobile) + search */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        {/* Hamburger button - visible solo en mobile */}
+        {isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 shrink-0 md:hidden"
+            onClick={openMobileMenu}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
+
+        {/* Search */}
+        <div className="relative w-full max-w-xs sm:max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Buscar... ⌘K"
+            className={cn(
+              // Spacing
+              'pl-8',
+              // Sizing
+              'h-8 w-full',
+              // Visual
+              'rounded-md bg-muted/50',
+              // States
+              'focus-visible:bg-background'
+            )}
+          />
+        </div>
       </div>
 
       {/* Logo de la empresa cliente (tenant) + Actions - Agrupados a la derecha */}
-      <div className="flex items-center gap-4">
-        {/* Logo del tenant - SIEMPRE VISIBLE */}
-        <div className="flex items-center">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        {/* Logo del tenant - oculto en pantallas muy pequeñas */}
+        <div className="hidden sm:flex items-center">
           <TenantLogo tenant={CURRENT_TENANT} />
         </div>
 
         {/* Separador vertical */}
-        <div className="hidden sm:block h-6 w-px bg-border" />
+        <div className="hidden lg:block h-6 w-px bg-border" />
 
         {/* Actions */}
-        <div className="flex items-center gap-1">
-          {/* Language */}
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          {/* Language - oculto en mobile xs */}
+          <Button variant="ghost" size="icon" className="hidden sm:inline-flex h-8 w-8">
             <Globe className="h-4 w-4 text-muted-foreground" />
           </Button>
 
           {/* Theme Toggle */}
           <ThemeToggle />
 
-          {/* Grid Menu */}
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          {/* Grid Menu - oculto en mobile */}
+          <Button variant="ghost" size="icon" className="hidden sm:inline-flex h-8 w-8">
             <LayoutGrid className="h-4 w-4 text-muted-foreground" />
           </Button>
 

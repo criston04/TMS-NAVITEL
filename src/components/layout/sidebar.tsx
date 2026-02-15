@@ -5,7 +5,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ChevronLeft, Settings, HelpCircle, LogOut } from "lucide-react";
+import { ChevronLeft, Settings, HelpCircle, LogOut, X } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context";
 import { useNavigation } from "@/hooks/use-navigation";
@@ -131,54 +131,103 @@ export function Sidebar() {
   const { logout } = useAuth();
   const {
     isCollapsed,
+    isMobile,
+    isMobileOpen,
     isActive,
     toggleSidebar,
+    closeMobileMenu,
   } = useNavigation();
 
+  const sidebarContent = (
+    <>
+      {/* Header fijo */}
+      <div className="shrink-0 flex items-center justify-between">
+        <SidebarHeader isCollapsed={!isMobile && isCollapsed} />
+        {/* Botón cerrar en mobile */}
+        {isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mr-2 h-8 w-8 md:hidden"
+            onClick={closeMobileMenu}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
+      {!isMobile && (
+        <SidebarToggle isCollapsed={isCollapsed} onToggle={toggleSidebar} />
+      )}
+
+      {/* Navigation con scroll invisible */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <nav
+          className={cn(
+            "h-full px-2 py-2 pb-4 overflow-y-auto",
+            // Ocultar scrollbar en todos los navegadores
+            "scrollbar-none",
+            "[&::-webkit-scrollbar]:hidden",
+            "[-ms-overflow-style:none]",
+            "[scrollbar-width:none]"
+          )}
+        >
+          <div className="flex flex-col">
+            {navigationConfig.map((group) => (
+              <NavGroup
+                key={group.groupTitle}
+                group={group}
+                isCollapsed={!isMobile && isCollapsed}
+                isActive={isActive}
+              />
+            ))}
+          </div>
+        </nav>
+      </div>
+
+      {/* Footer fijo */}
+      <div className="shrink-0">
+        <SidebarFooter isCollapsed={!isMobile && isCollapsed} onLogout={logout} />
+      </div>
+    </>
+  );
+
+  // Mobile: Drawer con overlay
+  if (isMobile) {
+    return (
+      <TooltipProvider delayDuration={0}>
+        {/* Overlay oscuro */}
+        {isMobileOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden"
+            onClick={closeMobileMenu}
+          />
+        )}
+        {/* Drawer lateral */}
+        <aside
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-card",
+            "transition-transform duration-300 ease-out md:hidden",
+            "shadow-2xl",
+            isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          {sidebarContent}
+        </aside>
+      </TooltipProvider>
+    );
+  }
+
+  // Desktop/Tablet: Sidebar fijo colapsable
   return (
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "relative flex h-screen flex-col border-r bg-card",
+          "relative hidden md:flex h-screen flex-col border-r bg-card",
           "transition-all duration-300 ease-out",
           isCollapsed ? "w-14" : "w-56"
         )}
       >
-        {/* Header fijo */}
-        <div className="shrink-0">
-          <SidebarHeader isCollapsed={isCollapsed} />
-        </div>
-        <SidebarToggle isCollapsed={isCollapsed} onToggle={toggleSidebar} />
-
-        {/* Navigation con scroll invisible */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <nav 
-            className={cn(
-              "h-full px-2 py-2 pb-4 overflow-y-auto",
-              // Ocultar scrollbar en todos los navegadores
-              "scrollbar-none",
-              "[&::-webkit-scrollbar]:hidden",
-              "[-ms-overflow-style:none]",
-              "[scrollbar-width:none]"
-            )}
-          >
-            <div className="flex flex-col">
-              {navigationConfig.map((group) => (
-                <NavGroup
-                  key={group.groupTitle}
-                  group={group}
-                  isCollapsed={isCollapsed}
-                  isActive={isActive}
-                />
-              ))}
-            </div>
-          </nav>
-        </div>
-
-        {/* Footer fijo */}
-        <div className="shrink-0">
-          <SidebarFooter isCollapsed={isCollapsed} onLogout={logout} />
-        </div>
+        {sidebarContent}
       </aside>
     </TooltipProvider>
   );

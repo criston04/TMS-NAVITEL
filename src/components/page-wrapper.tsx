@@ -33,9 +33,9 @@ export function PageWrapper({
   return (
     <div
       className={cn(
-        // Spacing
-        !noPadding && 'p-4',
-        'space-y-4',
+        // Spacing - responsive padding
+        !noPadding && 'p-3 sm:p-4 md:p-6',
+        'space-y-3 sm:space-y-4',
         // Animation
         'animate-fade-in',
         className
@@ -46,14 +46,14 @@ export function PageWrapper({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {title && (
             <div className="animate-slide-in-left">
-              <h1 className="text-xl font-bold tracking-tight">{title}</h1>
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight">{title}</h1>
               {description && (
-                <p className="text-sm text-muted-foreground">{description}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{description}</p>
               )}
             </div>
           )}
           {actions && (
-            <div className="flex items-center gap-2 animate-slide-in-right">{actions}</div>
+            <div className="flex items-center gap-2 flex-wrap animate-slide-in-right">{actions}</div>
           )}
         </div>
       )}

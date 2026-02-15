@@ -65,16 +65,16 @@ export function OnRouteVehicles() {
             </div>
 
             {/* Pagination Mock */}
-            <div className="flex items-center justify-between pt-6 px-4">
-                <span className="text-sm text-muted-foreground">Mostrando 1 a 5 de 25 registros</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 px-4">
+                <span className="text-xs sm:text-sm text-muted-foreground">Mostrando 1 a 5 de 25 registros</span>
                 <div className="flex items-center gap-1">
-                     <Button variant="secondary" size="icon" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">|&lt;</span></Button>
-                     <Button variant="secondary" size="icon" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">&lt;</span></Button>
-                     <Button variant="default" size="icon" className="h-8 w-8 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white"><span className="text-xs">1</span></Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md"><span className="text-xs">2</span></Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md"><span className="text-xs">3</span></Button>
-                     <Button variant="secondary" size="icon" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">&gt;</span></Button>
-                     <Button variant="secondary" size="icon" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">&gt;|</span></Button>
+                     <Button variant="secondary" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">|&lt;</span></Button>
+                     <Button variant="secondary" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">&lt;</span></Button>
+                     <Button variant="default" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white"><span className="text-xs">1</span></Button>
+                     <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-md"><span className="text-xs">2</span></Button>
+                     <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-md"><span className="text-xs">3</span></Button>
+                     <Button variant="secondary" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">&gt;</span></Button>
+                     <Button variant="secondary" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-md bg-slate-100 dark:bg-slate-800"><span className="text-xs">&gt;|</span></Button>
                 </div>
             </div>
 

@@ -92,18 +92,18 @@ function StopItem({
         exit={{ opacity: 0, x: 20 }}
         transition={{ type: "spring", stiffness: 500, damping: 30 }}
         className={cn(
-          "relative ml-2 rounded-xl border bg-card transition-all",
-          "hover:shadow-lg hover:border-[#3DBAFF]/30",
+          "relative ml-1 rounded-lg border bg-card transition-all",
+          "hover:shadow-md hover:border-[#3DBAFF]/30",
           isPickup
-            ? "border-l-4 border-l-green-500"
-            : "border-l-4 border-l-[#3DBAFF]",
+            ? "border-l-2 border-l-green-500"
+            : "border-l-2 border-l-[#3DBAFF]",
           hasTimeConflict && "border-yellow-500/50"
         )}
       >
         {/* Timeline Connector */}
         <TimelineConnector isLast={isLast} />
 
-        <div className="p-3">
+        <div className="p-2.5">
           {/* Header */}
           <div className="flex items-start gap-3">
             {/* Drag Handle */}
@@ -120,7 +120,7 @@ function StopItem({
             <motion.div
               layout
               className={cn(
-                "flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm shrink-0 shadow-lg",
+                "flex items-center justify-center w-7 h-7 rounded-full text-white font-bold text-xs shrink-0 shadow",
                 isPickup
                   ? "bg-gradient-to-br from-green-400 to-green-600"
                   : "bg-gradient-to-br from-[#3DBAFF] to-blue-600"
@@ -302,36 +302,39 @@ export function StopSequenceEnhanced({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-1">
       {/* Header Stats */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between px-2"
+        className="flex items-center justify-between px-1"
       >
-        <div className="flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-green-500" />
+        <div className="flex items-center gap-1 text-[11px]">
+          <div className="flex items-center gap-0.5">
+            <div className="h-2 w-2 rounded-full bg-green-500" />
             <span className="text-muted-foreground">
               {items.filter((s) => s.type === "pickup").length} pickups
             </span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-[#3DBAFF]" />
+          <div className="flex items-center gap-0.5">
+            <div className="h-2 w-2 rounded-full bg-[#3DBAFF]" />
             <span className="text-muted-foreground">
               {items.filter((s) => s.type === "delivery").length} entregas
             </span>
           </div>
         </div>
+        <div className="text-[11px] text-muted-foreground/80 font-medium">
+          {items.length} paradas
+        </div>
       </motion.div>
 
       {/* Reorderable List */}
-      <ScrollArea className={cn("pr-2", compact ? "max-h-[300px]" : "max-h-[calc(100vh-300px)]")}>
+      <ScrollArea className={cn("pr-0.5 max-h-[120px]")}> 
         <Reorder.Group
           axis="y"
           values={items}
           onReorder={handleReorder}
-          className="space-y-3 p-1"
+          className="space-y-1 p-0.5"
         >
           <AnimatePresence mode="popLayout">
             {items.map((stop, index) => (
@@ -356,10 +359,10 @@ export function StopSequenceEnhanced({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="text-center py-2"
+        className="text-center py-0.5"
       >
-        <p className="text-xs text-muted-foreground/70">
-          Arrastra los elementos para reordenar la secuencia
+        <p className="text-[10px] text-muted-foreground/70">
+          Arrastra para reordenar
         </p>
       </motion.div>
     </div>

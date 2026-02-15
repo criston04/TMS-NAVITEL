@@ -159,23 +159,27 @@ function Pagination({ page, totalPages, total, onPageChange }: Readonly<Paginati
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span className="text-sm text-muted-foreground hidden sm:block">
         Mostrando {startRecord}-{endRecord} de {total.toLocaleString()} órdenes
       </span>
+      <span className="text-xs text-muted-foreground sm:hidden">
+        {startRecord}-{endRecord} de {total.toLocaleString()}
+      </span>
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
+          className="px-2 sm:px-3"
         >
           <ChevronLeft className="w-4 h-4" />
-          Anterior
+          <span className="hidden sm:inline ml-1">Anterior</span>
         </Button>
         
-        <div className="flex items-center gap-1">
+        <div className="hidden sm:flex items-center gap-1">
           {pageNumbers.map((pageNum) => {
             if (pageNum === 'ellipsis-start' || pageNum === 'ellipsis-end') {
               return (
@@ -198,13 +202,19 @@ function Pagination({ page, totalPages, total, onPageChange }: Readonly<Paginati
           })}
         </div>
 
+        {/* Mobile: solo indicador de página */}
+        <span className="sm:hidden text-sm text-muted-foreground px-2">
+          {page}/{totalPages}
+        </span>
+
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
+          className="px-2 sm:px-3"
         >
-          Siguiente
+          <span className="hidden sm:inline mr-1">Siguiente</span>
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>

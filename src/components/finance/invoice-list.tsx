@@ -102,7 +102,7 @@ export function InvoiceList({ invoices, loading, onCreateInvoice }: InvoiceListP
                 placeholder="Buscar factura..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 w-64"
+                className="pl-9 w-full sm:w-64"
               />
             </div>
             <Button onClick={onCreateInvoice}>
@@ -126,15 +126,16 @@ export function InvoiceList({ invoices, loading, onCreateInvoice }: InvoiceListP
             </Button>
           </div>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="min-w-[700px] lg:min-w-0">
             <TableHeader>
               <TableRow>
                 <TableHead>N° Factura</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Vencimiento</TableHead>
+                <TableHead className="hidden md:table-cell">Fecha</TableHead>
+                <TableHead className="hidden md:table-cell">Vencimiento</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Pendiente</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">Pendiente</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
@@ -144,16 +145,16 @@ export function InvoiceList({ invoices, loading, onCreateInvoice }: InvoiceListP
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                   <TableCell>{invoice.customerName}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     {new Date(invoice.issueDate).toLocaleDateString("es-PE")}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     {new Date(invoice.dueDate).toLocaleDateString("es-PE")}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     S/ {invoice.total.toLocaleString()}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right hidden sm:table-cell">
                     {invoice.amountDue > 0 ? (
                       <span className="text-amber-600 dark:text-amber-400">
                         S/ {invoice.amountDue.toLocaleString()}
@@ -205,6 +206,7 @@ export function InvoiceList({ invoices, loading, onCreateInvoice }: InvoiceListP
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

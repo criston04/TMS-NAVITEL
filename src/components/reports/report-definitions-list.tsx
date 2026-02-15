@@ -119,7 +119,7 @@ export function ReportDefinitionsList({
                 placeholder="Buscar reporte..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 w-64"
+                className="pl-9 w-full sm:w-64"
               />
             </div>
             <Button onClick={onCreate}>
@@ -143,14 +143,15 @@ export function ReportDefinitionsList({
             </Button>
           </div>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="min-w-[550px] lg:min-w-0">
             <TableHeader>
               <TableRow>
-                <TableHead>Código</TableHead>
+                <TableHead className="hidden md:table-cell">Código</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead className="text-center">Usos</TableHead>
+                <TableHead className="hidden sm:table-cell">Tipo</TableHead>
+                <TableHead className="hidden sm:table-cell">Categoría</TableHead>
+                <TableHead className="text-center hidden md:table-cell">Usos</TableHead>
                 <TableHead className="w-32">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -160,7 +161,7 @@ export function ReportDefinitionsList({
                 const Icon = config.icon;
                 return (
                   <TableRow key={def.id}>
-                    <TableCell className="font-mono text-sm">{def.code}</TableCell>
+                    <TableCell className="hidden md:table-cell font-mono text-sm">{def.code}</TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{def.name}</p>
@@ -171,16 +172,16 @@ export function ReportDefinitionsList({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <div className="flex items-center gap-1">
                         <Icon className={`h-4 w-4 ${config.color}`} />
                         <span className="text-sm">{config.label}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant="outline">{def.category}</Badge>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center hidden md:table-cell">
                       {def.usageCount || 0}
                     </TableCell>
                     <TableCell>
@@ -230,6 +231,7 @@ export function ReportDefinitionsList({
               })}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

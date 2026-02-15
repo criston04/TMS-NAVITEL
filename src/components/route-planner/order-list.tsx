@@ -92,7 +92,7 @@ export function OrderList({ orders }: OrderListProps) {
   return (
     <div className="flex h-full flex-col bg-card border-r border-border">
       {/* Header */}
-      <div className="border-b border-border p-4 space-y-3">
+      <div className="flex-shrink-0 border-b border-border p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Órdenes Disponibles</h2>
           <Badge variant="secondary" className="text-xs">
@@ -190,7 +190,7 @@ export function OrderList({ orders }: OrderListProps) {
       </div>
 
       {/* Order List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-3 space-y-2">
           <AnimatePresence>
             {filteredOrders.map((order) => {

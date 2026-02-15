@@ -31,14 +31,14 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in p-6 bg-slate-50/50 dark:bg-black/20 min-h-screen">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in p-3 sm:p-4 md:p-6 bg-slate-50/50 dark:bg-black/20 min-h-screen">
       {/* Header con filtro de fecha */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             Dashboard
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Resumen operativo del día
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function DashboardPage() {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="w-40"
+            className="w-full sm:w-40"
           />
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function DashboardPage() {
             Indicadores Operativos
           </Badge>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-animation">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4 stagger-animation">
           <div className="animate-slide-up" style={{ animationDelay: '0ms' }}>
             <StatCard
               title="Flota Total"
@@ -125,7 +125,7 @@ export default function DashboardPage() {
             Monitoreo en Tiempo Real
           </Badge>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-animation">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4 stagger-animation">
           <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
             <StatCard
               title="Vehículos en Ruta"
@@ -189,7 +189,7 @@ export default function DashboardPage() {
             Seguridad y Documentación
           </Badge>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-animation">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4 stagger-animation">
           <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
             <StatCard
               title="Docs por Vencer"
@@ -246,11 +246,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Gráficos */}
-      <div className="grid gap-4 md:grid-cols-12 lg:grid-cols-12">
-        <div className="col-span-12 md:col-span-6 lg:col-span-5 min-h-[420px] animate-slide-up" style={{ animationDelay: '500ms' }}>
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-12 lg:grid-cols-12">
+        <div className="col-span-1 md:col-span-6 lg:col-span-5 min-h-[300px] md:min-h-[420px] animate-slide-up" style={{ animationDelay: '500ms' }}>
           <VehicleOverview />
         </div>
-        <div className="col-span-12 md:col-span-6 lg:col-span-7 min-h-[420px] animate-slide-up" style={{ animationDelay: '600ms' }}>
+        <div className="col-span-1 md:col-span-6 lg:col-span-7 min-h-[300px] md:min-h-[420px] animate-slide-up" style={{ animationDelay: '600ms' }}>
           <ShipmentStatistics />
         </div>
       </div>

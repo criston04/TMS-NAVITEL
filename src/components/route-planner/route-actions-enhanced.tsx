@@ -16,6 +16,7 @@ import {
   Sparkles,
   Send,
   AlertTriangle,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -139,6 +140,21 @@ export function RouteActionsEnhanced() {
       >
         {/* Action Buttons */}
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Back/Reset Button - always visible when route exists */}
+          {currentRoute && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button onClick={resetRoute} variant="outline" size="lg" className="gap-2">
+                <ArrowLeft className="h-5 w-5" />
+                <span>Volver</span>
+              </Button>
+            </motion.div>
+          )}
+
           {/* Generate/Reoptimize Button - SIEMPRE visible cuando hay órdenes */}
           {(canGenerate || currentRoute) && !isConfirmed && (
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -208,21 +224,6 @@ export function RouteActionsEnhanced() {
               >
                 <Check className="h-5 w-5" />
                 <span>Confirmar Ruta</span>
-              </Button>
-            </motion.div>
-          )}
-
-          {/* Reset Button */}
-          {currentRoute && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button onClick={resetRoute} variant="outline" size="lg" className="gap-2">
-                <Trash2 className="h-5 w-5" />
-                <span>{isConfirmed ? "Nueva Ruta" : "Limpiar"}</span>
               </Button>
             </motion.div>
           )}

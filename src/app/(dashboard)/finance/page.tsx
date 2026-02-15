@@ -83,29 +83,29 @@ export default function FinancePage() {
       description="Gestión de facturas, pagos, costos y análisis financiero"
     >
       {/* Header con acciones */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4 sm:mb-6">
         <div className="flex items-center gap-2">
           <Button onClick={refresh} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Actualizar
+            <RefreshCw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Actualizar</span>
           </Button>
           <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar</span>
           </Button>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setShowRecordCost(true)} variant="outline">
-            <TrendingDown className="h-4 w-4 mr-2" />
-            Registrar Costo
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button onClick={() => setShowRecordCost(true)} variant="outline" size="sm">
+            <TrendingDown className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Registrar Costo</span>
           </Button>
-          <Button onClick={() => setShowRecordPayment(true)} variant="outline">
-            <CreditCard className="h-4 w-4 mr-2" />
-            Registrar Pago
+          <Button onClick={() => setShowRecordPayment(true)} variant="outline" size="sm">
+            <CreditCard className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Registrar Pago</span>
           </Button>
-          <Button onClick={() => setShowCreateInvoice(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Factura
+          <Button onClick={() => setShowCreateInvoice(true)} size="sm">
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Nueva Factura</span>
           </Button>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function FinancePage() {
 
       {/* Tabs de contenido */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 overflow-x-auto">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Resumen

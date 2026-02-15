@@ -155,7 +155,7 @@ function OrderFiltersComponent({
       {/* Barra de filtros en una línea */}
       <div className="flex items-center gap-2 flex-wrap">
         {/* Búsqueda */}
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
+        <div className="relative w-full sm:flex-1 sm:min-w-[180px] sm:max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar orden..."
@@ -207,7 +207,7 @@ function OrderFiltersComponent({
           value={filters.customerId || 'all'}
           onValueChange={(value) => updateFilter('customerId', value === 'all' ? undefined : value)}
         >
-          <SelectTrigger className="w-[160px] h-9 text-sm">
+          <SelectTrigger className="w-full sm:w-[160px] h-9 text-sm">
             <SelectValue placeholder="Cliente" />
           </SelectTrigger>
           <SelectContent>
@@ -225,7 +225,7 @@ function OrderFiltersComponent({
           value={filters.carrierId || 'all'}
           onValueChange={(value) => updateFilter('carrierId', value === 'all' ? undefined : value)}
         >
-          <SelectTrigger className="w-[160px] h-9 text-sm">
+          <SelectTrigger className="w-full sm:w-[160px] h-9 text-sm">
             <SelectValue placeholder="Transportista" />
           </SelectTrigger>
           <SelectContent>
@@ -243,7 +243,7 @@ function OrderFiltersComponent({
           value={typeof filters.priority === 'string' ? filters.priority : 'all'}
           onValueChange={(value) => updateFilter('priority', value === 'all' ? undefined : value as OrderFiltersType['priority'])}
         >
-          <SelectTrigger className="w-[120px] h-9 text-sm">
+          <SelectTrigger className="w-full sm:w-[120px] h-9 text-sm">
             <SelectValue placeholder="Prioridad" />
           </SelectTrigger>
           <SelectContent>
@@ -261,7 +261,7 @@ function OrderFiltersComponent({
           value={filters.serviceType || 'all'}
           onValueChange={(value) => updateFilter('serviceType', value === 'all' ? undefined : value as OrderFiltersType['serviceType'])}
         >
-          <SelectTrigger className="w-[160px] h-9 text-sm">
+          <SelectTrigger className="w-full sm:w-[160px] h-9 text-sm">
             <SelectValue placeholder="Tipo servicio" />
           </SelectTrigger>
           <SelectContent>

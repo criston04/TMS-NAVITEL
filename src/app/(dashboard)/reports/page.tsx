@@ -134,7 +134,7 @@ export default function ReportsPage() {
 
       {/* Tabs de contenido */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="quick" className="flex items-center gap-2">
             <Play className="h-4 w-4" />
             Reportes Rápidos

@@ -58,7 +58,7 @@ export function ConfirmationModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm"
           />
 
           {/* Modal */}
@@ -67,7 +67,7 @@ export function ConfirmationModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2"
+            className="fixed left-1/2 top-1/2 z-[2001] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2"
           >
             <Card className="overflow-hidden border-border bg-card/95 backdrop-blur-xl shadow-2xl">
               {/* Header */}

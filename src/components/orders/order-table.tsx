@@ -119,8 +119,8 @@ function OrderTableComponent({
   className,
 }: Readonly<OrderTableProps>) {
   return (
-    <div className={cn('rounded-md border bg-card', className)}>
-      <Table>
+    <div className={cn('rounded-md border bg-card overflow-x-auto', className)}>
+      <Table className="min-w-[800px] lg:min-w-0">
         <TableHeader>
           <TableRow>
             <TableHead className="w-12.5">
@@ -130,17 +130,17 @@ function OrderTableComponent({
               />
             </TableHead>
             <TableHead className="w-30">Orden</TableHead>
-            <TableHead className="w-28">Referencia</TableHead>
+            <TableHead className="w-28 hidden lg:table-cell">Referencia</TableHead>
             <TableHead className="min-w-35">Cliente</TableHead>
-            <TableHead className="w-28">Tipo Servicio</TableHead>
-            <TableHead className="min-w-50">Ruta</TableHead>
-            <TableHead className="w-24">Progreso</TableHead>
+            <TableHead className="w-28 hidden xl:table-cell">Tipo Servicio</TableHead>
+            <TableHead className="min-w-50 hidden md:table-cell">Ruta</TableHead>
+            <TableHead className="w-24 hidden lg:table-cell">Progreso</TableHead>
             <TableHead className="w-30">Estado</TableHead>
-            <TableHead className="w-25">Prioridad</TableHead>
-            <TableHead className="w-32">ETA Próximo</TableHead>
-            <TableHead className="w-32">Fecha Cita</TableHead>
-            <TableHead className="w-35">Conductor/Vehículo</TableHead>
-            <TableHead className="w-35 text-right">Creación</TableHead>
+            <TableHead className="w-25 hidden xl:table-cell">Prioridad</TableHead>
+            <TableHead className="w-32 hidden lg:table-cell">ETA Próximo</TableHead>
+            <TableHead className="w-32 hidden xl:table-cell">Fecha Cita</TableHead>
+            <TableHead className="w-35 hidden md:table-cell">Conductor/Vehículo</TableHead>
+            <TableHead className="w-35 text-right hidden lg:table-cell">Creación</TableHead>
             <TableHead className="w-12.5"></TableHead>
           </TableRow>
         </TableHeader>
@@ -175,7 +175,7 @@ function OrderTableComponent({
                 </TableCell>
 
                 {/* Referencia */}
-                <TableCell>
+                <TableCell className="hidden lg:table-cell">
                   <div className="flex flex-col text-xs">
                     {order.reference ? (
                       <span className="font-medium truncate max-w-24" title={order.reference}>
@@ -206,14 +206,14 @@ function OrderTableComponent({
                 </TableCell>
 
                 {/* Tipo de Servicio */}
-                <TableCell>
+                <TableCell className="hidden xl:table-cell">
                   <Badge variant="outline" className="text-xs whitespace-nowrap font-normal">
                     {SERVICE_TYPE_LABELS[order.serviceType] || order.serviceType || '—'}
                   </Badge>
                 </TableCell>
                 
                 {/* Ruta - Compacta */}
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <div className="flex flex-col gap-1 text-xs">
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
@@ -227,7 +227,7 @@ function OrderTableComponent({
                 </TableCell>
 
                 {/* Progreso de hitos */}
-                <TableCell>
+                <TableCell className="hidden lg:table-cell">
                   <div className="flex flex-col items-center gap-1">
                     <div className="flex items-center gap-1 text-xs font-medium">
                       <CheckCircle2 className="w-3 h-3 text-green-500" />
@@ -256,7 +256,7 @@ function OrderTableComponent({
                 </TableCell>
                 
                 {/* Prioridad */}
-                <TableCell>
+                <TableCell className="hidden xl:table-cell">
                   <div className={cn('flex items-center gap-1.5 text-xs font-medium', priorityConfig.className)}>
                     {order.priority === 'urgent' && <AlertTriangle className="w-3 h-3" />}
                     {priorityConfig.label}
@@ -264,7 +264,7 @@ function OrderTableComponent({
                 </TableCell>
 
                 {/* ETA Próximo Hito */}
-                <TableCell>
+                <TableCell className="hidden lg:table-cell">
                   {nextETA ? (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
@@ -278,7 +278,7 @@ function OrderTableComponent({
                 </TableCell>
 
                 {/* Fecha Cita (destino) */}
-                <TableCell>
+                <TableCell className="hidden xl:table-cell">
                   {appointmentDate ? (
                     <span className="text-xs text-muted-foreground">
                       {formatShortDate(appointmentDate)}
@@ -289,7 +289,7 @@ function OrderTableComponent({
                 </TableCell>
                 
                 {/* Recursos */}
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <div className="flex flex-col text-xs text-muted-foreground">
                     {order.driver && (
                       <span className="truncate">{order.driver.fullName}</span>
@@ -304,7 +304,7 @@ function OrderTableComponent({
                 </TableCell>
                 
                 {/* Fecha */}
-                <TableCell className="text-right text-xs text-muted-foreground">
+                <TableCell className="text-right text-xs text-muted-foreground hidden lg:table-cell">
                   {formatDate(order.createdAt)}
                 </TableCell>
 

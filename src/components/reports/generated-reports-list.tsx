@@ -142,18 +142,18 @@ export function GeneratedReportsList({
               {filtered.length} reportes disponibles para descarga
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar reporte..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 w-48"
+                className="pl-9 w-full sm:w-48"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
@@ -181,14 +181,15 @@ export function GeneratedReportsList({
             </p>
           </div>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="min-w-[650px] lg:min-w-0">
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Formato</TableHead>
-                <TableHead>Período</TableHead>
-                <TableHead>Generado</TableHead>
-                <TableHead>Tamaño</TableHead>
+                <TableHead className="hidden sm:table-cell">Formato</TableHead>
+                <TableHead className="hidden md:table-cell">Período</TableHead>
+                <TableHead className="hidden md:table-cell">Generado</TableHead>
+                <TableHead className="hidden lg:table-cell">Tamaño</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-32">Acciones</TableHead>
               </TableRow>
@@ -207,10 +208,10 @@ export function GeneratedReportsList({
                         <span className="font-medium">{report.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant="secondary">{format.label}</Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                       {report.dateRange ? (
                         <>
                           {formatDate(report.dateRange.start)} -{" "}
@@ -220,10 +221,10 @@ export function GeneratedReportsList({
                         "-"
                       )}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm hidden md:table-cell">
                       {report.completedAt ? formatDate(report.completedAt) : "-"}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm hidden lg:table-cell">
                       {formatFileSize(report.fileSize)}
                     </TableCell>
                     <TableCell>
@@ -300,6 +301,7 @@ export function GeneratedReportsList({
               })}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

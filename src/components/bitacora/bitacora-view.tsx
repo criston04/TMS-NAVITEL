@@ -48,6 +48,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import type {
   BitacoraEntry,
   BitacoraEventType,
@@ -487,7 +493,7 @@ export function BitacoraView({
 }: BitacoraViewProps) {
   // Estado
   const [search, setSearch] = useState('');
-  const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
+  const [eventTypeFilter, setEventTypeFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [expectedFilter, setExpectedFilter] = useState<string>('all');
@@ -514,9 +520,9 @@ export function BitacoraView({
       );
     }
 
-    // Tipo de evento
-    if (eventTypeFilter !== 'all') {
-      result = result.filter((e) => e.eventType === eventTypeFilter);
+    // Tipo de evento (multi-select)
+    if (eventTypeFilter.length > 0) {
+      result = result.filter((e) => eventTypeFilter.includes(e.eventType));
     }
 
     // Estado
@@ -632,17 +638,55 @@ export function BitacoraView({
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 animate-in slide-in-from-top-2 duration-200">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo de evento</label>
-            <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {Object.entries(EVENT_TYPE_CONFIG).map(([key, config]) => (
-                  <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-9 text-sm w-full justify-between font-normal">
+                  {eventTypeFilter.length === 0
+                    ? 'Todos'
+                    : eventTypeFilter.length === 1
+                      ? EVENT_TYPE_CONFIG[eventTypeFilter[0] as BitacoraEventType]?.label
+                      : `${eventTypeFilter.length} seleccionados`}
+                  <ChevronDown className="h-3.5 w-3.5 ml-1 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" align="start">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setEventTypeFilter([])}
+                    className={cn(
+                      'flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors',
+                      eventTypeFilter.length === 0 && 'bg-muted font-medium'
+                    )}
+                  >
+                    Todos
+                  </button>
+                  <div className="h-px bg-border my-1" />
+                  {Object.entries(EVENT_TYPE_CONFIG).map(([key, config]) => {
+                    const isChecked = eventTypeFilter.includes(key);
+                    return (
+                      <label
+                        key={key}
+                        className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setEventTypeFilter((prev) => [...prev, key]);
+                            } else {
+                              setEventTypeFilter((prev) => prev.filter((v) => v !== key));
+                            }
+                          }}
+                          className="h-4 w-4"
+                        />
+                        <config.icon className={cn('h-3.5 w-3.5', config.color)} />
+                        <span>{config.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>

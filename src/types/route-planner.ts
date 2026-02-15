@@ -166,3 +166,27 @@ export interface OrderFilters {
   priority?: ("high" | "medium" | "low")[];
   searchTerm?: string;
 }
+
+/* ============================================
+   OPTIMIZATION PARAMS
+   ============================================ */
+export interface OptimizationParams {
+  timeWindowStart: string; // "08:00"
+  timeWindowEnd: string;   // "18:00"
+  truckCount: number;
+  stopDuration: number;    // minutos por parada
+}
+
+/* ============================================
+   PLANNER STEP
+   ============================================ */
+export type PlannerStep = "select" | "configure" | "results" | "assign";
+
+/* ============================================
+   ROUTE ASSIGNMENT
+   ============================================ */
+export interface RouteAssignment {
+  routeId: string;
+  vehicle?: Vehicle;
+  driver?: Driver;
+}

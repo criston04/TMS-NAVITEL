@@ -1,8 +1,9 @@
 "use client";
 
 /* ============================================
-   CONTEXT: Route Planner
+   CONTEXT: Route Planner (Multi-Route)
    Transportation Management System
+   Supports: select → configure → results → assign
    ============================================ */
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
@@ -14,36 +15,70 @@ import type {
   Driver,
   RouteConfiguration,
   RouteAlert,
+  OptimizationParams,
+  PlannerStep,
+  RouteAssignment,
 } from "@/types/route-planner";
 import {
   generateRoutePolyline,
   calculateTotalDistance,
   estimateDuration,
   estimateCost,
+  generateMultipleOptimizedRoutes,
 } from "@/lib/mock-data/route-planner";
 
 /* ============================================
    CONTEXT TYPES
    ============================================ */
 interface RoutePlannerContextValue {
-  // State
+  // Step
+  plannerStep: PlannerStep;
+  setPlannerStep: (step: PlannerStep) => void;
+
+  // Orders
   selectedOrders: TransportOrder[];
-  currentRoute: Route | null;
-  selectedVehicle: Vehicle | null;
-  selectedDriver: Driver | null;
-  configuration: RouteConfiguration;
-  
-  // Actions
   addOrder: (order: TransportOrder) => void;
   removeOrder: (orderId: string) => void;
   clearOrders: () => void;
+
+  // Optimization params
+  optimizationParams: OptimizationParams;
+  updateOptimizationParams: (params: Partial<OptimizationParams>) => void;
+
+  // Single route (legacy/compatibility)
+  currentRoute: Route | null;
   generateRoute: () => void;
   reorderStops: (stops: RouteStop[]) => void;
+
+  // Multi-route optimization
+  generatedRoutes: Route[];
+  generateOptimizedRoutes: () => void;
+
+  // Assignments
+  routeAssignments: RouteAssignment[];
+  assignVehicleToRoute: (routeId: string, vehicle: Vehicle) => void;
+  assignDriverToRoute: (routeId: string, driver: Driver) => void;
+
+  // Vehicle/Driver (legacy single-route)
+  selectedVehicle: Vehicle | null;
+  selectedDriver: Driver | null;
   selectVehicle: (vehicle: Vehicle | null) => void;
   selectDriver: (driver: Driver | null) => void;
+
+  // Configuration
+  configuration: RouteConfiguration;
   updateConfiguration: (config: Partial<RouteConfiguration>) => void;
+
+  // Actions
   confirmRoute: () => void;
+  confirmAllRoutes: () => void;
   resetRoute: () => void;
+  resetAll: () => void;
+
+  // Helpers
+  selectedRouteId: string | null;
+  setSelectedRouteId: (id: string | null) => void;
+  allRoutesAssigned: boolean;
 }
 
 const RoutePlannerContext = createContext<RoutePlannerContextValue | undefined>(undefined);
@@ -58,15 +93,27 @@ const defaultConfiguration: RouteConfiguration = {
   timeBuffer: 10,
 };
 
+const defaultOptimizationParams: OptimizationParams = {
+  timeWindowStart: "08:00",
+  timeWindowEnd: "18:00",
+  truckCount: 3,
+  stopDuration: 30,
+};
+
 /* ============================================
    PROVIDER COMPONENT
    ============================================ */
 export function RoutePlannerProvider({ children }: { children: ReactNode }) {
+  const [plannerStep, setPlannerStep] = useState<PlannerStep>("select");
   const [selectedOrders, setSelectedOrders] = useState<TransportOrder[]>([]);
   const [currentRoute, setCurrentRoute] = useState<Route | null>(null);
+  const [generatedRoutes, setGeneratedRoutes] = useState<Route[]>([]);
+  const [routeAssignments, setRouteAssignments] = useState<RouteAssignment[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [configuration, setConfiguration] = useState<RouteConfiguration>(defaultConfiguration);
+  const [optimizationParams, setOptimizationParams] = useState<OptimizationParams>(defaultOptimizationParams);
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
 
   /* ============================================
      ADD ORDER TO SELECTION
@@ -272,6 +319,68 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
   }, [currentRoute]);
 
   /* ============================================
+     GENERATE MULTIPLE OPTIMIZED ROUTES
+     ============================================ */
+  const generateOptimizedRoutes = useCallback(() => {
+    if (selectedOrders.length === 0) return;
+    const routes = generateMultipleOptimizedRoutes(
+      selectedOrders,
+      optimizationParams,
+      configuration
+    );
+    setGeneratedRoutes(routes);
+    setRouteAssignments(routes.map((r) => ({ routeId: r.id })));
+    setPlannerStep("results");
+    if (routes.length > 0) {
+      setSelectedRouteId(routes[0].id);
+    }
+  }, [selectedOrders, optimizationParams, configuration]);
+
+  /* ============================================
+     ASSIGN VEHICLE TO ROUTE
+     ============================================ */
+  const assignVehicleToRoute = useCallback((routeId: string, vehicle: Vehicle) => {
+    setRouteAssignments((prev) =>
+      prev.map((a) => (a.routeId === routeId ? { ...a, vehicle } : a))
+    );
+    setGeneratedRoutes((prev) =>
+      prev.map((r) => (r.id === routeId ? { ...r, vehicle } : r))
+    );
+  }, []);
+
+  /* ============================================
+     ASSIGN DRIVER TO ROUTE
+     ============================================ */
+  const assignDriverToRoute = useCallback((routeId: string, driver: Driver) => {
+    setRouteAssignments((prev) =>
+      prev.map((a) => (a.routeId === routeId ? { ...a, driver } : a))
+    );
+    setGeneratedRoutes((prev) =>
+      prev.map((r) => (r.id === routeId ? { ...r, driver } : r))
+    );
+  }, []);
+
+  /* ============================================
+     UPDATE OPTIMIZATION PARAMS
+     ============================================ */
+  const updateOptimizationParams = useCallback((params: Partial<OptimizationParams>) => {
+    setOptimizationParams((prev) => ({ ...prev, ...params }));
+  }, []);
+
+  /* ============================================
+     CONFIRM ALL ROUTES
+     ============================================ */
+  const confirmAllRoutes = useCallback(() => {
+    setGeneratedRoutes((prev) =>
+      prev.map((r) => ({
+        ...r,
+        status: "confirmed" as const,
+        confirmedAt: new Date().toISOString(),
+      }))
+    );
+  }, []);
+
+  /* ============================================
      RESET ROUTE
      ============================================ */
   const resetRoute = useCallback(() => {
@@ -282,22 +391,58 @@ export function RoutePlannerProvider({ children }: { children: ReactNode }) {
     setConfiguration(defaultConfiguration);
   }, []);
 
+  /* ============================================
+     RESET ALL (multi-route)
+     ============================================ */
+  const resetAll = useCallback(() => {
+    setPlannerStep("select");
+    setSelectedOrders([]);
+    setCurrentRoute(null);
+    setGeneratedRoutes([]);
+    setRouteAssignments([]);
+    setSelectedVehicle(null);
+    setSelectedDriver(null);
+    setConfiguration(defaultConfiguration);
+    setOptimizationParams(defaultOptimizationParams);
+    setSelectedRouteId(null);
+  }, []);
+
+  /* ============================================
+     COMPUTED VALUES
+     ============================================ */
+  const allRoutesAssigned = routeAssignments.length > 0 &&
+    routeAssignments.every((a) => a.vehicle && a.driver);
+
   const value: RoutePlannerContextValue = {
+    plannerStep,
+    setPlannerStep,
     selectedOrders,
-    currentRoute,
-    selectedVehicle,
-    selectedDriver,
-    configuration,
     addOrder,
     removeOrder,
     clearOrders,
+    optimizationParams,
+    updateOptimizationParams,
+    currentRoute,
     generateRoute,
     reorderStops,
+    generatedRoutes,
+    generateOptimizedRoutes,
+    routeAssignments,
+    assignVehicleToRoute,
+    assignDriverToRoute,
+    selectedVehicle,
+    selectedDriver,
     selectVehicle,
     selectDriver,
+    configuration,
     updateConfiguration,
     confirmRoute,
+    confirmAllRoutes,
     resetRoute,
+    resetAll,
+    selectedRouteId,
+    setSelectedRouteId,
+    allRoutesAssigned,
   };
 
   return (

@@ -39,7 +39,7 @@ export function StatCard({
       </CardHeader>
       <CardContent>
         <div className="flex flex-col">
-          <div className="text-2xl font-bold">{value}</div>
+          <div className="text-xl sm:text-2xl font-bold truncate">{value}</div>
           
           {(trend || data) && (
             <div className="flex items-center justify-between mt-1 h-10">

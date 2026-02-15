@@ -31,6 +31,8 @@ import { cn } from "@/lib/utils";
 interface DriverSelectorProps {
   drivers: Driver[];
   compact?: boolean;
+  onSelect?: (driver: Driver) => void;
+  selectedDriverId?: string;
 }
 
 /* ============================================
@@ -216,9 +218,17 @@ function DriverCard({
 /* ============================================
    DRIVER SELECTOR COMPONENT
    ============================================ */
-export function DriverSelector({ drivers, compact = false }: DriverSelectorProps) {
-  const { selectedDriver, selectDriver } = useRoutePlanner();
+export function DriverSelector({ drivers, compact = false, onSelect, selectedDriverId }: DriverSelectorProps) {
+  const { selectedDriver: ctxDriver, selectDriver: ctxSelectDriver } = useRoutePlanner();
   const [isExpanded, setIsExpanded] = useState(!compact);
+
+  // Allow overriding from props (multi-route assignment)
+  const selectedDriver = selectedDriverId
+    ? drivers.find((d) => d.id === selectedDriverId) || ctxDriver
+    : ctxDriver;
+  const selectDriver = onSelect
+    ? (d: Driver | null) => { if (d) onSelect(d); }
+    : ctxSelectDriver;
 
   const availableDrivers = drivers.filter((d) => d.status === "available");
   const unavailableDrivers = drivers.filter((d) => d.status !== "available");

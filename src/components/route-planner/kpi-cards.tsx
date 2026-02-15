@@ -142,22 +142,11 @@ function KpiCard({
     >
       <Card
         className={cn(
-          "p-4 h-full transition-all hover:shadow-lg relative overflow-hidden",
-          "bg-gradient-to-br from-card to-card/50",
-          "border border-border/50",
+          "p-2 h-full transition-all hover:shadow-lg relative overflow-hidden flex items-center gap-0 bg-gradient-to-br from-card to-card/50 border border-border/50",
           data.borderColor
         )}
       >
-        {/* Background Decoration */}
-        <div
-          className={cn(
-            "absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10",
-            data.bgColor
-          )}
-        />
-
-        {/* Icon */}
-        <div className="flex items-start justify-between mb-3 relative z-10">
+        <div className="flex items-center w-full">
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -166,31 +155,30 @@ function KpiCard({
               type: "spring",
               damping: 15,
             }}
-            className={cn("p-2.5 rounded-xl", data.bgColor)}
+            className={cn("p-2 bg-[#eaf7ff] rounded-xl flex-shrink-0 flex items-center justify-center", data.bgColor)}
+            style={{ minWidth: 38, minHeight: 38 }}
           >
-            <Icon className={cn("h-5 w-5", data.color)} />
+            <Icon className={cn("h-6 w-6 text-[#34b7ff]", data.color)} />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.08 + 0.3 }}
+            className="flex flex-col justify-center min-w-0 ml-2"
+          >
+            <div className="text-[18px] font-bold leading-tight tracking-tight text-black">
+              {data.value}
+            </div>
+            <div className="text-[13px] text-neutral-600 font-medium leading-tight">
+              {data.label}
+            </div>
+            {data.subValue && (
+              <div className="text-xs text-muted-foreground/70 mt-0.5 truncate">
+                {data.subValue}
+              </div>
+            )}
           </motion.div>
         </div>
-
-        {/* Value */}
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.08 + 0.3 }}
-          className="relative z-10"
-        >
-          <div className="text-2xl font-bold tracking-tight mb-0.5">
-            {data.value}
-          </div>
-          <div className="text-xs text-muted-foreground font-medium">
-            {data.label}
-          </div>
-          {data.subValue && (
-            <div className="text-xs text-muted-foreground/70 mt-1">
-              {data.subValue}
-            </div>
-          )}
-        </motion.div>
       </Card>
     </motion.div>
   );
@@ -214,7 +202,7 @@ export function KpiCards({ route }: KpiCardsProps) {
 
   if (!route) {
     return (
-      <div className="grid grid-cols-4 gap-3 px-4 py-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 px-4 py-3">
         {[...Array(4)].map((_, i) => (
           <KpiCard key={i} index={i} isEmpty />
         ))}
@@ -264,8 +252,8 @@ export function KpiCards({ route }: KpiCardsProps) {
   ];
 
   return (
-    <div className="p-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="p-1">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
         {kpis.map((kpi, index) => (
           <KpiCard key={kpi.label} data={kpi} index={index} />
         ))}
@@ -277,25 +265,25 @@ export function KpiCards({ route }: KpiCardsProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-4"
+          className="mt-1"
         >
-          <Card className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-medium">Utilización de Capacidad</div>
-              <div className="text-xs text-muted-foreground">
+          <Card className="p-1.5">
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-[11px] font-medium">Utilización de Capacidad</div>
+              <div className="text-[10px] text-muted-foreground">
                 {route.vehicle.brand} {route.vehicle.model}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-1.5">
               {/* Weight */}
               <div>
-                <div className="flex items-center justify-between text-xs mb-1.5">
+                <div className="flex items-center justify-between text-[10px] mb-0.5">
                   <span className="text-muted-foreground">Peso</span>
                   <span className="font-medium">
                     {route.metrics.totalWeight} / {route.vehicle.capacity.weight} kg
                   </span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{
@@ -317,13 +305,13 @@ export function KpiCards({ route }: KpiCardsProps) {
 
               {/* Volume */}
               <div>
-                <div className="flex items-center justify-between text-xs mb-1.5">
+                <div className="flex items-center justify-between text-[10px] mb-0.5">
                   <span className="text-muted-foreground">Volumen</span>
                   <span className="font-medium">
                     {route.metrics.totalVolume} / {route.vehicle.capacity.volume} m³
                   </span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{
