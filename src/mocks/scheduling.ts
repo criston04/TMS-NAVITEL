@@ -221,62 +221,211 @@ function mapSharedOrderToOrder(order: (typeof SHARED_ORDERS)[number]): Order {
 }
 
 /**
- * Genera timelines de recursos mock
+ * Genera timelines de recursos con órdenes reales asignadas
+ * @param scheduledOrders - Órdenes ya programadas para poblar los timelines
  */
-export function generateMockTimelines(): ResourceTimeline[] {
-  const vehicleTimelines: ResourceTimeline[] = SHARED_VEHICLES.slice(0, 4).map(vehicle => ({
-    resourceId: vehicle.id,
-    type: 'vehicle' as const,
-    name: `${vehicle.plate} - ${vehicle.brand}`,
-    utilization: vehicle.operationalStatus === 'on-route' ? 80 : 
-                 vehicle.operationalStatus === 'available' ? 30 : 0,
-    assignments: [],
-  }));
+export function generateMockTimelines(scheduledOrders: ScheduledOrder[] = []): ResourceTimeline[] {
+  const vehicleTimelines: ResourceTimeline[] = SHARED_VEHICLES.slice(0, 4).map(vehicle => {
+    const vehicleAssignments = scheduledOrders.filter(o => o.vehicleId === vehicle.id);
+    const baseUtil = vehicle.operationalStatus === 'on-route' ? 40 : 0;
+    const assignmentUtil = Math.min(60, vehicleAssignments.length * 20);
+    return {
+      resourceId: vehicle.id,
+      type: 'vehicle' as const,
+      name: `${vehicle.plate} - ${vehicle.brand}`,
+      utilization: Math.min(100, baseUtil + assignmentUtil),
+      assignments: vehicleAssignments,
+      hasConflicts: vehicleAssignments.some(o => o.hasConflict),
+    };
+  });
 
-  const driverTimelines: ResourceTimeline[] = SHARED_DRIVERS.slice(0, 4).map(driver => ({
-    resourceId: driver.id,
-    type: 'driver' as const,
-    name: driver.shortName,
-    utilization: driver.availability === 'on-route' ? 85 :
-                 driver.availability === 'available' ? 25 : 0,
-    assignments: [],
-  }));
+  const driverTimelines: ResourceTimeline[] = SHARED_DRIVERS.slice(0, 4).map(driver => {
+    const driverAssignments = scheduledOrders.filter(o => o.driverId === driver.id);
+    const baseUtil = driver.availability === 'on-route' ? 40 : 0;
+    const assignmentUtil = Math.min(60, driverAssignments.length * 20);
+    return {
+      resourceId: driver.id,
+      type: 'driver' as const,
+      name: driver.shortName,
+      utilization: Math.min(100, baseUtil + assignmentUtil),
+      assignments: driverAssignments,
+      hasConflicts: driverAssignments.some(o => o.hasConflict),
+    };
+  });
 
   return [...vehicleTimelines, ...driverTimelines];
 }
 
 /**
- * Genera sugerencias de recursos para una orden
+ * Genera sugerencias de recursos evaluando compatibilidad real
+ * Evalúa: disponibilidad, capacidad, HOS, tipo de carga
+ * @param orderId - ID de la orden para evaluar compatibilidad
+ * @param scheduledOrders - Órdenes ya programadas para verificar conflictos
+ * @param targetDate - Fecha objetivo para verificar disponibilidad
  */
-export function generateMockSuggestions(_orderId: string): ResourceSuggestion[] {
-  const availableVehicles = SHARED_VEHICLES.filter(v => v.operationalStatus === 'available');
-  const availableDrivers = SHARED_DRIVERS.filter(d => d.availability === 'available');
+export function generateMockSuggestions(
+  orderId: string,
+  scheduledOrders: ScheduledOrder[] = [],
+  targetDate?: Date
+): ResourceSuggestion[] {
+  // Buscar la orden para evaluar compatibilidad
+  const order = SHARED_ORDERS.find(o => o.id === orderId);
+  const orderWeight = order?.weightKg || 10000;
+  const orderCargo = order?.cargoType || 'general';
+  const dateStr = targetDate ? targetDate.toDateString() : new Date().toDateString();
 
-  const vehicleSuggestions: ResourceSuggestion[] = availableVehicles
-    .slice(0, 2)
-    .map((vehicle, index) => ({
-      type: 'vehicle' as const,
-      resourceId: vehicle.id,
-      name: `${vehicle.plate} - ${vehicle.brand} ${vehicle.model}`,
-      score: 95 - (index * 10),
-      reason: index === 0 
-        ? 'Mejor disponibilidad y capacidad adecuada'
-        : 'Vehículo alternativo con buena capacidad',
-      isAvailable: true,
-    }));
+  // Evaluar vehículos disponibles con scoring real
+  const vehicleSuggestions: ResourceSuggestion[] = SHARED_VEHICLES
+    .filter(v => v.operationalStatus !== 'maintenance')
+    .map(vehicle => {
+      let score = 0;
+      const reasons: string[] = [];
+      const warnings: string[] = [];
 
-  const driverSuggestions: ResourceSuggestion[] = availableDrivers
-    .slice(0, 2)
-    .map((driver, index) => ({
-      type: 'driver' as const,
-      resourceId: driver.id,
-      name: driver.fullName,
-      score: 90 - (index * 8),
-      reason: index === 0 
-        ? `Horas disponibles: ${48 - driver.hoursThisWeek}h esta semana`
-        : 'Conductor con experiencia en rutas similares',
-      isAvailable: true,
-    }));
+      // Disponibilidad base (0-30)
+      if (vehicle.operationalStatus === 'available') {
+        score += 30;
+        reasons.push('Vehículo disponible');
+      } else {
+        score += 10;
+        warnings.push('Actualmente en ruta, verificar horario');
+      }
+
+      // Capacidad (0-30)
+      if (vehicle.capacityKg >= orderWeight) {
+        const capacityRatio = orderWeight / vehicle.capacityKg;
+        // Ideal: usar 60-85% de capacidad
+        if (capacityRatio >= 0.6 && capacityRatio <= 0.85) {
+          score += 30;
+          reasons.push(`Uso óptimo de capacidad (${Math.round(capacityRatio * 100)}%)`);
+        } else if (capacityRatio < 0.6) {
+          score += 20;
+          reasons.push(`Capacidad suficiente (${Math.round(capacityRatio * 100)}% uso)`);
+        } else {
+          score += 25;
+          reasons.push(`Capacidad ajustada (${Math.round(capacityRatio * 100)}% uso)`);
+        }
+      } else {
+        score += 0;
+        warnings.push(`Capacidad insuficiente: ${vehicle.capacityKg}kg < ${orderWeight}kg`);
+      }
+
+      // Tipo de carga compatible (0-20)
+      const needsSpecial = ['refrigerated', 'hazardous', 'liquid'].includes(orderCargo);
+      if (needsSpecial && vehicle.type === 'tractocamion') {
+        score += 15;
+        reasons.push('Tipo de vehículo compatible con carga especial');
+      } else if (!needsSpecial) {
+        score += 20;
+        reasons.push('Carga general compatible');
+      } else {
+        score += 5;
+        warnings.push('Verificar equipamiento para carga especial');
+      }
+
+      // Sin conflictos en la fecha (0-20)
+      const hasConflict = scheduledOrders.some(
+        o => o.vehicleId === vehicle.id &&
+        new Date(o.scheduledDate).toDateString() === dateStr
+      );
+      if (!hasConflict) {
+        score += 20;
+      } else {
+        warnings.push('Ya tiene asignación para esta fecha');
+      }
+
+      return {
+        type: 'vehicle' as const,
+        resourceId: vehicle.id,
+        name: `${vehicle.plate} - ${vehicle.brand} ${vehicle.model}`,
+        score: Math.min(100, score),
+        reason: reasons[0] || 'Disponible',
+        reasons,
+        warnings: warnings.length > 0 ? warnings : undefined,
+        isAvailable: vehicle.operationalStatus === 'available' && !hasConflict,
+      };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  // Evaluar conductores con scoring real
+  const HOS_MAX_WEEKLY = 60;
+  const HOS_MAX_DAILY = 11;
+
+  const driverSuggestions: ResourceSuggestion[] = SHARED_DRIVERS
+    .filter(d => d.availability !== 'vacation')
+    .map(driver => {
+      let score = 0;
+      const reasons: string[] = [];
+      const warnings: string[] = [];
+
+      // Disponibilidad (0-25)
+      if (driver.availability === 'available') {
+        score += 25;
+        reasons.push('Conductor disponible');
+      } else if (driver.availability === 'on-route') {
+        score += 10;
+        warnings.push('Actualmente en ruta');
+      } else {
+        score += 0;
+        warnings.push('Fuera de servicio');
+      }
+
+      // HOS compliance (0-35)
+      const hoursRemaining = HOS_MAX_WEEKLY - driver.hoursThisWeek;
+      const estimatedDuration = 4; // Default
+      if (hoursRemaining >= estimatedDuration + 2) {
+        score += 35;
+        reasons.push(`HOS OK: ${hoursRemaining}h disponibles esta semana`);
+      } else if (hoursRemaining >= estimatedDuration) {
+        score += 20;
+        warnings.push(`HOS ajustado: solo ${hoursRemaining}h disponibles`);
+      } else {
+        score += 0;
+        warnings.push(`HOS insuficiente: ${hoursRemaining}h restantes vs ${estimatedDuration}h necesarias`);
+      }
+
+      // Licencia vigente (0-20)
+      const licenseDate = new Date(driver.licenseExpiry);
+      const now = new Date();
+      if (licenseDate > now) {
+        const monthsLeft = (licenseDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+        if (monthsLeft > 3) {
+          score += 20;
+          reasons.push('Licencia vigente');
+        } else {
+          score += 10;
+          warnings.push(`Licencia vence en ${Math.round(monthsLeft)} meses`);
+        }
+      } else {
+        score += 0;
+        warnings.push('Licencia vencida');
+      }
+
+      // Sin conflictos en la fecha (0-20)
+      const hasConflict = scheduledOrders.some(
+        o => o.driverId === driver.id &&
+        new Date(o.scheduledDate).toDateString() === dateStr
+      );
+      if (!hasConflict) {
+        score += 20;
+      } else {
+        warnings.push('Ya tiene asignación para esta fecha');
+      }
+
+      return {
+        type: 'driver' as const,
+        resourceId: driver.id,
+        name: driver.fullName,
+        score: Math.min(100, score),
+        reason: reasons[0] || 'Disponible',
+        reasons,
+        warnings: warnings.length > 0 ? warnings : undefined,
+        isAvailable: driver.availability === 'available' && !hasConflict && hoursRemaining >= estimatedDuration,
+      };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
 
   return [...vehicleSuggestions, ...driverSuggestions];
 }
@@ -454,10 +603,23 @@ export function generateMockNotifications(): SchedulingNotification[] {
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * Genera datos para la vista Gantt multi-día
+ * Genera datos para la vista Gantt multi-día con órdenes reales
+ * @param startDate - Fecha de inicio del rango
+ * @param days - Número de días a mostrar  
+ * @param scheduledOrders - Órdenes programadas para poblar el Gantt
+ * @param blockedDays - Días bloqueados del sistema
  */
-export function generateMockGanttData(startDate: Date, days: number = 7): GanttResourceRow[] {
+export function generateMockGanttData(
+  startDate: Date,
+  days: number = 7,
+  scheduledOrders: ScheduledOrder[] = [],
+  blockedDays: BlockedDay[] = []
+): GanttResourceRow[] {
   const rows: GanttResourceRow[] = [];
+  const isSameDay = (d1: Date, d2: Date) =>
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
 
   // Vehículos
   SHARED_VEHICLES.slice(0, 4).forEach(vehicle => {
@@ -466,11 +628,29 @@ export function generateMockGanttData(startDate: Date, days: number = 7): GanttR
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + d);
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+      // Órdenes del vehículo para este día
+      const dayOrders = scheduledOrders.filter(o => {
+        if (o.vehicleId !== vehicle.id) return false;
+        const orderDate = o.scheduledDate instanceof Date ? o.scheduledDate : new Date(o.scheduledDate);
+        return isSameDay(orderDate, date);
+      });
+
+      // Calcular utilización real basada en horas asignadas
+      const totalHours = dayOrders.reduce((sum, o) => sum + (o.estimatedDuration || 4), 0);
+      const utilization = isWeekend && dayOrders.length === 0 ? 0 : Math.min(100, Math.round((totalHours / 10) * 100));
+
+      // Verificar si el día está bloqueado para este recurso
+      const dateStr = date.toISOString().split('T')[0];
+      const isBlocked = blockedDays.some(b =>
+        b.date === dateStr && (b.appliesToAll || b.resourceIds?.includes(vehicle.id))
+      );
+
       dailyAssignments.push({
         date,
-        orders: [] as ScheduledOrder[],
-        utilization: isWeekend ? 0 : Math.floor(Math.random() * 80) + 10,
-        isBlocked: false,
+        orders: dayOrders,
+        utilization,
+        isBlocked,
       });
     }
     rows.push({
@@ -489,11 +669,26 @@ export function generateMockGanttData(startDate: Date, days: number = 7): GanttR
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + d);
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+      const dayOrders = scheduledOrders.filter(o => {
+        if (o.driverId !== driver.id) return false;
+        const orderDate = o.scheduledDate instanceof Date ? o.scheduledDate : new Date(o.scheduledDate);
+        return isSameDay(orderDate, date);
+      });
+
+      const totalHours = dayOrders.reduce((sum, o) => sum + (o.estimatedDuration || 4), 0);
+      const utilization = isWeekend && dayOrders.length === 0 ? 0 : Math.min(100, Math.round((totalHours / 11) * 100));
+
+      const dateStr = date.toISOString().split('T')[0];
+      const isBlocked = blockedDays.some(b =>
+        b.date === dateStr && (b.appliesToAll || b.resourceIds?.includes(driver.id))
+      );
+
       dailyAssignments.push({
         date,
-        orders: [] as ScheduledOrder[],
-        utilization: isWeekend ? 0 : Math.floor(Math.random() * 75) + 15,
-        isBlocked: false,
+        orders: dayOrders,
+        utilization,
+        isBlocked,
       });
     }
     rows.push({
@@ -508,21 +703,214 @@ export function generateMockGanttData(startDate: Date, days: number = 7): GanttR
   return rows;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   AUTO-SCHEDULING: Algoritmo real con scoring
+   Evalúa: capacidad, HOS, disponibilidad, prioridad, proximidad
+   ═══════════════════════════════════════════════════════════════ */
+
+/** FMCSA HOS limits (usados como referencia) */
+const HOS_LIMITS = {
+  maxDrivingHoursPerDay: 11,
+  maxDutyHoursPerDay: 14,
+  requiredBreakAfterHours: 8,
+  breakDurationMinutes: 30,
+  maxWeeklyHours7Day: 60,
+  maxWeeklyHours8Day: 70,
+  restartHours: 34,
+};
+
+export interface AutoScheduleAssignment {
+  orderId: string;
+  orderNumber: string;
+  vehicleId: string;
+  vehiclePlate: string;
+  driverId: string;
+  driverName: string;
+  scheduledDate: Date;
+  estimatedDuration: number;
+  score: number;
+}
+
+export interface AutoScheduleResult {
+  assigned: number;
+  failed: number;
+  errors: string[];
+  assignments: AutoScheduleAssignment[];
+}
+
 /**
- * Ejecuta auto-programación mock
+ * Estima duración del viaje basándose en distancia Haversine entre origen y destino
+ */
+function estimateTripDuration(order: Order): number {
+  const origin = order.milestones?.find(m => m.type === 'origin');
+  const dest = order.milestones?.find(m => m.type === 'destination');
+  if (!origin?.coordinates || !dest?.coordinates) return 4; // fallback 4h
+
+  // Haversine
+  const R = 6371;
+  const dLat = ((dest.coordinates.lat - origin.coordinates.lat) * Math.PI) / 180;
+  const dLng = ((dest.coordinates.lng - origin.coordinates.lng) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((origin.coordinates.lat * Math.PI) / 180) *
+    Math.cos((dest.coordinates.lat * Math.PI) / 180) *
+    Math.sin(dLng / 2) ** 2;
+  const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  // Velocidad promedio: 55 km/h (carreteras peruanas) + 1h carga/descarga
+  const drivingHours = km / 55;
+  const loadUnloadHours = 1;
+  return Math.max(2, Math.round((drivingHours + loadUnloadHours) * 10) / 10);
+}
+
+/**
+ * Ejecuta auto-programación con algoritmo de scoring real
+ * Estrategia: greedy por prioridad → mejor match de recursos
  */
 export function mockAutoSchedule(
   pendingOrders: Order[],
-  _vehicles: MockVehicle[],
-  _drivers: MockDriver[]
-): { assigned: number; failed: number; errors: string[] } {
-  const maxAuto = Math.min(pendingOrders.length, 5);
-  const assigned = Math.min(maxAuto, 3 + Math.floor(Math.random() * 3));
-  const failed = maxAuto - assigned;
-  const errors: string[] = [];
-  if (failed > 0) {
-    errors.push('No hay vehículos disponibles para 1 orden');
-    if (failed > 1) errors.push('Conductor con HOS insuficiente para 1 orden');
+  vehicles: MockVehicle[],
+  drivers: MockDriver[],
+  existingScheduled: ScheduledOrder[] = []
+): AutoScheduleResult {
+  const result: AutoScheduleResult = {
+    assigned: 0,
+    failed: 0,
+    errors: [],
+    assignments: [],
+  };
+
+  if (pendingOrders.length === 0) return result;
+
+  // Ordenar por prioridad (urgent > high > normal > low)
+  const priorityWeight: Record<string, number> = { urgent: 4, high: 3, normal: 2, low: 1 };
+  const sortedOrders = [...pendingOrders].sort(
+    (a, b) => (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0)
+  );
+
+  // Track de recursos ya usados en esta sesión de auto-schedule
+  const usedVehicles = new Map<string, number>(); // vehicleId → total hours on target date
+  const usedDrivers = new Map<string, number>();   // driverId → total hours on target date
+
+  // Pre-cargar horas ya asignadas del día objetivo
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + 1); // Programar para mañana
+  const targetDateStr = targetDate.toDateString();
+
+  for (const so of existingScheduled) {
+    const soDate = so.scheduledDate instanceof Date ? so.scheduledDate : new Date(so.scheduledDate);
+    if (soDate.toDateString() === targetDateStr) {
+      if (so.vehicleId) {
+        usedVehicles.set(so.vehicleId, (usedVehicles.get(so.vehicleId) || 0) + (so.estimatedDuration || 4));
+      }
+      if (so.driverId) {
+        usedDrivers.set(so.driverId, (usedDrivers.get(so.driverId) || 0) + (so.estimatedDuration || 4));
+      }
+    }
   }
-  return { assigned, failed, errors };
+
+  for (const order of sortedOrders) {
+    const duration = estimateTripDuration(order);
+    const orderWeight = order.cargo?.weightKg || 10000;
+
+    // Evaluar cada vehículo disponible
+    let bestVehicle: MockVehicle | null = null;
+    let bestVehicleScore = -1;
+
+    for (const vehicle of vehicles) {
+      if (vehicle.status === 'maintenance') continue;
+      if (vehicle.capacityKg < orderWeight) continue;
+
+      const hoursUsed = usedVehicles.get(vehicle.id) || 0;
+      if (hoursUsed + duration > HOS_LIMITS.maxDutyHoursPerDay) continue;
+
+      let score = 0;
+      // Disponibilidad (0-30)
+      score += vehicle.status === 'available' ? 30 : 10;
+      // Capacidad match (0-30) — penalizar exceso innecesario
+      const ratio = orderWeight / vehicle.capacityKg;
+      score += ratio >= 0.5 && ratio <= 0.9 ? 30 : ratio < 0.5 ? 15 : 25;
+      // Menor carga horaria existente es mejor (0-20)
+      score += Math.max(0, 20 - hoursUsed * 2);
+      // Tipo compatible (0-20)
+      const needsHeavy = orderWeight > 15000;
+      if (needsHeavy && (vehicle.type === 'tractocamion')) score += 20;
+      else if (!needsHeavy) score += 20;
+      else score += 5;
+
+      if (score > bestVehicleScore) {
+        bestVehicleScore = score;
+        bestVehicle = vehicle;
+      }
+    }
+
+    if (!bestVehicle) {
+      result.failed++;
+      result.errors.push(`${order.orderNumber}: No hay vehículo con capacidad suficiente (${orderWeight}kg) y disponibilidad`);
+      continue;
+    }
+
+    // Evaluar cada conductor disponible
+    let bestDriver: MockDriver | null = null;
+    let bestDriverScore = -1;
+
+    for (const driver of drivers) {
+      if (driver.status === 'off_duty') continue;
+
+      // HOS check: horas semanales + duración estimada
+      const weeklyRemaining = HOS_LIMITS.maxWeeklyHours7Day - driver.hoursThisWeek;
+      if (weeklyRemaining < duration) continue;
+
+      const dailyUsed = usedDrivers.get(driver.id) || 0;
+      if (dailyUsed + duration > HOS_LIMITS.maxDrivingHoursPerDay) continue;
+
+      // Licencia vigente
+      const licenseOk = new Date(driver.licenseExpiry) > new Date();
+      if (!licenseOk) continue;
+
+      let score = 0;
+      // Disponibilidad (0-25)
+      score += driver.status === 'available' ? 25 : 10;
+      // HOS holgura (0-35)
+      score += Math.min(35, Math.round((weeklyRemaining / HOS_LIMITS.maxWeeklyHours7Day) * 35));
+      // Menor carga diaria (0-20)
+      score += Math.max(0, 20 - dailyUsed * 3);
+      // Licencia con margen (0-20)
+      const monthsToExpiry = (new Date(driver.licenseExpiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30);
+      score += monthsToExpiry > 6 ? 20 : monthsToExpiry > 2 ? 10 : 5;
+
+      if (score > bestDriverScore) {
+        bestDriverScore = score;
+        bestDriver = driver;
+      }
+    }
+
+    if (!bestDriver) {
+      result.failed++;
+      result.errors.push(`${order.orderNumber}: No hay conductor con HOS suficiente (${duration}h necesarias)`);
+      continue;
+    }
+
+    // Asignar
+    const assignment: AutoScheduleAssignment = {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      vehicleId: bestVehicle.id,
+      vehiclePlate: bestVehicle.plateNumber,
+      driverId: bestDriver.id,
+      driverName: bestDriver.fullName,
+      scheduledDate: targetDate,
+      estimatedDuration: duration,
+      score: Math.round((bestVehicleScore + bestDriverScore) / 2),
+    };
+
+    result.assignments.push(assignment);
+    result.assigned++;
+
+    // Registrar uso de recursos para esta sesión
+    usedVehicles.set(bestVehicle.id, (usedVehicles.get(bestVehicle.id) || 0) + duration);
+    usedDrivers.set(bestDriver.id, (usedDrivers.get(bestDriver.id) || 0) + duration);
+  }
+
+  return result;
 }

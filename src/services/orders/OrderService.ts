@@ -20,6 +20,7 @@ import {
   getOrderGPSOperators,
 } from '@/mocks/orders/orders.mock';
 import { moduleConnectorService } from '@/services/integration';
+import { tmsEventBus } from '@/services/integration/event-bus.service';
 import { apiConfig, API_ENDPOINTS } from '@/config/api.config';
 import { apiClient } from '@/lib/api';
 
@@ -97,12 +98,14 @@ class OrderService {
 
     if (this.config.useMock) {
       // Cargar órdenes generadas desde el route planner
-      const routePlannerOrders = typeof window !== 'undefined' 
+      const routePlannerOrders: Order[] = typeof window !== 'undefined' 
         ? JSON.parse(localStorage.getItem('tms-generated-orders') || '[]')
         : [];
       
-      // Combinar órdenes mock con las generadas desde el route planner
-      const allOrders = [...this.orders, ...routePlannerOrders];
+      // Combinar órdenes mock con las generadas, evitando duplicados
+      const existingIds = new Set(this.orders.map(o => o.id));
+      const newOrders = routePlannerOrders.filter((o: Order) => !existingIds.has(o.id));
+      const allOrders = [...this.orders, ...newOrders];
       
       const result = filterOrders({
         ...filters,
@@ -134,7 +137,12 @@ class OrderService {
     await simulateDelay(200);
 
     if (this.config.useMock) {
-      const order = this.orders.find(o => o.id === id);
+      let order = this.orders.find(o => o.id === id);
+      // También buscar en órdenes generadas desde Route Planner
+      if (!order && typeof window !== 'undefined') {
+        const generated: Order[] = JSON.parse(localStorage.getItem('tms-generated-orders') || '[]');
+        order = generated.find((o: Order) => o.id === id);
+      }
       return order ?? null;
     }
 
@@ -151,7 +159,12 @@ class OrderService {
     await simulateDelay(200);
 
     if (this.config.useMock) {
-      const order = this.orders.find(o => o.orderNumber === orderNumber);
+      let order = this.orders.find(o => o.orderNumber === orderNumber);
+      // También buscar en órdenes generadas desde Route Planner
+      if (!order && typeof window !== 'undefined') {
+        const generated: Order[] = JSON.parse(localStorage.getItem('tms-generated-orders') || '[]');
+        order = generated.find((o: Order) => o.orderNumber === orderNumber);
+      }
       return order ?? null;
     }
 
@@ -477,7 +490,7 @@ class OrderService {
       this.orders[index] = updatedOrder;
       
       if (data.status && data.status !== currentOrder.status) {
-        this.emitEvent('status_change', updatedOrder);
+        this.emitEvent('status_change', updatedOrder, currentOrder.status);
       }
 
       return updatedOrder;
@@ -645,6 +658,7 @@ class OrderService {
     if (this.config.useMock) {
       const index = this.orders.findIndex(o => o.id === id);
       const now = new Date().toISOString();
+      const previousStatus = this.orders[index].status;
 
       const closedOrder: Order = {
         ...this.orders[index],
@@ -670,7 +684,17 @@ class OrderService {
       };
 
       this.orders[index] = closedOrder;
-      this.emitEvent('status_change', closedOrder);
+      this.emitEvent('status_change', closedOrder, previousStatus);
+
+      // Publicar evento específico de cierre
+      tmsEventBus.publish('order:closed', {
+        orderId: closedOrder.id,
+        orderNumber: closedOrder.orderNumber,
+        customerId: closedOrder.customerId,
+        vehicleId: closedOrder.vehicleId,
+        driverId: closedOrder.driverId,
+        closedBy: closureData.closedBy,
+      }, 'order-service');
 
       return closedOrder;
     }
@@ -914,7 +938,7 @@ class OrderService {
    * @param type - Tipo de evento
    * @param order - Orden afectada
    */
-  private emitEvent(type: OrderRealtimeEvent['type'], order: Order): void {
+  private emitEvent(type: OrderRealtimeEvent['type'], order: Order, previousStatus?: OrderStatus): void {
     const event: OrderRealtimeEvent = {
       type,
       orderId: order.id,
@@ -929,6 +953,47 @@ class OrderService {
     
     // Notificar a suscriptores globales
     this.eventListeners.get('*')?.forEach(cb => cb(event));
+
+    // ============================================
+    // PUBLICAR EN EVENT BUS CROSS-MODULE
+    // ============================================
+    if (type === 'status_change' && previousStatus) {
+      tmsEventBus.publish('order:status_changed', {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        previousStatus,
+        newStatus: order.status,
+        vehicleId: order.vehicleId,
+        driverId: order.driverId,
+        customerId: order.customerId,
+      }, 'order-service');
+
+      // Eventos específicos de ciclo de vida
+      if (order.status === 'completed') {
+        tmsEventBus.publish('order:completed', {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          customerId: order.customerId,
+          vehicleId: order.vehicleId,
+          driverId: order.driverId,
+          totalDistance: (order.metadata as Record<string, unknown>)?.estimatedDistance as number | undefined,
+          totalDuration: (order.metadata as Record<string, unknown>)?.estimatedDuration as number | undefined,
+          cargo: {
+            weightKg: order.cargo.weightKg,
+            volumeM3: order.cargo.volumeM3,
+            type: order.cargo.type,
+          },
+        }, 'order-service');
+      } else if (order.status === 'cancelled') {
+        tmsEventBus.publish('order:cancelled', {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          previousStatus,
+          newStatus: order.status,
+          customerId: order.customerId,
+        }, 'order-service');
+      }
+    }
   }
 }
 

@@ -18,6 +18,7 @@ import type {
   VehicleMaintenanceHistory,
   MaintenanceSettings,
 } from '@/types/maintenance';
+import { tmsEventBus } from '@/services/integration/event-bus.service';
 
 class MaintenanceService {
   private baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -220,6 +221,17 @@ class MaintenanceService {
       createdDate: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    // Publicar evento: vehículo entra en mantenimiento
+    tmsEventBus.publish('maintenance:started', {
+      maintenanceId: newWorkOrder.id,
+      vehicleId: data.vehicleId,
+      vehiclePlate: '',
+      maintenanceType: data.type || 'corrective',
+      status: 'in_progress',
+      estimatedCompletion: data.scheduledDate,
+    }, 'maintenance-service');
+
     return newWorkOrder;
   }
 
@@ -245,11 +257,22 @@ class MaintenanceService {
       recommendations?: string;
     }
   ): Promise<WorkOrder> {
-    return this.updateWorkOrder(id, {
+    const completed = await this.updateWorkOrder(id, {
       ...data,
       status: 'completed',
       completedDate: new Date().toISOString(),
     });
+
+    // Publicar evento: vehículo sale de mantenimiento
+    tmsEventBus.publish('maintenance:completed', {
+      maintenanceId: id,
+      vehicleId: completed.vehicleId,
+      vehiclePlate: '',
+      maintenanceType: completed.type || 'corrective',
+      status: 'completed',
+    }, 'maintenance-service');
+
+    return completed;
   }
 
   // ==================== TALLERES ====================

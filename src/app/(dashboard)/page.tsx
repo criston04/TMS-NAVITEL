@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { VehicleOverview } from "@/components/dashboard/vehicle-overview";
 import { ShipmentStatistics } from "@/components/dashboard/shipment-statistics";
 import { OnRouteVehicles } from "@/components/dashboard/on-route-vehicles";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useDashboard } from "@/hooks/useDashboard";
 
 import {
   Truck,
@@ -25,10 +25,23 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const [dateFilter, setDateFilter] = useState(() => {
+  const {
+    stats,
+    vehicleOverview,
+    shipmentData,
+    shipmentTotal,
+    onRouteVehicles,
+    onRouteTotal,
+    trends,
+    sparklines,
+    loading,
+    setDateFilter,
+  } = useDashboard();
+
+  const dateFilter = (() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
-  });
+  })();
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in p-3 sm:p-4 md:p-6 bg-slate-50/50 dark:bg-black/20 min-h-screen">
@@ -65,12 +78,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '0ms' }}>
             <StatCard
               title="Flota Total"
-              value="156"
+              value={String(stats?.totalFleet ?? "-")}
               icon={Truck}
-              trend={{ value: 12, label: "vs mes anterior" }}
-              data={[
-                { value: 120 }, { value: 132 }, { value: 101 }, { value: 134 }, { value: 190 }, { value: 130 }, { value: 156 }
-              ]}
+              trend={{ value: 12, label: trends.totalFleet.label }}
+              data={(sparklines.totalFleet ?? []).map(v => ({ value: v }))}
               color="#3b82f6"
               className="shadow-sm border-0"
             />
@@ -78,12 +89,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
             <StatCard
               title="Entregas a Tiempo"
-              value="98.5%"
+              value={stats ? `${stats.onTimeDeliveryRate}%` : "-"}
               icon={CheckCircle2}
-              trend={{ value: 2.1, label: "vs semana pasada" }}
-              data={[
-                { value: 92 }, { value: 95 }, { value: 94 }, { value: 98 }, { value: 97 }, { value: 99 }, { value: 98.5 }
-              ]}
+              trend={{ value: 2.1, label: trends.onTimeDelivery.label }}
+              data={(sparklines.onTimeDelivery ?? []).map(v => ({ value: v }))}
               color="#10b981"
               className="shadow-sm border-0"
             />
@@ -91,12 +100,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
             <StatCard
               title="Órdenes del Día"
-              value="87"
+              value={String(stats?.dailyOrders ?? "-")}
               icon={Package}
-              trend={{ value: 15, label: "vs promedio" }}
-              data={[
-                { value: 65 }, { value: 72 }, { value: 80 }, { value: 75 }, { value: 82 }, { value: 78 }, { value: 87 }
-              ]}
+              trend={{ value: 15, label: trends.dailyOrders.label }}
+              data={(sparklines.dailyOrders ?? []).map(v => ({ value: v }))}
               color="#8b5cf6"
               className="shadow-sm border-0"
             />
@@ -104,12 +111,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
             <StatCard
               title="Tiempo Promedio Entrega"
-              value="45m"
+              value={stats ? `${stats.avgDeliveryTimeMinutes}m` : "-"}
               icon={Clock}
-              trend={{ value: -12, label: "mejora eficiencia" }}
-              data={[
-                { value: 60 }, { value: 55 }, { value: 50 }, { value: 48 }, { value: 45 }, { value: 42 }, { value: 45 }
-              ]}
+              trend={{ value: -12, label: trends.avgDeliveryTime.label }}
+              data={(sparklines.avgDeliveryTime ?? []).map(v => ({ value: v }))}
               color="#6366f1"
               className="shadow-sm border-0"
             />
@@ -129,12 +134,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
             <StatCard
               title="Vehículos en Ruta"
-              value="94"
+              value={String(stats?.vehiclesOnRoute ?? "-")}
               icon={MapPin}
-              trend={{ value: 8, label: "en tránsito" }}
-              data={[
-                { value: 78 }, { value: 82 }, { value: 88 }, { value: 90 }, { value: 85 }, { value: 92 }, { value: 94 }
-              ]}
+              trend={{ value: 8, label: trends.vehiclesOnRoute.label }}
+              data={(sparklines.vehiclesOnRoute ?? []).map(v => ({ value: v }))}
               color="#10b981"
               className="shadow-sm border-0"
             />
@@ -142,12 +145,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
             <StatCard
               title="Conductores Activos"
-              value="112"
+              value={String(stats?.activeDrivers ?? "-")}
               icon={Users}
-              trend={{ value: 5, label: "disponibles" }}
-              data={[
-                { value: 98 }, { value: 102 }, { value: 108 }, { value: 105 }, { value: 110 }, { value: 115 }, { value: 112 }
-              ]}
+              trend={{ value: 5, label: trends.activeDrivers.label }}
+              data={(sparklines.activeDrivers ?? []).map(v => ({ value: v }))}
               color="#06b6d4"
               className="shadow-sm border-0"
             />
@@ -155,12 +156,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
             <StatCard
               title="Velocidad Prom."
-              value="62 km/h"
+              value={stats ? `${stats.avgSpeedKmh} km/h` : "-"}
               icon={Gauge}
-              trend={{ value: -3, label: "bajo límite" }}
-              data={[
-                { value: 58 }, { value: 65 }, { value: 62 }, { value: 60 }, { value: 64 }, { value: 61 }, { value: 62 }
-              ]}
+              trend={{ value: -3, label: trends.avgSpeed.label }}
+              data={(sparklines.avgSpeed ?? []).map(v => ({ value: v }))}
               color="#f59e0b"
               className="shadow-sm border-0"
             />
@@ -168,12 +167,10 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '400ms' }}>
             <StatCard
               title="En Mantenimiento"
-              value="8"
+              value={String(stats?.inMaintenance ?? "-")}
               icon={AlertTriangle}
-              trend={{ value: -5, label: "vs. sem. pasada" }}
-              data={[
-                { value: 12 }, { value: 10 }, { value: 14 }, { value: 8 }, { value: 5 }, { value: 9 }, { value: 8 }
-              ]}
+              trend={{ value: -5, label: trends.inMaintenance.label }}
+              data={(sparklines.inMaintenance ?? []).map(v => ({ value: v }))}
               color="#ef4444"
               className="shadow-sm border-0"
             />
@@ -193,12 +190,9 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
             <StatCard
               title="Docs por Vencer"
-              value="12"
+              value={String(stats?.docsExpiringSoon ?? "-")}
               icon={FileWarning}
-              trend={{ value: -3, label: "próximos 30 días" }}
-              data={[
-                { value: 18 }, { value: 15 }, { value: 14 }, { value: 13 }, { value: 16 }, { value: 14 }, { value: 12 }
-              ]}
+              trend={{ value: -3, label: trends.docsExpiring.label }}
               color="#f59e0b"
               className="shadow-sm border-0"
             />
@@ -206,12 +200,9 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
             <StatCard
               title="Vehículos Habilitados"
-              value="142"
+              value={String(stats?.enabledVehicles ?? "-")}
               icon={Shield}
-              trend={{ value: 3, label: "del total flota" }}
-              data={[
-                { value: 130 }, { value: 135 }, { value: 138 }, { value: 140 }, { value: 139 }, { value: 141 }, { value: 142 }
-              ]}
+              trend={{ value: 3, label: trends.enabledVehicles.label }}
               color="#22c55e"
               className="shadow-sm border-0"
             />
@@ -219,12 +210,9 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
             <StatCard
               title="Incidentes del Día"
-              value="2"
+              value={String(stats?.dailyIncidents ?? "-")}
               icon={AlertTriangle}
-              trend={{ value: -40, label: "vs promedio" }}
-              data={[
-                { value: 5 }, { value: 3 }, { value: 4 }, { value: 2 }, { value: 3 }, { value: 1 }, { value: 2 }
-              ]}
+              trend={{ value: -40, label: trends.dailyIncidents.label }}
               color="#ef4444"
               className="shadow-sm border-0"
             />
@@ -232,12 +220,9 @@ export default function DashboardPage() {
           <div className="animate-slide-up" style={{ animationDelay: '400ms' }}>
             <StatCard
               title="Cumplimiento GPS"
-              value="99.2%"
+              value={stats ? `${stats.gpsComplianceRate}%` : "-"}
               icon={Radio}
-              trend={{ value: 0.5, label: "homologación" }}
-              data={[
-                { value: 98 }, { value: 98.5 }, { value: 99 }, { value: 98.8 }, { value: 99.1 }, { value: 99 }, { value: 99.2 }
-              ]}
+              trend={{ value: 0.5, label: trends.gpsCompliance.label }}
               color="#3b82f6"
               className="shadow-sm border-0"
             />
@@ -248,16 +233,16 @@ export default function DashboardPage() {
       {/* Gráficos */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-12 lg:grid-cols-12">
         <div className="col-span-1 md:col-span-6 lg:col-span-5 min-h-[300px] md:min-h-[420px] animate-slide-up" style={{ animationDelay: '500ms' }}>
-          <VehicleOverview />
+          <VehicleOverview data={vehicleOverview} />
         </div>
         <div className="col-span-1 md:col-span-6 lg:col-span-7 min-h-[300px] md:min-h-[420px] animate-slide-up" style={{ animationDelay: '600ms' }}>
-          <ShipmentStatistics />
+          <ShipmentStatistics data={shipmentData} total={shipmentTotal} />
         </div>
       </div>
 
       {/* Tabla de vehículos en ruta */}
       <div className="grid gap-4 grid-cols-1 animate-slide-up" style={{ animationDelay: '700ms' }}>
-        <OnRouteVehicles />
+        <OnRouteVehicles vehicles={onRouteVehicles} total={onRouteTotal} />
       </div>
     </div>
   );

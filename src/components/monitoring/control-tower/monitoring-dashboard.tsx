@@ -81,13 +81,30 @@ export function MonitoringDashboard({
     const active = vehicles.filter((v) => v.connectionStatus !== "disconnected").length;
     const moving = vehicles.filter((v) => v.movementStatus === "moving").length;
     const stopped = vehicles.filter((v) => v.movementStatus === "stopped").length;
-    // No idle status in MovementStatus type — count as 0
-    const idle = 0;
+    // Idle: connected but not moving for >5min (approximation based on stoppedSince)
+    const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+    const idle = vehicles.filter((v) => {
+      if (v.connectionStatus === "disconnected" || v.movementStatus === "moving") return false;
+      if (!v.stoppedSince) return false;
+      return new Date(v.stoppedSince).getTime() < fiveMinAgo;
+    }).length;
     const disconnected = vehicles.filter((v) => v.connectionStatus === "disconnected").length;
     const speeds = vehicles.map((v) => v.speed).filter((s) => s > 0);
     const avgSpeed = speeds.length > 0 ? speeds.reduce((a, b) => a + b, 0) / speeds.length : 0;
     const activeAlertCount = alerts?.filter((a) => a.status === "active").length ?? 0;
-    const withOrders = vehicles.filter((v) => v.activeOrderId).length;
+    
+    // Calcular órdenes y tasa de entregas a tiempo
+    const vehiclesWithOrders = vehicles.filter((v) => v.activeOrderId);
+    const totalOrders = vehiclesWithOrders.length;
+    // Simulación: vehículos en movimiento con órdenes se consideran "on track"
+    const onTrackVehicles = vehiclesWithOrders.filter((v) => v.movementStatus === "moving");
+    // completedOrders: aproximación basada en órdenes activas * factor de completitud
+    const completedOrders = Math.round(totalOrders * 0.6);
+    // onTimeDeliveryRate: calculado de vehículos en movimiento vs total con órdenes
+    // En producción, esto debería venir del backend con datos reales de entregas
+    const onTimeDeliveryRate = totalOrders > 0 
+      ? Math.round((onTrackVehicles.length / totalOrders) * 100)
+      : 0;
 
     return {
       totalVehicles: total,
@@ -98,9 +115,9 @@ export function MonitoringDashboard({
       idleVehicles: idle,
       totalKmToday: Math.round(moving * avgSpeed * 0.2),
       avgSpeedFleet: avgSpeed,
-      onTimeDeliveryRate: 87,
-      completedOrders: Math.round(withOrders * 0.6),
-      totalOrders: withOrders,
+      onTimeDeliveryRate,
+      completedOrders,
+      totalOrders,
       activeAlerts: activeAlertCount,
       disconnectedVehicles: disconnected,
     };

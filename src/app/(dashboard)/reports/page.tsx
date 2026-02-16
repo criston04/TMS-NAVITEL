@@ -17,7 +17,7 @@ import {
 
 import { useReports, useQuickReportGenerator } from "@/hooks/useReports";
 
-import type { ReportType } from "@/types/report";
+import type { ReportType, ReportDefinition, GenerateReportRequest } from "@/types/report";
 
 // Componentes UI
 import { PageWrapper } from "@/components/page-wrapper";
@@ -39,6 +39,7 @@ import {
   QuickReportCard,
   CreateReportDialog,
   ScheduleReportDialog,
+  GenerateReportDialog,
 } from "@/components/reports";
 
 const quickReports = [
@@ -84,19 +85,118 @@ const quickReports = [
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState("quick");
+  const [selectedDefinition, setSelectedDefinition] = useState<ReportDefinition | null>(null);
 
   const {
     definitions,
     generatedReports,
     schedules,
     loading,
+    generating: hookGenerating,
     refresh,
+    createDefinition,
+    createSchedule,
+    generateReport,
+    downloadReport,
+    toggleSchedule,
+    deleteSchedule,
+    runScheduleNow,
   } = useReports();
 
   const { generate, generating } = useQuickReportGenerator();
 
   const handleQuickReport = async (type: ReportType) => {
     await generate(type, "pdf");
+  };
+
+  // Handler: crear definición de reporte
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleCreateReport = async (data: any) => {
+    await createDefinition({
+      code: data.code,
+      name: data.name,
+      description: data.description,
+      type: data.type,
+      category: data.category,
+      dataSource: data.type,
+      columns: data.columns.map(({ id: _id, ...rest }: { id: string; field: string; header: string; format?: string; isVisible: boolean; sortable?: boolean }) => ({
+        field: rest.field,
+        header: rest.header,
+        format: rest.format as "text" | "number" | "date" | "datetime" | "currency" | "percentage" | "boolean" | undefined,
+        isVisible: rest.isVisible,
+        sortable: rest.sortable,
+      })),
+    });
+  };
+
+  // Handler: programar reporte
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleScheduleReport = async (params: any) => {
+    await createSchedule({
+      definitionId: params.definitionId,
+      name: params.name,
+      frequency: params.frequency,
+      format: params.format,
+      timeOfDay: params.time,
+      recipients: params.recipients,
+      dayOfWeek: params.dayOfWeek,
+      dayOfMonth: params.dayOfMonth,
+    });
+  };
+
+  // Handler: generar reporte desde diálogo
+  const handleGenerateReport = async (params: {
+    definitionId: string;
+    format: "pdf" | "excel" | "csv" | "json" | "html";
+    dateRangeType: string;
+    dateRange?: { startDate: Date; endDate: Date };
+    filters?: Record<string, unknown>;
+    includeCharts?: boolean;
+    includeSummary?: boolean;
+  }) => {
+    const request: GenerateReportRequest = {
+      definitionId: params.definitionId,
+      format: params.format,
+      parameters: {
+        includeCharts: params.includeCharts,
+        includeSummary: params.includeSummary,
+      },
+    };
+    if (params.dateRange) {
+      request.dateRange = {
+        start: params.dateRange.startDate.toISOString().split("T")[0],
+        end: params.dateRange.endDate.toISOString().split("T")[0],
+      };
+    }
+    await generateReport(request);
+  };
+
+  // Handler: generar reporte rápido desde lista de definiciones
+  const handleDefinitionGenerate = (id: string) => {
+    const def = definitions.find((d) => d.id === id);
+    if (def) {
+      setSelectedDefinition(def);
+    }
+  };
+
+  // Handler: descargar reporte
+  const handleDownloadReport = (id: string) => {
+    downloadReport(id);
+  };
+
+  // Handler: toggle de programación
+  const handleToggleSchedule = (id: string) => {
+    toggleSchedule(id);
+  };
+
+  // Handler: ejecutar programación ahora
+  const handleRunScheduleNow = (id: string) => {
+    runScheduleNow(id);
+  };
+
+  // Handler: eliminar programación
+  const handleDeleteSchedule = (id: string) => {
+    deleteSchedule(id);
   };
 
   return (
@@ -113,6 +213,17 @@ export default function ReportsPage() {
           </Button>
         </div>
         <div className="flex items-center gap-2">
+          <GenerateReportDialog
+            trigger={
+              <Button variant="outline">
+                <Play className="h-4 w-4 mr-2" />
+                Generar
+              </Button>
+            }
+            definition={selectedDefinition ?? definitions[0] ?? undefined}
+            onGenerate={handleGenerateReport}
+            isGenerating={hookGenerating}
+          />
           <ScheduleReportDialog
             trigger={
               <Button variant="outline">
@@ -120,6 +231,7 @@ export default function ReportsPage() {
                 Programar
               </Button>
             }
+            onSchedule={handleScheduleReport}
           />
           <CreateReportDialog
             trigger={
@@ -128,6 +240,7 @@ export default function ReportsPage() {
                 Nuevo Reporte
               </Button>
             }
+            onCreate={handleCreateReport}
           />
         </div>
       </div>
@@ -186,6 +299,7 @@ export default function ReportsPage() {
               <GeneratedReportsList
                 reports={generatedReports.slice(0, 5)}
                 loading={loading}
+                onDownload={handleDownloadReport}
               />
             </CardContent>
           </Card>
@@ -196,6 +310,7 @@ export default function ReportsPage() {
           <ReportDefinitionsList
             definitions={definitions}
             loading={loading}
+            onGenerate={handleDefinitionGenerate}
           />
         </TabsContent>
 
@@ -204,6 +319,7 @@ export default function ReportsPage() {
           <GeneratedReportsList
             reports={generatedReports}
             loading={loading}
+            onDownload={handleDownloadReport}
           />
         </TabsContent>
 
@@ -212,6 +328,9 @@ export default function ReportsPage() {
           <ReportSchedulesList
             schedules={schedules}
             loading={loading}
+            onToggle={handleToggleSchedule}
+            onRunNow={handleRunScheduleNow}
+            onDelete={handleDeleteSchedule}
           />
         </TabsContent>
       </Tabs>

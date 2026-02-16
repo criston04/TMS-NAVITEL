@@ -1,6 +1,7 @@
 import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
 import { apiClient } from "@/lib/api";
 import { notificationService } from "@/services/notification.service";
+import { tmsEventBus } from "@/services/integration/event-bus.service";
 import { mockGeofenceEvents } from "@/mocks/monitoring/geofence-events.mock";
 import type {
   GeofenceEvent,
@@ -180,6 +181,30 @@ class GeofenceEventsService {
 
       // Notificar a los listeners
       this.notifyListeners(newEvent);
+
+      // Publicar evento en EventBus para integración cross-module
+      if (data.eventType === 'entry') {
+        tmsEventBus.publish('monitoring:geofence_entry', {
+          vehicleId: data.vehicleId,
+          geofenceId: data.geofenceId,
+          geofenceName,
+          orderId: data.orderId,
+          milestoneId: data.milestoneId,
+          timestamp: now,
+          coordinates: data.coordinates,
+        }, 'geofence-events-service');
+      } else if (data.eventType === 'exit') {
+        tmsEventBus.publish('monitoring:geofence_exit', {
+          vehicleId: data.vehicleId,
+          geofenceId: data.geofenceId,
+          geofenceName,
+          orderId: data.orderId,
+          milestoneId: data.milestoneId,
+          timestamp: now,
+          coordinates: data.coordinates,
+          durationMinutes: newEvent.durationMinutes,
+        }, 'geofence-events-service');
+      }
 
       // Crear notificación del sistema
       await this.sendEventNotification(newEvent);

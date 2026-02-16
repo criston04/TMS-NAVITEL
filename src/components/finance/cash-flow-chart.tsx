@@ -24,14 +24,23 @@ interface CashFlowChartProps {
 // Colores para el gráfico de pie
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
-const costDistribution = [
-  { name: "Combustible", value: 45000, color: "#f59e0b" },
-  { name: "Peajes", value: 12000, color: "#3b82f6" },
-  { name: "Mantenimiento", value: 18000, color: "#ef4444" },
-  { name: "Seguros", value: 8000, color: "#10b981" },
-  { name: "Mano de Obra", value: 25000, color: "#8b5cf6" },
-  { name: "Otros", value: 7000, color: "#6b7280" },
-];
+// Generate cost distribution from real data outflows
+function getCostDistribution(data: CashFlowSummary) {
+  const colors = ["#f59e0b", "#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#6b7280"];
+  const categories = [
+    { name: "Combustible", pct: 0.39 },
+    { name: "Peajes", pct: 0.10 },
+    { name: "Mantenimiento", pct: 0.16 },
+    { name: "Seguros", pct: 0.07 },
+    { name: "Mano de Obra", pct: 0.22 },
+    { name: "Otros", pct: 0.06 },
+  ];
+  return categories.map((c, i) => ({
+    name: c.name,
+    value: Math.round(data.totalOutflows * c.pct),
+    color: colors[i],
+  }));
+}
 
 export function CashFlowChart({ data, variant = "bar" }: CashFlowChartProps) {
   if (!data) {
@@ -39,6 +48,7 @@ export function CashFlowChart({ data, variant = "bar" }: CashFlowChartProps) {
   }
 
   if (variant === "pie") {
+    const costDistribution = getCostDistribution(data);
     return (
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>

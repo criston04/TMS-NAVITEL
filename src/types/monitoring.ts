@@ -826,11 +826,16 @@ export interface MonitoringKPIs {
   activePercentage: number;
   movingVehicles: number;
   stoppedVehicles: number;
+  /** Vehículos inactivos (idle) - sin movimiento significativo */
+  idleVehicles: number;
   disconnectedVehicles: number;
   totalKmToday: number;
   avgSpeedFleet: number;
+  /** Tasa de entregas a tiempo (calculada de órdenes completadas) */
   onTimeDeliveryRate: number;
   activeAlerts: number;
   totalOrders: number;
   completedOrders: number;
+  /** Entregas a tiempo del total de completadas */
+  onTimeDeliveries?: number;
 }

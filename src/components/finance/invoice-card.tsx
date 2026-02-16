@@ -49,7 +49,14 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
             <div>
               <p className="font-semibold">{invoice.invoiceNumber}</p>
               <p className="text-sm text-muted-foreground">
-                {invoice.type === "service" ? "Factura" : "Boleta"}
+                {{
+                  service: "Servicio",
+                  freight: "Flete",
+                  accessorial: "Servicios Adicionales",
+                  fuel: "Combustible",
+                  credit: "Nota de Crédito",
+                  debit: "Nota de Débito",
+                }[invoice.type] || invoice.type}
               </p>
             </div>
           </div>

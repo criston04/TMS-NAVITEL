@@ -28,8 +28,10 @@ import {
   DEFAULT_KPIS,
   type MockVehicle,
   type MockDriver,
+  type AutoScheduleResult,
 } from '@/mocks/scheduling';
 import { moduleConnectorService } from '@/services/integration';
+import { tmsEventBus } from '@/services/integration/event-bus.service';
 import { apiConfig, API_ENDPOINTS } from '@/config/api.config';
 import { apiClient } from '@/lib/api';
 
@@ -127,7 +129,7 @@ class SchedulingService {
   /**
    * Genera datos del calendario para un mes
    */
-  generateCalendarDays(month: Date, existingOrders: ScheduledOrder[] = []): CalendarDayData[] {
+  generateCalendarDays(month: Date, existingOrders: ScheduledOrder[] = [], blockedDays: BlockedDay[] = []): CalendarDayData[] {
     const year = month.getFullYear();
     const monthIndex = month.getMonth();
     const lastDay = new Date(year, monthIndex + 1, 0);
@@ -144,12 +146,19 @@ class SchedulingService {
           : new Date(order.scheduledDate);
         return this.isSameDay(orderDate, date);
       });
+
+      // Check if this day is blocked
+      const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const blocked = blockedDays.some(bd => {
+        const bdDate = bd.date.split('T')[0]; // handle ISO strings
+        return bdDate === dateStr;
+      });
       
       days.push({
         date,
         orders: dayOrders,
         utilization: Math.min(100, dayOrders.length * 15),
-        isBlocked: false,
+        isBlocked: blocked,
       });
     }
     
@@ -168,7 +177,29 @@ class SchedulingService {
   }
 
   /**
+   * Estima duración del viaje basándose en distancia Haversine origen→destino
+   */
+  private estimateTripDuration(order: Order): number {
+    const origin = order.milestones?.find(m => m.type === 'origin');
+    const dest = order.milestones?.find(m => m.type === 'destination');
+    if (!origin?.coordinates || !dest?.coordinates) return 4;
+
+    const R = 6371;
+    const dLat = ((dest.coordinates.lat - origin.coordinates.lat) * Math.PI) / 180;
+    const dLng = ((dest.coordinates.lng - origin.coordinates.lng) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((origin.coordinates.lat * Math.PI) / 180) *
+      Math.cos((dest.coordinates.lat * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+    const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const drivingHours = km / 55;
+    return Math.max(2, Math.round((drivingHours + 1) * 10) / 10);
+  }
+
+  /**
    * Crea una orden programada a partir de una orden y datos de asignación
+   * Calcula duración estimada real basada en distancia geográfica
    */
   createScheduledOrder(
     order: Order,
@@ -176,13 +207,14 @@ class SchedulingService {
   ): ScheduledOrder {
     const vehicle = findVehicleById(payload.vehicleId);
     const driver = findDriverById(payload.driverId);
+    const duration = this.estimateTripDuration(order);
 
     const scheduledOrder: ScheduledOrder = {
       ...order,
       scheduledDate: payload.scheduledDate,
       scheduledStartTime: this.formatTime(payload.scheduledDate),
-      estimatedEndTime: this.calculateEndTime(payload.scheduledDate, 4),
-      estimatedDuration: 4,
+      estimatedEndTime: this.calculateEndTime(payload.scheduledDate, duration),
+      estimatedDuration: duration,
       vehicleId: payload.vehicleId,
       driverId: payload.driverId,
       scheduleStatus: 'scheduled',
@@ -285,7 +317,18 @@ class SchedulingService {
         console.info('[SchedulingService] Recomendaciones:', recommendations);
       }
 
-      // En producción aquí iría la llamada real a la API
+      // Publicar evento de asignación exitosa
+      tmsEventBus.publish('scheduling:assigned', {
+        orderId: payload.orderId,
+        vehicleId: payload.vehicleId,
+        driverId: payload.driverId,
+        scheduledDate: payload.scheduledDate instanceof Date 
+          ? payload.scheduledDate.toISOString() 
+          : String(payload.scheduledDate),
+        vehiclePlate: vehicle.plateNumber,
+        driverName: driver.name,
+      }, 'scheduling-service');
+
       return {
         success: true,
       };
@@ -344,23 +387,31 @@ class SchedulingService {
 
   /**
    * Obtiene sugerencias de recursos para una orden
+   * Pasa órdenes existentes para evaluar conflictos reales
    */
-  async getSuggestions(orderId: string, date: Date): Promise<ResourceSuggestion[]> {
+  async getSuggestions(
+    orderId: string,
+    date: Date,
+    existingOrders: ScheduledOrder[] = []
+  ): Promise<ResourceSuggestion[]> {
     if (!this.useMocks) {
       return apiClient.get<ResourceSuggestion[]>(`${API_ENDPOINTS.operations.scheduling}/suggestions/${orderId}`, { params: { date: date.toISOString() } });
     }
 
     await this.delay(600);
-    return generateMockSuggestions(orderId);
+    return generateMockSuggestions(orderId, existingOrders, date);
   }
 
   /**
    * Valida las horas de servicio de un conductor
+   * Acumula horas reales de asignaciones existentes (no solo mock estático)
+   * Referencia FMCSA: 11h conduccción, 14h servicio, 60h/7días
    */
   async validateHOS(
     driverId: string,
     date: Date,
-    estimatedDuration: number
+    estimatedDuration: number,
+    existingOrders: ScheduledOrder[] = []
   ): Promise<HOSValidationResult> {
     if (!this.useMocks) {
       return apiClient.post<HOSValidationResult>(`${API_ENDPOINTS.operations.scheduling}/validate-hos`, { driverId, date: date.toISOString(), estimatedDuration });
@@ -379,36 +430,85 @@ class SchedulingService {
       };
     }
 
-    const maxWeeklyHours = 60;
-    const maxDailyHours = 10;
+    // FMCSA limits
+    const MAX_DRIVING_DAILY = 11;  // 11h conduccción
+    const MAX_DUTY_DAILY = 14;     // 14h servicio total
+    const MAX_WEEKLY = 60;         // 60h/7 días
+    const BREAK_AFTER_HOURS = 8;   // Break obligatorio tras 8h
     
     const violations: string[] = [];
-    
-    if (estimatedDuration > maxDailyHours) {
-      violations.push(`La duración estimada excede las horas diarias disponibles (${maxDailyHours}h)`);
+    const warnings: string[] = [];
+
+    // Calcular horas ya asignadas HOY para este conductor
+    const dateStr = date.toDateString();
+    const todayAssignments = existingOrders.filter(o => {
+      if (o.driverId !== driverId) return false;
+      const oDate = o.scheduledDate instanceof Date ? o.scheduledDate : new Date(o.scheduledDate);
+      return oDate.toDateString() === dateStr;
+    });
+    const hoursToday = todayAssignments.reduce((sum, o) => sum + (o.estimatedDuration || 4), 0);
+
+    // Calcular horas semanales acumuladas (mock base + asignaciones reales)
+    const weeklyFromAssignments = existingOrders
+      .filter(o => o.driverId === driverId)
+      .reduce((sum, o) => sum + (o.estimatedDuration || 4), 0);
+    const totalWeekly = driver.hoursThisWeek + weeklyFromAssignments;
+
+    // Validación 1: Límite diario de conducción (11h)
+    if (hoursToday + estimatedDuration > MAX_DRIVING_DAILY) {
+      violations.push(
+        `Excede límite diario de conducción: ${hoursToday + estimatedDuration}h vs ${MAX_DRIVING_DAILY}h máximo (FMCSA §395.3)`
+      );
     }
-    
-    if (driver.hoursThisWeek + estimatedDuration > maxWeeklyHours) {
-      violations.push(`El conductor alcanzaría el límite semanal de ${maxWeeklyHours}h`);
+
+    // Validación 2: Límite diario de servicio (14h)
+    if (hoursToday + estimatedDuration > MAX_DUTY_DAILY) {
+      violations.push(
+        `Excede límite diario de servicio: ${hoursToday + estimatedDuration}h vs ${MAX_DUTY_DAILY}h máximo (FMCSA §395.3)`
+      );
+    }
+
+    // Validación 3: Límite semanal (60h/7d)
+    if (totalWeekly + estimatedDuration > MAX_WEEKLY) {
+      violations.push(
+        `Excede límite semanal: ${totalWeekly + estimatedDuration}h vs ${MAX_WEEKLY}h máximo (FMCSA §395.3)`
+      );
+    }
+
+    // Warning: Break obligatorio
+    if (hoursToday + estimatedDuration > BREAK_AFTER_HOURS && todayAssignments.length > 0) {
+      warnings.push(
+        `Se requiere pausa de 30 min tras ${BREAK_AFTER_HOURS}h continuas (FMCSA §395.3(a)(3)(ii))`
+      );
+    }
+
+    // Warning: Acercándose al límite
+    const remainingDaily = MAX_DRIVING_DAILY - hoursToday;
+    if (remainingDaily <= estimatedDuration + 2 && remainingDaily > estimatedDuration) {
+      warnings.push(`Solo quedan ${remainingDaily}h disponibles hoy tras esta asignación`);
     }
 
     return {
       isValid: violations.length === 0,
-      remainingHoursToday: maxDailyHours,
-      weeklyHoursUsed: driver.hoursThisWeek,
+      remainingHoursToday: Math.max(0, MAX_DRIVING_DAILY - hoursToday),
+      weeklyHoursUsed: totalWeekly,
       violations,
+      warnings: warnings.length > 0 ? warnings : undefined,
     };
   }
 
   /**
    * Detecta conflictos para una asignación propuesta
+   * Compara por VENTANA DE TIEMPO (hora inicio + duración), no solo por día
+   * Elimina falsos positivos cuando las horas no se solapan
    */
   async detectConflicts(
     orderId: string,
     vehicleId: string,
     driverId: string,
     scheduledDate: Date,
-    existingOrders: ScheduledOrder[]
+    existingOrders: ScheduledOrder[],
+    estimatedDuration?: number
   ): Promise<ScheduleConflict[]> {
     if (!this.useMocks) {
       return apiClient.post<ScheduleConflict[]>(`${API_ENDPOINTS.operations.scheduling}/detect-conflicts`, { orderId, vehicleId, driverId, scheduledDate: scheduledDate.toISOString() });
@@ -418,6 +518,9 @@ class SchedulingService {
     
     const conflicts: ScheduleConflict[] = [];
     const dateStr = scheduledDate.toDateString();
+    const newStartHour = scheduledDate.getHours() + scheduledDate.getMinutes() / 60;
+    const newDuration = estimatedDuration || 4;
+    const newEndHour = newStartHour + newDuration;
     
     // Buscar órdenes en el mismo día
     const sameDayOrders = existingOrders.filter(order => {
@@ -427,42 +530,80 @@ class SchedulingService {
       return orderDate.toDateString() === dateStr && order.id !== orderId;
     });
 
-    // Verificar conflictos de vehículo
-    const vehicleConflict = sameDayOrders.find(o => o.vehicleId === vehicleId);
-    if (vehicleConflict) {
+    /**
+     * Verifica si dos ventanas de tiempo se solapan
+     */
+    const timeOverlaps = (order: ScheduledOrder): boolean => {
+      const orderDate = order.scheduledDate instanceof Date
+        ? order.scheduledDate
+        : new Date(order.scheduledDate);
+      const existingStart = orderDate.getHours() + orderDate.getMinutes() / 60;
+      const existingDuration = order.estimatedDuration || 4;
+      const existingEnd = existingStart + existingDuration;
+
+      // Dos rangos [A,B] y [C,D] se solapan si A < D && C < B
+      return newStartHour < existingEnd && existingStart < newEndHour;
+    };
+
+    // Verificar conflictos de vehículo CON solapamiento horario
+    const vehicleConflicts = sameDayOrders.filter(
+      o => o.vehicleId === vehicleId && timeOverlaps(o)
+    );
+    for (const vc of vehicleConflicts) {
+      const vcDate = vc.scheduledDate instanceof Date ? vc.scheduledDate : new Date(vc.scheduledDate);
+      const vcStart = `${vcDate.getHours().toString().padStart(2,'0')}:${vcDate.getMinutes().toString().padStart(2,'0')}`;
+      const vcEndH = vcDate.getHours() + (vc.estimatedDuration || 4);
+      const vcEnd = `${Math.floor(vcEndH).toString().padStart(2,'0')}:${Math.round((vcEndH % 1) * 60).toString().padStart(2,'0')}`;
+      
       conflicts.push({
-        id: `conflict-vehicle-${Date.now()}`,
+        id: `conflict-vehicle-${Date.now()}-${vc.id}`,
         type: 'vehicle_overlap',
         severity: 'high',
-        message: `El vehículo ya está asignado a la orden ${vehicleConflict.orderNumber}`,
-        suggestedResolution: 'Seleccione otro vehículo o reprograme la orden existente',
+        message: `Vehículo ${vc.vehicle?.plate || vehicleId} ya asignado a ${vc.orderNumber} (${vcStart}-${vcEnd})`,
+        suggestedResolution: 'Seleccione otro vehículo o ajuste el horario para evitar solapamiento',
         affectedEntity: {
           type: 'vehicle',
           id: vehicleId,
-          name: vehicleConflict.vehicle?.plate || vehicleId,
+          name: vc.vehicle?.plate || vehicleId,
         },
-        relatedOrderIds: [vehicleConflict.id],
+        relatedOrderIds: [vc.id],
         detectedAt: new Date().toISOString(),
       });
     }
 
-    // Verificar conflictos de conductor
-    const driverConflict = sameDayOrders.find(o => o.driverId === driverId);
-    if (driverConflict) {
+    // Verificar conflictos de conductor CON solapamiento horario
+    const driverConflicts = sameDayOrders.filter(
+      o => o.driverId === driverId && timeOverlaps(o)
+    );
+    for (const dc of driverConflicts) {
+      const dcDate = dc.scheduledDate instanceof Date ? dc.scheduledDate : new Date(dc.scheduledDate);
+      const dcStart = `${dcDate.getHours().toString().padStart(2,'0')}:${dcDate.getMinutes().toString().padStart(2,'0')}`;
+      const dcEndH = dcDate.getHours() + (dc.estimatedDuration || 4);
+      const dcEnd = `${Math.floor(dcEndH).toString().padStart(2,'0')}:${Math.round((dcEndH % 1) * 60).toString().padStart(2,'0')}`;
+
       conflicts.push({
-        id: `conflict-driver-${Date.now()}`,
+        id: `conflict-driver-${Date.now()}-${dc.id}`,
         type: 'driver_overlap',
         severity: 'high',
-        message: `El conductor ya está asignado a la orden ${driverConflict.orderNumber}`,
-        suggestedResolution: 'Seleccione otro conductor o ajuste los horarios',
+        message: `Conductor ${dc.driver?.fullName || driverId} ya asignado a ${dc.orderNumber} (${dcStart}-${dcEnd})`,
+        suggestedResolution: 'Seleccione otro conductor o ajuste los horarios para evitar solapamiento',
         affectedEntity: {
           type: 'driver',
           id: driverId,
-          name: driverConflict.driver?.fullName || driverId,
+          name: dc.driver?.fullName || driverId,
         },
-        relatedOrderIds: [driverConflict.id],
+        relatedOrderIds: [dc.id],
         detectedAt: new Date().toISOString(),
       });
+    }
+
+    // Verificar vehículo sin solapamiento pero mismo día (warning, no error)
+    const vehicleSameDay = sameDayOrders.filter(
+      o => o.vehicleId === vehicleId && !timeOverlaps(o)
+    );
+    if (vehicleSameDay.length > 0) {
+      // No es conflicto pero se puede avisar
+      // No se añade como conflicto para evitar falsos positivos
     }
 
     return conflicts;
@@ -536,6 +677,21 @@ class SchedulingService {
 
     // Simular asignación exitosa para todas
     result.success = orderIds.length;
+
+    // Publicar evento por cada asignación exitosa
+    for (const orderId of orderIds) {
+      tmsEventBus.publish('scheduling:assigned', {
+        orderId,
+        vehicleId,
+        driverId,
+        scheduledDate: scheduledDate instanceof Date
+          ? scheduledDate.toISOString()
+          : String(scheduledDate),
+        vehiclePlate: vehicle.plateNumber,
+        driverName: driver.name,
+      }, 'scheduling-service');
+    }
+
     return result;
   }
 
@@ -545,11 +701,13 @@ class SchedulingService {
 
   /**
    * Reprograma una orden ya asignada a otra fecha/hora
+   * Valida conflictos y HOS en la nueva fecha antes de confirmar
    */
   async rescheduleOrder(
     orderId: string,
     newDate: Date,
-    newResourceId?: string
+    newResourceId?: string,
+    existingOrders: ScheduledOrder[] = []
   ): Promise<SchedulingServiceResult<ScheduledOrder>> {
     if (!this.useMocks) {
       return apiClient.post<SchedulingServiceResult<ScheduledOrder>>(
@@ -559,7 +717,65 @@ class SchedulingService {
     }
 
     await this.delay(600);
-    return { success: true };
+
+    // Buscar la orden existente
+    const existingOrder = existingOrders.find(o => o.id === orderId);
+    if (!existingOrder) {
+      return { success: false, error: 'Orden no encontrada en las programaciones existentes' };
+    }
+
+    const vehicleId = newResourceId || existingOrder.vehicleId || '';
+    const driverId = existingOrder.driverId || '';
+
+    // Validar conflictos en la nueva fecha (excluyendo la propia orden)
+    const otherOrders = existingOrders.filter(o => o.id !== orderId);
+    const conflicts = await this.detectConflicts(
+      orderId, vehicleId, driverId, newDate, otherOrders, existingOrder.estimatedDuration
+    );
+
+    if (conflicts.length > 0) {
+      return {
+        success: false,
+        error: `Conflictos en nueva fecha: ${conflicts.map(c => c.message).join('; ')}`,
+      };
+    }
+
+    // Validar HOS del conductor en nueva fecha
+    if (driverId) {
+      const hosResult = await this.validateHOS(
+        driverId, newDate, existingOrder.estimatedDuration || 4, otherOrders
+      );
+      if (!hosResult.isValid) {
+        return {
+          success: false,
+          error: `HOS inválido: ${hosResult.violations.join('; ')}`,
+        };
+      }
+    }
+
+    // Crear orden reprogramada
+    const rescheduledOrder: ScheduledOrder = {
+      ...existingOrder,
+      scheduledDate: newDate,
+      scheduledStartTime: this.formatTime(newDate),
+      estimatedEndTime: this.calculateEndTime(newDate, existingOrder.estimatedDuration || 4),
+      vehicleId: vehicleId || existingOrder.vehicleId,
+      scheduleStatus: 'scheduled',
+      hasConflict: false,
+      conflicts: [],
+    };
+
+    // Publicar evento
+    tmsEventBus.publish('scheduling:assigned', {
+      orderId,
+      vehicleId: rescheduledOrder.vehicleId || '',
+      driverId: rescheduledOrder.driverId || '',
+      scheduledDate: newDate.toISOString(),
+      vehiclePlate: rescheduledOrder.vehicle?.plate || '',
+      driverName: rescheduledOrder.driver?.fullName || '',
+    }, 'scheduling-service');
+
+    return { success: true, data: rescheduledOrder };
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -567,22 +783,24 @@ class SchedulingService {
   // ═══════════════════════════════════════════════════════════════
 
   /**
-   * Ejecuta auto-programación de órdenes pendientes
+   * Ejecuta auto-programación con algoritmo de scoring real
+   * Retorna asignaciones concretas que el hook puede aplicar al estado
    */
   async autoSchedule(
     pendingOrders: Order[],
     vehicles: MockVehicle[],
-    drivers: MockDriver[]
-  ): Promise<{ assigned: number; failed: number; errors: string[] }> {
+    drivers: MockDriver[],
+    existingScheduled: ScheduledOrder[] = []
+  ): Promise<AutoScheduleResult> {
     if (!this.useMocks) {
-      return apiClient.post<{ assigned: number; failed: number; errors: string[] }>(
+      return apiClient.post<AutoScheduleResult>(
         `${API_ENDPOINTS.operations.scheduling}/auto-schedule`,
         { orderIds: pendingOrders.map(o => o.id) }
       );
     }
 
     await this.delay(2000);
-    return mockAutoSchedule(pendingOrders, vehicles, drivers);
+    return mockAutoSchedule(pendingOrders, vehicles, drivers, existingScheduled);
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -676,8 +894,14 @@ class SchedulingService {
 
   /**
    * Obtiene datos para la vista Gantt multi-día
+   * Incluye órdenes reales y días bloqueados
    */
-  async getGanttData(startDate: Date, days: number = 7): Promise<GanttResourceRow[]> {
+  async getGanttData(
+    startDate: Date,
+    days: number = 7,
+    scheduledOrders: ScheduledOrder[] = [],
+    blockedDays: BlockedDay[] = []
+  ): Promise<GanttResourceRow[]> {
     if (!this.useMocks) {
       return apiClient.get<GanttResourceRow[]>(
         `${API_ENDPOINTS.operations.scheduling}/gantt`,
@@ -686,7 +910,7 @@ class SchedulingService {
     }
 
     await this.delay(500);
-    return generateMockGanttData(startDate, days);
+    return generateMockGanttData(startDate, days, scheduledOrders, blockedDays);
   }
 
   // ═══════════════════════════════════════════════════════════════

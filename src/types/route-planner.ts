@@ -127,6 +127,7 @@ export interface Route {
   };
   configuration: RouteConfiguration;
   polyline?: [number, number][]; // Coordenadas de la ruta
+  color?: string; // Color asignado para visualización multi-ruta
   createdAt: string;
   updatedAt: string;
   confirmedAt?: string;
@@ -189,4 +190,154 @@ export interface RouteAssignment {
   routeId: string;
   vehicle?: Vehicle;
   driver?: Driver;
+}
+
+/* ============================================
+   DEPOT (origin/return point for routes)
+   ============================================ */
+export interface Depot {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  coordinates: [number, number];
+  operatingHours: {
+    start: string;
+    end: string;
+  };
+}
+
+/* ============================================
+   VEHICLE RESTRICTIONS
+   ============================================ */
+export interface VehicleRestrictions {
+  maxHeight?: number; // metros
+  maxWeight?: number; // toneladas (peso bruto vehicular)
+  hazmatClass?: string; // clase HAZMAT si aplica
+  temperatureRequired?: boolean;
+  temperatureRange?: { min: number; max: number }; // °C
+  requiresLiftGate?: boolean;
+}
+
+/* ============================================
+   WHAT-IF SCENARIO
+   Para comparar distintas configuraciones
+   ============================================ */
+export interface WhatIfScenario {
+  id: string;
+  name: string;
+  configuration: RouteConfiguration;
+  optimizationParams: OptimizationParams;
+  routes: Route[];
+  summary: {
+    totalDistance: number;
+    totalDuration: number;
+    totalCost: number;
+    totalRoutes: number;
+    avgStopsPerRoute: number;
+  };
+  createdAt: string;
+}
+
+/* ============================================
+   ROUTE TEMPLATE
+   Plantilla reutilizable de ruta
+   ============================================ */
+export interface RouteTemplate {
+  id: string;
+  name: string;
+  description: string;
+  configuration: RouteConfiguration;
+  optimizationParams: OptimizationParams;
+  defaultDepotId?: string;
+  tags: string[];
+  usageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/* ============================================
+   API CONTRACT: Route Optimization Request
+   Backend integration — request payload
+   ============================================ */
+export interface RouteOptimizationRequest {
+  /** Orders to optimize into routes */
+  orders: Array<{
+    id: string;
+    orderNumber: string;
+    pickup: {
+      coordinates: [number, number];
+      address: string;
+      city: string;
+      timeWindow?: { start: string; end: string };
+    };
+    delivery: {
+      coordinates: [number, number];
+      address: string;
+      city: string;
+      timeWindow?: { start: string; end: string };
+    };
+    cargo: {
+      weight: number;
+      volume: number;
+      requiresRefrigeration?: boolean;
+      fragile?: boolean;
+    };
+    priority: "high" | "medium" | "low";
+  }>;
+  /** Optimization parameters */
+  params: {
+    timeWindowStart: string;
+    timeWindowEnd: string;
+    truckCount: number;
+    stopDuration: number;
+  };
+  /** Route configuration */
+  config: {
+    avoidTolls: boolean;
+    priority: Priority;
+    considerTraffic: boolean;
+    timeBuffer: number;
+  };
+  /** Optional: Depot / origin */
+  depotCoordinates?: [number, number];
+  /** Optional: Available vehicles for assignment matching */
+  vehicleIds?: string[];
+}
+
+/* ============================================
+   API CONTRACT: Route Optimization Response
+   Backend integration — response payload
+   ============================================ */
+export interface RouteOptimizationResponse {
+  success: boolean;
+  /** Generated routes */
+  routes: Array<{
+    id: string;
+    name: string;
+    stops: RouteStop[];
+    polyline: [number, number][];
+    metrics: {
+      totalDistance: number;
+      estimatedDuration: number;
+      estimatedCost: number;
+      fuelCost: number;
+      tollsCost: number;
+      totalWeight: number;
+      totalVolume: number;
+    };
+    alerts?: RouteAlert[];
+    /** Suggested vehicle assignment based on capacity matching */
+    suggestedVehicleId?: string;
+  }>;
+  /** Global optimization summary */
+  summary: {
+    totalRoutes: number;
+    totalDistance: number;
+    totalDuration: number;
+    totalCost: number;
+    unassignedOrders: string[];
+    optimizationTimeMs: number;
+  };
+  error?: string;
 }

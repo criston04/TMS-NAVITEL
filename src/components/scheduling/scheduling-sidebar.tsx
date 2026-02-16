@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useMemo } from 'react';
+import { memo, useState, useMemo, useRef, useCallback } from 'react';
 import {
   Search,
   Package,
@@ -67,6 +67,7 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
 }: Readonly<SchedulingSidebarProps>) {
   const [searchValue, setSearchValue] = useState(filters.search || '');
   const [selectedPriority, setSelectedPriority] = useState<OrderPriority | 'all'>('all');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ----------------------------------------
   // FILTRADO LOCAL
@@ -107,15 +108,15 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
   // ----------------------------------------
   // HANDLERS
   // ----------------------------------------
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchValue(value);
-    // Debounce para no actualizar filtros en cada keystroke
-    const timeoutId = setTimeout(() => {
+    // Cancel previous debounce timeout
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
       onFiltersChange({ ...filters, search: value || undefined });
     }, 300);
-    return () => clearTimeout(timeoutId);
-  };
+  }, [filters, onFiltersChange]);
 
   const handlePriorityChange = (priority: OrderPriority | 'all') => {
     setSelectedPriority(priority);
@@ -187,7 +188,7 @@ export const SchedulingSidebar = memo(function SchedulingSidebar({
     <div
       className={cn(
         // Layout
-        'flex flex-col',
+        'flex flex-col h-full',
         // Visual
         'bg-card border-r',
         // States

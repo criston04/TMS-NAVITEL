@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Navbar } from "@/components/layout/navbar";
 import { CustomerCategoriesProvider } from "@/contexts/customer-categories-context";
+import { IntegrationInitializer } from "@/components/shared/integration-initializer";
 
 export default function DashboardLayout({
   children,
@@ -9,6 +10,9 @@ export default function DashboardLayout({
 }>) {
   return (
     <div className="flex h-screen overflow-hidden bg-muted/30">
+      {/* Inicializar integraciones cross-module */}
+      <IntegrationInitializer />
+
       {/* Sidebar */}
       <Sidebar />
 

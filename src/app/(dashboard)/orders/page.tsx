@@ -1,17 +1,19 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Plus,
   Upload,
   Download,
   RefreshCw,
 } from 'lucide-react';
-import type { Order, OrderStatus } from '@/types/order';
+import type { Order, OrderStatus, OrderFilters as OrderFiltersType } from '@/types/order';
 
 import { useOrders, useOrderFilters } from '@/hooks/useOrders';
 import { useOrderExport, useBulkActions } from '@/hooks/useOrderImportExport';
+import { useToast } from '@/components/ui/toast';
+import { useTranslations } from '@/contexts/locale-context';
 
 // Componentes
 import { PageWrapper } from '@/components/page-wrapper';
@@ -44,16 +46,37 @@ function toStatusArray(status: OrderStatus | OrderStatus[] | undefined): OrderSt
  */
 export default function OrdersPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const t = useTranslations();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // Leer filtros iniciales desde URL
+  const initialFiltersFromUrl = useMemo((): Partial<OrderFiltersType> => {
+    const urlFilters: Partial<OrderFiltersType> = {};
+    const search = searchParams.get('search');
+    const status = searchParams.get('status');
+    const priority = searchParams.get('priority');
+    const customerId = searchParams.get('customerId');
+    const pageParam = searchParams.get('page');
+
+    if (search) urlFilters.search = search;
+    if (status) urlFilters.status = status.split(',') as OrderStatus[];
+    if (priority) urlFilters.priority = priority as OrderFiltersType['priority'];
+    if (customerId) urlFilters.customerId = customerId;
+    if (pageParam) urlFilters.page = parseInt(pageParam, 10);
+
+    return urlFilters;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo al montar
 
   const {
     filters,
     setFilters,
-    clearFilters,
+    clearFilters: clearFiltersBase,
     activeFilterCount,
     filterOptions,
     isLoadingOptions,
-  } = useOrderFilters();
+  } = useOrderFilters(initialFiltersFromUrl);
 
   const {
     orders,
@@ -81,9 +104,36 @@ export default function OrdersPage() {
     setOrderFilters(filters);
   }, [filters, setOrderFilters]);
 
+  // Sincronizar filtros con URL
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set('search', filters.search);
+    if (filters.status) {
+      const statusArr = Array.isArray(filters.status) ? filters.status : [filters.status];
+      if (statusArr.length > 0) params.set('status', statusArr.join(','));
+    }
+    if (filters.priority) {
+      const priorityStr = Array.isArray(filters.priority) ? filters.priority.join(',') : filters.priority;
+      params.set('priority', priorityStr);
+    }
+    if (filters.customerId) params.set('customerId', filters.customerId);
+    if (filters.page && filters.page > 1) params.set('page', String(filters.page));
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `?${queryString}` : '/orders';
+    router.replace(newUrl, { scroll: false });
+  }, [filters, router]);
+
+  // Limpiar filtros y URL
+  const clearFilters = useCallback(() => {
+    clearFiltersBase();
+    router.replace('/orders', { scroll: false });
+  }, [clearFiltersBase, router]);
+
   const { exportOrders, isExporting } = useOrderExport();
 
   const { state: bulkState, executeAction } = useBulkActions();
+  const { success: toastSuccess, error: toastError } = useToast();
 
   // Sincronizar filtros con el hook de órdenes
   const handleFiltersChange = useCallback((newFilters: typeof filters) => {
@@ -108,9 +158,14 @@ export default function OrdersPage() {
   const handleExport = useCallback(async () => {
     const selectedOrders = orders.filter(o => selectedIds.has(o.id));
     if (selectedOrders.length > 0) {
-      await exportOrders(selectedOrders);
+      try {
+        await exportOrders(selectedOrders);
+        toastSuccess(t('orders.exportSuccess'), `${selectedOrders.length} ${t('orders.totalOrders').toLowerCase()}`);
+      } catch {
+        toastError(t('common.error'), t('orders.exportError'));
+      }
     }
-  }, [orders, selectedIds, exportOrders]);
+  }, [orders, selectedIds, exportOrders, toastSuccess, toastError]);
 
   // Filtrar por estado desde las cards
   const handleStatusClick = useCallback((status: OrderStatus) => {
@@ -137,13 +192,20 @@ export default function OrdersPage() {
     if (action === 'export') {
       await handleExport();
     } else {
-      await executeAction(action, Array.from(selectedIds));
-      if (action === 'delete') {
-        clearSelection();
-        await refresh();
+      try {
+        await executeAction(action, Array.from(selectedIds));
+        if (action === 'delete') {
+          toastSuccess(t('orders.orderDeleted'), `${selectedIds.size} ${t('orders.totalOrders').toLowerCase()}`);
+          clearSelection();
+          await refresh();
+        } else {
+          toastSuccess(t('orders.bulkActionSuccess'), `${selectedIds.size} ${t('orders.totalOrders').toLowerCase()}`);
+        }
+      } catch {
+        toastError(t('common.error'), t('orders.bulkActionError'));
       }
     }
-  }, [selectedIds, executeAction, handleExport, clearSelection, refresh]);
+  }, [selectedIds, executeAction, handleExport, clearSelection, refresh, toastSuccess, toastError]);
 
   const activeStatus = useMemo(() => {
     const currentArray = toStatusArray(filters.status);
@@ -170,9 +232,9 @@ export default function OrdersPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Órdenes</h1>
+            <h1 className="text-2xl font-bold">{t('orders.title')}</h1>
             <p className="text-muted-foreground">
-              Gestiona las órdenes de transporte
+              {t('orders.subtitle')}
             </p>
           </div>
 
@@ -190,7 +252,7 @@ export default function OrdersPage() {
             {/* Importar */}
             <Button variant="outline" size="sm" className="gap-1 sm:gap-2" onClick={handleImport}>
               <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">Importar</span>
+              <span className="hidden sm:inline">{t('common.import')}</span>
             </Button>
 
             {/* Exportar todas */}
@@ -202,13 +264,13 @@ export default function OrdersPage() {
               disabled={isExporting || orders.length === 0}
             >
               <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Exportar</span>
+              <span className="hidden sm:inline">{t('common.export')}</span>
             </Button>
 
             {/* Nueva orden */}
             <Button size="sm" className="gap-1 sm:gap-2" onClick={handleNewOrder}>
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Nueva orden</span>
+              <span className="hidden sm:inline">{t('orders.newOrder')}</span>
             </Button>
           </div>
         </div>
@@ -261,7 +323,7 @@ export default function OrdersPage() {
         {/* Error */}
         {error && (
           <div className="bg-destructive/10 text-destructive rounded-lg p-4">
-            <p className="font-medium">Error al cargar órdenes</p>
+            <p className="font-medium">{t('common.error')}</p>
             <p className="text-sm mt-1">{error}</p>
           </div>
         )}

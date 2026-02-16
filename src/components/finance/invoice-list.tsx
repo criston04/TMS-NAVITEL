@@ -43,6 +43,9 @@ interface InvoiceListProps {
   invoices: Invoice[];
   loading: boolean;
   onCreateInvoice?: () => void;
+  onViewInvoice?: (invoice: Invoice) => void;
+  onSendInvoice?: (id: string) => void;
+  onCancelInvoice?: (id: string) => void;
 }
 
 const statusConfig: Record<InvoiceStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -56,7 +59,7 @@ const statusConfig: Record<InvoiceStatus, { label: string; variant: "default" | 
   disputed: { label: "En Disputa", variant: "destructive" },
 };
 
-export function InvoiceList({ invoices, loading, onCreateInvoice }: InvoiceListProps) {
+export function InvoiceList({ invoices, loading, onCreateInvoice, onViewInvoice, onSendInvoice, onCancelInvoice }: InvoiceListProps) {
   const [search, setSearch] = useState("");
 
   const filteredInvoices = invoices.filter(
@@ -178,23 +181,31 @@ export function InvoiceList({ invoices, loading, onCreateInvoice }: InvoiceListP
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onViewInvoice?.(invoice)}>
                           <Eye className="h-4 w-4 mr-2" />
                           Ver detalle
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          const blob = new Blob([`Factura: ${invoice.invoiceNumber}\nCliente: ${invoice.customerName}\nTotal: S/ ${invoice.total}`], { type: 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${invoice.invoiceNumber}.txt`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}>
                           <Download className="h-4 w-4 mr-2" />
                           Descargar PDF
                         </DropdownMenuItem>
                         {invoice.status === "draft" && (
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onSendInvoice?.(invoice.id)}>
                             <Send className="h-4 w-4 mr-2" />
                             Enviar
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
                         {invoice.status !== "paid" && invoice.status !== "cancelled" && (
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem className="text-red-600" onClick={() => onCancelInvoice?.(invoice.id)}>
                             <XCircle className="h-4 w-4 mr-2" />
                             Anular
                           </DropdownMenuItem>

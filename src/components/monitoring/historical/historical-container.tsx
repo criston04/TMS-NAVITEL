@@ -20,7 +20,7 @@ import { EventFilterPanel } from "./event-filter-panel";
 import { StopsHeatMap } from "./stops-heat-map";
 import { RoutePdfReport } from "./route-pdf-report";
 import { MapSkeleton } from "../common/skeletons/map-skeleton";
-import type { HistoricalRouteParams, RouteExportFormat, HistoricalRoutePoint, TripSegment } from "@/types/monitoring";
+import type { HistoricalRouteParams, RouteExportFormat, HistoricalRoutePoint, TripSegment, RouteEventFilter } from "@/types/monitoring";
 
 // Dynamic import del mapa
 const HistoricalMap = dynamic(
@@ -49,6 +49,15 @@ export function HistoricalContainer({
   
   // Punto actual para reproducción
   const [currentPlaybackPoint, setCurrentPlaybackPoint] = useState<HistoricalRoutePoint | null>(null);
+
+  // Filtros de eventos para análisis
+  const [eventFilters, setEventFilters] = useState<RouteEventFilter>({
+    showStops: true,
+    showSpeedAlerts: true,
+    showGeofenceEvents: false,
+    showIgnitionEvents: false,
+    speedThreshold: 80,
+  });
 
   const {
     route,
@@ -201,13 +210,8 @@ export function HistoricalContainer({
 
                 {/* Filtros de eventos */}
                 <EventFilterPanel
-                  filters={{
-                    showStops: true,
-                    showSpeedAlerts: true,
-                    showGeofenceEvents: false,
-                    showIgnitionEvents: false,
-                  }}
-                  onFiltersChange={() => {}}
+                  filters={eventFilters}
+                  onFiltersChange={setEventFilters}
                 />
 
                 <Separator />

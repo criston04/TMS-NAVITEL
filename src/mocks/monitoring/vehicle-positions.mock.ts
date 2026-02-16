@@ -84,7 +84,7 @@ function generateReference(index: number): string {
  * Rutas predefinidas en Lima para simulación realista
  * Cada ruta es un array de puntos [lat, lng]
  */
-const predefinedRoutes = [
+export const predefinedRoutes: [number, number][][] = [
   // Via Expresa (Norte a Sur)
   [
     [-12.0560, -77.0370],
@@ -191,13 +191,13 @@ function getMovementStatus(speed: number): MovementStatus {
 }
 
 /**
- * Genera el estado de conexión aleatorio
+ * Genera el estado de conexión.
+ * La mayoría de vehículos deben estar online para que la simulación funcione.
  */
-function getConnectionStatus(): RetransmissionStatus {
-  const random = Math.random();
-  if (random < 0.85) return "online";
-  if (random < 0.95) return "temporary_loss";
-  return "disconnected";
+function getConnectionStatus(index: number): RetransmissionStatus {
+  // Solo el ultimo vehículo está desconectado para demo
+  if (index === 2) return "disconnected";
+  return "online";
 }
 
 /**
@@ -210,10 +210,11 @@ function generateVehiclePositions(): TrackedVehicle[] {
     // Usar tracking simulado en rutas en vez de aleatorio
     const position = initializeVehiclePosition(vehicle.id);
 
-    const connectionStatus = getConnectionStatus();
-    const movementStatus = connectionStatus === "disconnected" 
+    const connectionStatus = getConnectionStatus(index);
+    // Vehículos online siempre arrancan en movimiento para que la simulación sea visible
+    const movementStatus: MovementStatus = connectionStatus === "disconnected" 
       ? "stopped" 
-      : getMovementStatus(position.speed);
+      : "moving";
 
     const hasOrder = index < 5;
     trackedVehicles.push({
@@ -259,13 +260,6 @@ export function simulateVehicleMovement(vehicle: TrackedVehicle): TrackedVehicle
     return vehicle;
   }
 
-  const isMoving = vehicle.movementStatus === "moving";
-
-  // Probabilidad de cambio de estado
-  const shouldChangeState = isMoving 
-    ? Math.random() < 0.05 
-    : Math.random() < 0.1;
-
   let newSpeed = vehicle.position.speed;
   let newLat = vehicle.position.lat;
   let newLng = vehicle.position.lng;
@@ -280,62 +274,59 @@ export function simulateVehicleMovement(vehicle: TrackedVehicle): TrackedVehicle
     routeState = vehicleRouteMap.get(vehicle.id)!;
   }
 
-  if (shouldChangeState) {
-    newSpeed = isMoving ? 0 : Math.floor(Math.random() * 40) + 30;
-  } else if (isMoving) {
-    // Mover a lo largo de la ruta
-    const route = predefinedRoutes[routeState.routeIndex];
-    let { pointIndex, progress, direction } = routeState;
+  // El vehículo siempre se mueve a lo largo de su ruta
+  // Variación de velocidad realista (30-70 km/h)
+  newSpeed = Math.floor(Math.random() * 40) + 30;
 
-    // Velocidad de avance (ajustable)
-    const step = (newSpeed / 3600) * 0.005; // Factor arbitrario
+  const route = predefinedRoutes[routeState.routeIndex];
+  let { pointIndex, progress, direction } = routeState;
 
-    progress += step * direction;
+  // Factor de avance: recorrer un segmento en ~15 ticks (~45 seg)
+  // para que el movimiento sea claramente visible en el mapa
+  const step = 0.06 + Math.random() * 0.03; // 0.06 a 0.09 por tick
 
-    // Manejar fin de segmento
-    if (progress > 1) {
-      if (pointIndex < route.length - 2) {
-        pointIndex++;
-        progress = 0;
-      } else {
-        direction = -1;
-        progress = 1;
-      }
-    } else if (progress < 0) {
-      if (pointIndex > 0) {
-        pointIndex--;
-        progress = 1;
-      } else {
-        direction = 1;
-        progress = 0;
-      }
+  progress += step * direction;
+
+  // Manejar fin de segmento
+  if (progress > 1) {
+    if (pointIndex < route.length - 2) {
+      pointIndex++;
+      progress = progress - 1; // Carry over
+    } else {
+      direction = -1;
+      progress = 1;
     }
-
-    // Calcular nueva posición
-    const p1 = route[pointIndex];
-    const p2 = route[pointIndex + 1];
-
-    newLat = p1[0] + (p2[0] - p1[0]) * progress;
-    newLng = p1[1] + (p2[1] - p1[1]) * progress;
-
-    // Calcular heading
-    const dy = (p2[0] - p1[0]) * direction;
-    const dx = Math.cos(Math.PI/180 * p1[0]) * (p2[1] - p1[1]) * direction;
-    let heading = Math.atan2(dx, dy) * 180 / Math.PI;
-    if (heading < 0) heading += 360;
-
-    newHeading = heading;
-
-    // Actualizar estado
-    vehicleRouteMap.set(vehicle.id, { ...routeState, pointIndex, progress, direction });
+  } else if (progress < 0) {
+    if (pointIndex > 0) {
+      pointIndex--;
+      progress = 1 + progress; // Carry over
+    } else {
+      direction = 1;
+      progress = 0;
+    }
   }
 
-  // Pequeña probabilidad de cambio de estado de conexión
-  let newConnectionStatus: RetransmissionStatus = vehicle.connectionStatus;
-  if (Math.random() < 0.02) {
-    const statuses: RetransmissionStatus[] = ["online", "temporary_loss", "disconnected"];
-    newConnectionStatus = statuses[Math.floor(Math.random() * statuses.length)] as RetransmissionStatus;
-  }
+  // Calcular nueva posición interpolada en el segmento actual
+  const safePointIndex = Math.min(pointIndex, route.length - 2);
+  const p1 = route[safePointIndex];
+  const p2 = route[safePointIndex + 1];
+  const safeProgress = Math.max(0, Math.min(1, progress));
+
+  newLat = p1[0] + (p2[0] - p1[0]) * safeProgress;
+  newLng = p1[1] + (p2[1] - p1[1]) * safeProgress;
+
+  // Calcular heading (dirección visual del camión)
+  const dy = (p2[0] - p1[0]) * direction;
+  const dx = Math.cos(Math.PI/180 * p1[0]) * (p2[1] - p1[1]) * direction;
+  let heading = Math.atan2(dx, dy) * 180 / Math.PI;
+  if (heading < 0) heading += 360;
+  newHeading = heading;
+
+  // Actualizar estado de ruta
+  vehicleRouteMap.set(vehicle.id, { routeIndex: routeState.routeIndex, pointIndex: safePointIndex, progress: safeProgress, direction });
+
+  // Mantener conexión estable (no desconectar aleatoriamente)
+  const newConnectionStatus: RetransmissionStatus = vehicle.connectionStatus;
 
   return {
     ...vehicle,
@@ -347,7 +338,7 @@ export function simulateVehicleMovement(vehicle: TrackedVehicle): TrackedVehicle
       heading: Math.round(newHeading),
       timestamp: new Date().toISOString(),
     },
-    movementStatus: getMovementStatus(newSpeed),
+    movementStatus: "moving" as MovementStatus,
     connectionStatus: newConnectionStatus,
     lastUpdate: new Date().toISOString(),
   };
@@ -396,4 +387,31 @@ export function updateVehiclePosition(
   };
 
   return vehiclePositionsMock[index];
+}
+
+/**
+ * Obtiene la ruta asignada a un vehículo
+ */
+export function getVehicleRoute(vehicleId: string): [number, number][] | undefined {
+  const routeState = vehicleRouteMap.get(vehicleId);
+  if (!routeState) return undefined;
+  return predefinedRoutes[routeState.routeIndex];
+}
+
+/**
+ * Obtiene todas las rutas de vehículos con órdenes activas
+ */
+export function getAllActiveRoutes(): Map<string, [number, number][]> {
+  const routes = new Map<string, [number, number][]>();
+  
+  vehiclePositionsMock.forEach(vehicle => {
+    if (vehicle.activeOrderId) {
+      const route = getVehicleRoute(vehicle.id);
+      if (route) {
+        routes.set(vehicle.id, route);
+      }
+    }
+  });
+  
+  return routes;
 }

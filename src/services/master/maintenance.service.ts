@@ -7,6 +7,7 @@ import {
 
 import { apiConfig, API_ENDPOINTS } from "@/config/api.config";
 import { apiClient } from "@/lib/api";
+import { tmsEventBus } from "@/services/integration/event-bus.service";
 
 
 /**
@@ -292,6 +293,17 @@ class MaintenanceService {
     };
 
     this.maintenanceRecords.push(newMaintenance);
+
+    // Publicar evento de mantenimiento iniciado
+    if (newMaintenance.status === 'in_progress') {
+      tmsEventBus.publish('maintenance:started', {
+        maintenanceId: newMaintenance.id,
+        vehicleId: newMaintenance.vehicleId || '',
+        vehiclePlate: '',
+        maintenanceType: newMaintenance.type,
+      }, 'master-maintenance-service');
+    }
+
     return newMaintenance;
   }
 
@@ -369,6 +381,14 @@ class MaintenanceService {
       workItems: updatedWorkItems,
       updatedAt: new Date().toISOString(),
     };
+
+    // Publicar evento de mantenimiento completado
+    tmsEventBus.publish('maintenance:completed', {
+      maintenanceId: id,
+      vehicleId: this.maintenanceRecords[index].vehicleId || '',
+      vehiclePlate: '',
+      maintenanceType: this.maintenanceRecords[index].type,
+    }, 'master-maintenance-service');
 
     return this.maintenanceRecords[index];
   }

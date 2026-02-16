@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   DollarSign,
   FileText,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { useFinance, useProfitability, useCashFlow } from "@/hooks/useFinance";
+import type { InvoiceFilters as IInvoiceFilters } from "@/types/finance";
 
 // Utilidad para fechas por defecto (último mes)
 function getDefaultDateRange() {
@@ -72,10 +73,37 @@ export default function FinancePage() {
     stats,
     loading,
     refresh,
+    fetchInvoices,
+    sendInvoice,
+    cancelInvoice,
+    approveCost,
   } = useFinance();
 
   const { analysis: profitability } = useProfitability(dateRange.startDate, dateRange.endDate);
   const { cashFlow } = useCashFlow(dateRange.startDate, dateRange.endDate);
+
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+  }, []);
+
+  const handleFilterChange = useCallback((filters: IInvoiceFilters) => {
+    fetchInvoices(filters);
+  }, [fetchInvoices]);
+
+  const handleSendInvoice = useCallback(async (id: string) => {
+    await sendInvoice(id);
+    refresh();
+  }, [sendInvoice, refresh]);
+
+  const handleCancelInvoice = useCallback(async (id: string) => {
+    await cancelInvoice(id);
+    refresh();
+  }, [cancelInvoice, refresh]);
+
+  const handleApproveCost = useCallback(async (id: string) => {
+    await approveCost(id);
+    refresh();
+  }, [approveCost, refresh]);
 
   return (
     <PageWrapper
@@ -114,7 +142,7 @@ export default function FinancePage() {
       <FinanceStatsCards stats={stats} loading={loading} />
 
       {/* Tabs de contenido */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
         <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 overflow-x-auto">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
@@ -225,11 +253,13 @@ export default function FinancePage() {
 
         {/* Tab: Facturas */}
         <TabsContent value="invoices" className="space-y-4">
-          <InvoiceFilters />
+          <InvoiceFilters onFiltersChange={handleFilterChange} />
           <InvoiceList
             invoices={invoices}
             loading={loading}
             onCreateInvoice={() => setShowCreateInvoice(true)}
+            onSendInvoice={handleSendInvoice}
+            onCancelInvoice={handleCancelInvoice}
           />
         </TabsContent>
 
@@ -248,6 +278,7 @@ export default function FinancePage() {
             costs={costs}
             loading={loading}
             onRecordCost={() => setShowRecordCost(true)}
+            onApproveCost={handleApproveCost}
           />
         </TabsContent>
 

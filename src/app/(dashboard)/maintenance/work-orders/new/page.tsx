@@ -211,9 +211,8 @@ export default function NewWorkOrderPage() {
                     <SelectContent>
                       <SelectItem value="preventive">Mantenimiento Preventivo</SelectItem>
                       <SelectItem value="corrective">Mantenimiento Correctivo</SelectItem>
-                      <SelectItem value="repair">Reparación</SelectItem>
                       <SelectItem value="inspection">Inspección</SelectItem>
-                      <SelectItem value="modification">Modificación</SelectItem>
+                      <SelectItem value="emergency">Emergencia</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -229,7 +228,7 @@ export default function NewWorkOrderPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Baja</SelectItem>
-                      <SelectItem value="medium">Media</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
                       <SelectItem value="high">Alta</SelectItem>
                       <SelectItem value="urgent">Urgente</SelectItem>
                     </SelectContent>

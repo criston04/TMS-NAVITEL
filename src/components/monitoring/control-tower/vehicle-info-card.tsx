@@ -1,13 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { X, MapPin, User, Package, Clock, Navigation, TimerOff, Phone } from "lucide-react";
+import { X, MapPin, User, Package, Clock, Navigation, TimerOff, Phone, Route, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConnectionStatusBadge } from "../common/connection-status-badge";
 import { MovementStatusBadge } from "../common/movement-status-badge";
 import { MaintenanceIndicator } from "./maintenance-indicator";
 import { MilestoneList } from "./milestone-list";
-import type { TrackedVehicle, TrackedOrder } from "@/types/monitoring";
+import type { TrackedVehicle, TrackedOrder, TrackedMilestone } from "@/types/monitoring";
 
 interface VehicleInfoCardProps {
   /** Vehículo */
@@ -59,6 +60,56 @@ function formatStoppedDuration(stoppedSince: string): string {
 }
 
 /**
+ * Calcula ETA dinámico hacia el siguiente hito
+ */
+function calculateETA(
+  vehicle: TrackedVehicle,
+  milestones: TrackedMilestone[]
+): { nextMilestone: TrackedMilestone; distanceKm: number; etaMinutes: number; isDelayed: boolean; delayMinutes: number } | null {
+  if (!milestones || milestones.length === 0) return null;
+
+  // Encontrar siguiente hito no completado
+  const sorted = [...milestones].sort((a, b) => a.sequence - b.sequence);
+  const next = sorted.find((m) => m.trackingStatus === "pending" || m.trackingStatus === "in_progress");
+  if (!next) return null;
+
+  // Calcular distancia con Haversine
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(next.coordinates.lat - vehicle.position.lat);
+  const dLng = toRad(next.coordinates.lng - vehicle.position.lng);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(vehicle.position.lat)) *
+    Math.cos(toRad(next.coordinates.lat)) *
+    Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distanceKm = R * c;
+
+  // Velocidad - usar actual o asumir 40 km/h si está detenido
+  const speed = vehicle.position.speed > 0 ? vehicle.position.speed : 40;
+  const etaMinutes = Math.round((distanceKm / speed) * 60);
+
+  // Calcular retraso comparando con ETA original si existe
+  let isDelayed = false;
+  let delayMinutes = 0;
+
+  if (next.estimatedArrival) {
+    const originalETA = new Date(next.estimatedArrival);
+    const calculatedETA = new Date(Date.now() + etaMinutes * 60 * 1000);
+    const diffMs = calculatedETA.getTime() - originalETA.getTime();
+    
+    // Solo mostrar delay si es futuro y positivo (llegamos después de lo esperado)
+    if (diffMs > 0 && originalETA.getTime() > Date.now()) {
+      delayMinutes = Math.round(diffMs / 60000);
+      isDelayed = delayMinutes > 5;
+    }
+  }
+
+  return { nextMilestone: next, distanceKm, etaMinutes, isDelayed, delayMinutes };
+}
+
+/**
  * Tarjeta con información detallada de un vehículo
  */
 export function VehicleInfoCard({
@@ -68,6 +119,12 @@ export function VehicleInfoCard({
   onCenterMap,
   className,
 }: VehicleInfoCardProps) {
+  // Calcular ETA dinámico
+  const eta = useMemo(() => {
+    if (!order) return null;
+    return calculateETA(vehicle, order.milestones);
+  }, [vehicle, order]);
+
   return (
     <div className={cn("relative rounded-xl border bg-card/95 backdrop-blur-md shadow-2xl flex flex-col overflow-hidden transition-all duration-300 max-h-[calc(100vh-180px)]", className)}>
       {/* Header con gradiente sutil */}
@@ -226,6 +283,52 @@ export function VehicleInfoCard({
                   />
                 </div>
               </div>
+
+              {/* ETA dinámico integrado */}
+              {eta && (
+                <div className={cn(
+                  "rounded-lg p-3 space-y-2",
+                  eta.isDelayed 
+                    ? "bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50"
+                    : "bg-emerald-50 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/50"
+                )}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Route className="h-4 w-4 text-primary" />
+                      <span className="text-xs font-semibold">ETA dinámico</span>
+                    </div>
+                    {eta.isDelayed && (
+                      <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        <AlertTriangle className="h-3 w-3" />
+                        +{eta.delayMinutes} min
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="text-muted-foreground">Próximo destino</p>
+                      <p className="font-medium truncate">{eta.nextMilestone.name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-muted-foreground">Distancia</p>
+                      <p className="font-medium font-mono">{eta.distanceKm.toFixed(1)} km</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Llegada estimada</p>
+                      <p className="font-medium">
+                        {new Date(Date.now() + eta.etaMinutes * 60 * 1000).toLocaleTimeString("es-PE", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-muted-foreground">Vel. promedio</p>
+                      <p className="font-medium font-mono">{vehicle.position.speed} km/h</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Lista de hitos */}
               <MilestoneList 

@@ -40,7 +40,8 @@ import { DriverSelector } from "@/components/route-planner/driver-selector";
 import { RouteActionsEnhanced } from "@/components/route-planner/route-actions-enhanced";
 import { StopSequenceEnhanced } from "@/components/route-planner/stop-sequence-enhanced";
 import { RouteAlerts } from "@/components/route-planner/route-alerts";
-import { mockOrders, mockVehicles, mockDrivers } from "@/lib/mock-data/route-planner";
+import { mockVehicles, mockDrivers, ROUTE_COLORS } from "@/lib/mock-data/route-planner";
+import { useRoutePlannerOrders } from "@/hooks/useRoutePlannerOrders";
 import { cn } from "@/lib/utils";
 
 /* ============================================
@@ -113,17 +114,14 @@ function OptimizationConfigPanel() {
     updateConfiguration,
     selectedOrders,
     generateOptimizedRoutes,
+    isOptimizing,
     setPlannerStep,
   } = useRoutePlanner();
-  const [isGenerating, setIsGenerating] = useState(false);
   const [truckCountInput, setTruckCountInput] = useState(String(optimizationParams.truckCount));
   const [stopDurationInput, setStopDurationInput] = useState(String(optimizationParams.stopDuration));
 
   const handleGenerate = async () => {
-    setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    generateOptimizedRoutes();
-    setIsGenerating(false);
+    await generateOptimizedRoutes();
   };
 
   return (
@@ -152,7 +150,16 @@ function OptimizationConfigPanel() {
                 <Input
                   type="time"
                   value={optimizationParams.timeWindowStart}
-                  onChange={(e) => updateOptimizationParams({ timeWindowStart: e.target.value })}
+                  onChange={(e) => {
+                    const newStart = e.target.value;
+                    updateOptimizationParams({ timeWindowStart: newStart });
+                    // Auto-fix: if start >= end, push end 1 hour later
+                    if (newStart >= optimizationParams.timeWindowEnd) {
+                      const [h] = newStart.split(':').map(Number);
+                      const endH = Math.min(h + 1, 23);
+                      updateOptimizationParams({ timeWindowEnd: `${String(endH).padStart(2, '0')}:00` });
+                    }
+                  }}
                   className="h-9"
                 />
               </div>
@@ -161,7 +168,13 @@ function OptimizationConfigPanel() {
                 <Input
                   type="time"
                   value={optimizationParams.timeWindowEnd}
-                  onChange={(e) => updateOptimizationParams({ timeWindowEnd: e.target.value })}
+                  onChange={(e) => {
+                    const newEnd = e.target.value;
+                    // Only allow end > start
+                    if (newEnd > optimizationParams.timeWindowStart) {
+                      updateOptimizationParams({ timeWindowEnd: newEnd });
+                    }
+                  }}
                   className="h-9"
                 />
               </div>
@@ -304,11 +317,11 @@ function OptimizationConfigPanel() {
       <div className="flex-shrink-0 border-t border-border p-4 space-y-2">
         <Button
           onClick={handleGenerate}
-          disabled={selectedOrders.length === 0 || isGenerating}
+          disabled={selectedOrders.length === 0 || isOptimizing}
           className="w-full gap-2 bg-gradient-to-r from-[#3DBAFF] to-blue-600 hover:from-[#3DBAFF]/90 hover:to-blue-600/90"
           size="lg"
         >
-          {isGenerating ? (
+          {isOptimizing ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               Optimizando {selectedOrders.length} puntos...
@@ -337,11 +350,6 @@ function OptimizationConfigPanel() {
 /* ============================================
    ROUTE RESULTS LIST
    ============================================ */
-const ROUTE_COLORS = [
-  "#3DBAFF", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
-  "#EC4899", "#06B6D4", "#F97316", "#14B8A6", "#6366F1",
-];
-
 function RouteResultsList() {
   const {
     generatedRoutes,
@@ -477,6 +485,8 @@ function RouteAssignmentPanel() {
     setSelectedRouteId,
     assignVehicleToRoute,
     assignDriverToRoute,
+    unassignVehicleFromRoute,
+    unassignDriverFromRoute,
     confirmAllRoutes,
     allRoutesAssigned,
     setPlannerStep,
@@ -587,7 +597,14 @@ function RouteAssignmentPanel() {
               <TabsContent value="vehicle" className="p-4 mt-0">
                 <VehicleSelector
                   vehicles={mockVehicles}
-                  onSelect={(vehicle) => selectedRouteId && assignVehicleToRoute(selectedRouteId, vehicle)}
+                  onSelect={(vehicle) => {
+                    if (!selectedRouteId) return;
+                    if (vehicle) {
+                      assignVehicleToRoute(selectedRouteId, vehicle);
+                    } else {
+                      unassignVehicleFromRoute(selectedRouteId);
+                    }
+                  }}
                   selectedVehicleId={currentAssignment?.vehicle?.id}
                   routeWeight={selectedRoute?.metrics.totalWeight}
                   routeVolume={selectedRoute?.metrics.totalVolume}
@@ -596,7 +613,14 @@ function RouteAssignmentPanel() {
               <TabsContent value="driver" className="p-4 mt-0">
                 <DriverSelector
                   drivers={mockDrivers}
-                  onSelect={(driver) => selectedRouteId && assignDriverToRoute(selectedRouteId, driver)}
+                  onSelect={(driver) => {
+                    if (!selectedRouteId) return;
+                    if (driver) {
+                      assignDriverToRoute(selectedRouteId, driver);
+                    } else {
+                      unassignDriverFromRoute(selectedRouteId);
+                    }
+                  }}
                   selectedDriverId={currentAssignment?.driver?.id}
                 />
               </TabsContent>
@@ -668,8 +692,12 @@ function RoutePlannerContent() {
     updateConfiguration,
     generatedRoutes,
     selectedRouteId,
+    setSelectedRouteId,
     resetAll,
   } = useRoutePlanner();
+
+  // Órdenes reales del módulo Orders (con fallback a mock data)
+  const { orders: plannerOrders, isLoading: ordersLoading, usingFallback } = useRoutePlannerOrders();
 
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
@@ -708,7 +736,12 @@ function RoutePlannerContent() {
           style={{ flexShrink: 0 }}
         >
           <div className="w-[340px] h-full">
-            <OrderList orders={mockOrders} />
+            {usingFallback && (
+              <div className="px-3 py-1.5 bg-amber-500/10 border-b border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs text-center">
+                Usando datos de ejemplo — crea órdenes en el módulo Órdenes
+              </div>
+            )}
+            <OrderList orders={plannerOrders} />
           </div>
         </motion.div>
 
@@ -743,6 +776,8 @@ function RoutePlannerContent() {
           <div className="flex-1 relative min-h-0">
             <RouteMap
               route={mapRoute}
+              allRoutes={(plannerStep === "results" || plannerStep === "assign") ? generatedRoutes : []}
+              selectedRouteId={selectedRouteId}
               selectedOrders={selectedOrders}
               onStopReorder={reorderStops}
               showOrderMarkers={plannerStep === "select" || plannerStep === "configure"}
@@ -758,11 +793,12 @@ function RoutePlannerContent() {
                 <div className="text-xs font-semibold mb-2">Rutas ({generatedRoutes.length})</div>
                 <div className="space-y-1.5">
                   {generatedRoutes.map((route, index) => {
-                    const color = ROUTE_COLORS[index % ROUTE_COLORS.length];
+                    const color = route.color || ROUTE_COLORS[index % ROUTE_COLORS.length];
                     const isSelected = selectedRouteId === route.id;
                     return (
                       <div
                         key={route.id}
+                        onClick={() => setSelectedRouteId(route.id)}
                         className={cn(
                           "flex items-center gap-2 text-xs w-full rounded px-1.5 py-0.5 transition-colors cursor-pointer",
                           isSelected ? "bg-muted font-medium" : "hover:bg-muted/50"

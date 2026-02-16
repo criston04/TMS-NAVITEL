@@ -498,6 +498,7 @@ class OrderExportService {
     columns: ExportColumn[];
     rows: ExportRow[];
   }): string {
+    const BOM = '\uFEFF'; // BOM para compatibilidad UTF-8 con Excel
     const headers = sheet.columns.map(c => `"${c.header}"`).join(',');
     const rows = sheet.rows.map(row =>
       sheet.columns
@@ -510,7 +511,7 @@ class OrderExportService {
         .join(',')
     );
 
-    return [headers, ...rows].join('\n');
+    return BOM + [headers, ...rows].join('\n');
   }
 
   /**

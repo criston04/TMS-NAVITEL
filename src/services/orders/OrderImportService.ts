@@ -360,54 +360,75 @@ class OrderImportService {
   }
 
   /**
-   * Genera una plantilla de Excel para importación
-   * @returns Datos para generar el archivo Excel
+   * Genera una plantilla de Excel para importación y la descarga como CSV
+   * @description En producción, generar un archivo .xlsx con exceljs
    */
-  getTemplate(): {
-    headers: string[];
-    sampleData: ExcelRow[];
-    instructions: string[];
-  } {
-    return {
-      headers: [...EXPECTED_COLUMNS],
-      sampleData: [
-        {
-          cliente_id: 'cust-001',
-          cliente_nombre: 'Cliente Ejemplo',
-          transportista_id: 'car-001',
-          vehiculo_id: 'veh-001',
-          conductor_id: 'drv-001',
-          workflow_id: 'wf-1',
-          prioridad: 'normal',
-          carga_descripcion: 'Carga de ejemplo',
-          carga_tipo: 'general',
-          carga_peso_kg: 5000,
-          carga_cantidad: 50,
-          carga_valor: 10000,
-          origen_nombre: 'Almacén Central',
-          origen_direccion: 'Av. Principal 123',
-          origen_lat: -12.0464,
-          origen_lng: -77.0428,
-          destino_nombre: 'Centro Distribución',
-          destino_direccion: 'Calle Destino 456',
-          destino_lat: -12.1,
-          destino_lng: -77.05,
-          fecha_inicio: '2026-02-01T08:00:00',
-          fecha_fin: '2026-02-01T18:00:00',
-          referencia_externa: 'REF-EXT-001',
-          notas: 'Notas de ejemplo',
-        },
-      ],
-      instructions: [
-        'Campos obligatorios: cliente_id, carga_descripcion, origen_nombre, destino_nombre, fecha_inicio, fecha_fin',
-        'Prioridades válidas: baja, normal, alta, urgente',
-        'Tipos de carga: general, refrigerada, peligrosa, fragil, sobredimensionada, liquida, granel',
-        'Formato de fechas: YYYY-MM-DDTHH:mm:ss (ISO 8601)',
-        'Coordenadas: Latitud entre -90 y 90, Longitud entre -180 y 180',
-        'El peso debe ser en kilogramos y mayor a 0',
-        'La cantidad debe ser un número entero mayor a 0',
-      ],
+  getTemplate(): void {
+    const headers = [...EXPECTED_COLUMNS];
+    const sampleRow: Record<string, string | number> = {
+      cliente_id: 'cust-001',
+      cliente_nombre: 'Cliente Ejemplo',
+      transportista_id: 'car-001',
+      vehiculo_id: 'veh-001',
+      conductor_id: 'drv-001',
+      workflow_id: 'wf-1',
+      prioridad: 'normal',
+      carga_descripcion: 'Carga de ejemplo',
+      carga_tipo: 'general',
+      carga_peso_kg: 5000,
+      carga_cantidad: 50,
+      carga_valor: 10000,
+      origen_nombre: 'Almacén Central',
+      origen_direccion: 'Av. Principal 123',
+      origen_lat: -12.0464,
+      origen_lng: -77.0428,
+      destino_nombre: 'Centro Distribución',
+      destino_direccion: 'Calle Destino 456',
+      destino_lat: -12.1,
+      destino_lng: -77.05,
+      fecha_inicio: '2026-02-01T08:00:00',
+      fecha_fin: '2026-02-01T18:00:00',
+      referencia_externa: 'REF-EXT-001',
+      notas: 'Notas de ejemplo',
     };
+
+    // Instrucciones como filas comentadas
+    const instructions = [
+      '# Campos obligatorios: cliente_id, carga_descripcion, origen_nombre, destino_nombre, fecha_inicio, fecha_fin',
+      '# Prioridades válidas: baja, normal, alta, urgente',
+      '# Tipos de carga: general, refrigerada, peligrosa, fragil, sobredimensionada, liquida, granel',
+      '# Formato de fechas: YYYY-MM-DDTHH:mm:ss (ISO 8601)',
+      '# Coordenadas: Latitud entre -90 y 90, Longitud entre -180 y 180',
+    ];
+
+    // Construir CSV
+    const csvRows: string[] = [];
+    // Instrucciones al inicio
+    for (const instruction of instructions) {
+      csvRows.push(instruction);
+    }
+    // Headers
+    csvRows.push(headers.join(','));
+    // Datos de ejemplo
+    const sampleValues = headers.map(h => {
+      const val = sampleRow[h];
+      if (typeof val === 'string' && val.includes(',')) {
+        return `"${val}"`;
+      }
+      return val?.toString() ?? '';
+    });
+    csvRows.push(sampleValues.join(','));
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'plantilla_importacion_ordenes.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   /**

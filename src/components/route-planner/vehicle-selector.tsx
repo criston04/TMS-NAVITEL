@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 interface VehicleSelectorProps {
   vehicles: Vehicle[];
   compact?: boolean;
-  onSelect?: (vehicle: Vehicle) => void;
+  onSelect?: (vehicle: Vehicle | null) => void;
   selectedVehicleId?: string;
   /** Route-specific total weight (for multi-route mode) */
   routeWeight?: number;
@@ -266,9 +266,7 @@ export function VehicleSelector({ vehicles, compact = false, onSelect, selectedV
   const selectedVehicle = selectedVehicleId
     ? vehicles.find((v) => v.id === selectedVehicleId) || ctxVehicle
     : ctxVehicle;
-  const selectVehicle = onSelect
-    ? (v: Vehicle | null) => { if (v) onSelect(v); }
-    : ctxSelectVehicle;
+  const selectVehicle = onSelect || ctxSelectVehicle;
 
   const availableVehicles = vehicles.filter((v) => v.status === "available");
   const unavailableVehicles = vehicles.filter((v) => v.status !== "available");

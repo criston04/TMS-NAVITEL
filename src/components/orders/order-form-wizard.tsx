@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import {
   User,
@@ -18,6 +18,7 @@ import type {
   CreateOrderDTO, 
   OrderPriority, 
   CargoType,
+  ServiceType,
 } from '@/types/order';
 import type { Workflow } from '@/types/workflow';
 import type { Geofence } from '@/types/models/geofence';
@@ -139,6 +140,18 @@ const CARGO_TYPES: { value: CargoType; label: string }[] = [
   { value: 'bulk', label: 'Granel' },
 ];
 
+const SERVICE_TYPES: { value: ServiceType; label: string }[] = [
+  { value: 'distribucion', label: 'Distribución' },
+  { value: 'importacion', label: 'Importación' },
+  { value: 'exportacion', label: 'Exportación' },
+  { value: 'transporte_minero', label: 'Transporte Minero' },
+  { value: 'transporte_residuos', label: 'Transporte de Residuos' },
+  { value: 'interprovincial', label: 'Interprovincial' },
+  { value: 'mudanza', label: 'Mudanza' },
+  { value: 'courier', label: 'Courier / Paquetería' },
+  { value: 'otro', label: 'Otro' },
+];
+
 function getGeofenceCoordinates(geofence: Geofence): { lat: number; lng: number } {
   switch (geofence.geometry.type) {
     case 'circle':
@@ -168,6 +181,7 @@ export function OrderFormWizard({
   const [autoGenerateNumber, setAutoGenerateNumber] = useState(true);
   const [customerId, setCustomerId] = useState(initialData?.customerId || '');
   const [priority, setPriority] = useState<OrderPriority>(initialData?.priority || 'normal');
+  const [serviceType, setServiceType] = useState<ServiceType>(initialData?.serviceType || 'distribucion');
   const [externalReference, setExternalReference] = useState(initialData?.externalReference || '');
   const [orderContact, setOrderContact] = useState<OrderContactInfo | null>(null);
 
@@ -212,6 +226,26 @@ export function OrderFormWizard({
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [tagInput, setTagInput] = useState('');
+
+  // Tracking de cambios sin guardar
+  const hasUnsavedChanges = useRef(false);
+  const isSubmittingRef = useRef(false);
+
+  // Detectar cambios
+  useEffect(() => {
+    hasUnsavedChanges.current = !!(customerId || cargoDescription || cargoWeight || milestones.length > 0);
+  }, [customerId, cargoDescription, cargoWeight, milestones]);
+
+  // Warning de navegación con beforeunload
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges.current && !isSubmittingRef.current) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   // Verificar conflictos
   const { conflicts, isChecking: isCheckingConflicts } = useResourceConflicts({
@@ -561,6 +595,8 @@ export function OrderFormWizard({
   const handleSubmit = useCallback(async () => {
     if (!validateCurrentStep()) return;
 
+    isSubmittingRef.current = true;
+
     const startDateTime = `${scheduledStartDate}T${scheduledStartTime}:00.000Z`;
     const endDateTime = `${scheduledEndDate}T${scheduledEndTime}:00.000Z`;
 
@@ -576,7 +612,7 @@ export function OrderFormWizard({
       driverId: driverId || undefined,
       workflowId: selectedWorkflow?.id || undefined,
       priority,
-      serviceType: 'distribucion',
+      serviceType,
       // Número de orden manual (si no es automático)
       ...((!autoGenerateNumber && orderNumber) && { orderNumber }),
       // Referencia externa
@@ -619,7 +655,7 @@ export function OrderFormWizard({
 
     await onSubmit(data);
   }, [
-    validateCurrentStep, customerId, carrierId, vehicleId, driverId, priority,
+    validateCurrentStep, customerId, carrierId, vehicleId, driverId, priority, serviceType,
     cargoDescription, cargoType, cargoWeight, cargoVolume, cargoQuantity, cargoDeclaredValue,
     milestones, scheduledStartDate, scheduledStartTime, scheduledEndDate, scheduledEndTime,
     externalReference, notes, tags, selectedWorkflow, onSubmit, autoGenerateNumber, orderNumber,
@@ -745,6 +781,22 @@ export function OrderFormWizard({
                     value={externalReference}
                     onChange={(e) => setExternalReference(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="serviceType">Tipo de Servicio</Label>
+                  <Select value={serviceType} onValueChange={(v) => setServiceType(v as ServiceType)}>
+                    <SelectTrigger id="serviceType">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_TYPES.map(st => (
+                        <SelectItem key={st.value} value={st.value}>
+                          {st.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

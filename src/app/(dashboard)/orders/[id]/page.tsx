@@ -20,13 +20,16 @@ import {
   Calendar,
   FileText,
   ClipboardEdit,
+  Trash2,
 } from 'lucide-react';
 // No se necesitan imports de tipo aquí, se infieren de los hooks
 
-import { useOrder } from '@/hooks/useOrders';
+import { useOrder, useOrders } from '@/hooks/useOrders';
 import { useWorkflowProgress } from '@/hooks/useWorkflows';
 import { useOrderIncidents } from '@/hooks/useIncidents';
 import { useOrderExport } from '@/hooks/useOrderImportExport';
+import { useToast } from '@/components/ui/toast';
+import { useTranslations } from '@/contexts/locale-context';
 
 // Componentes
 import { PageWrapper } from '@/components/page-wrapper';
@@ -37,6 +40,26 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OrderTimeline, STATUS_CONFIG, PRIORITY_CONFIG, MilestoneManualEntryModal } from '@/components/orders';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import type { OrderMilestone } from '@/types/order';
 
@@ -121,13 +144,21 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'timeline' | 'incidents' | 'history'>('timeline');
   const [manualEntryOpen, setManualEntryOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<OrderMilestone | null>(null);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [closeObservations, setCloseObservations] = useState('');
+  const [isClosing, setIsClosing] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { order, isLoading, error, startTrip, sendToExternal } = useOrder(id, {
     realtimeUpdates: true,
   });
+  const { closeOrder, deleteOrder } = useOrders({ autoFetch: false });
   const { progress, percentComplete, nextStep } = useWorkflowProgress(order);
   const { incidents, pendingIncidents } = useOrderIncidents(id);
   const { exportOrders } = useOrderExport();
+  const { success: toastSuccess, error: toastError } = useToast();
+  const t = useTranslations();
 
   // Navegación
   const handleBack = useCallback(() => {
@@ -163,7 +194,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   /**
    * Guarda el registro manual de un hito
    */
-  const handleSaveManualEntry = useCallback((milestoneId: string, data: {
+  const handleSaveManualEntry = useCallback(async (milestoneId: string, data: {
     actualEntry: string;
     actualExit?: string;
     isManual: true;
@@ -174,11 +205,65 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
       reason: 'sin_senal_gps' | 'falla_equipo' | 'carga_retroactiva' | 'correccion' | 'otro';
     };
   }) => {
-    // En producción esto llamaría al servicio para actualizar el hito
-    console.log('Manual milestone entry saved:', milestoneId, data);
-    setManualEntryOpen(false);
-    setSelectedMilestone(null);
-  }, []);
+    try {
+      // Simulación del guardado - en producción llamará al servicio real
+      const { orderService } = await import('@/services/orders');
+      await orderService.updateMilestone(id, milestoneId, {
+        actualEntry: data.actualEntry,
+        actualExit: data.actualExit,
+        isManual: data.isManual,
+        manualEntryData: data.manualEntryData,
+      });
+      toastSuccess('Hito actualizado', `Registro manual del hito guardado correctamente`);
+    } catch {
+      toastError('Error', 'No se pudo guardar el registro manual del hito');
+    } finally {
+      setManualEntryOpen(false);
+      setSelectedMilestone(null);
+    }
+  }, [id, toastSuccess, toastError]);
+
+  /**
+   * Cierra la orden (cambia estado a 'closed')
+   */
+  const handleCloseOrder = useCallback(async () => {
+    if (!order) return;
+    setIsClosing(true);
+    try {
+      await closeOrder(order.id, {
+        observations: closeObservations || 'Cierre de orden desde detalle',
+        incidents: [],
+        deviationReasons: [],
+        closedBy: 'current-user',
+        closedByName: 'Usuario Actual',
+      });
+      toastSuccess(t('orders.orderClosed'), `${order.orderNumber}`);
+      setCloseDialogOpen(false);
+      setCloseObservations('');
+    } catch {
+      toastError(t('common.error'), t('orders.closeError'));
+    } finally {
+      setIsClosing(false);
+    }
+  }, [order, closeOrder, closeObservations, toastSuccess, toastError]);
+
+  /**
+   * Elimina la orden
+   */
+  const handleDeleteOrder = useCallback(async () => {
+    if (!order) return;
+    setIsDeleting(true);
+    try {
+      await deleteOrder(order.id);
+      toastSuccess(t('orders.orderDeleted'), `${order.orderNumber}`);
+      router.push('/orders');
+    } catch {
+      toastError(t('common.error'), t('orders.deleteError'));
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  }, [order, deleteOrder, router, toastSuccess, toastError]);
 
   // Loading
   if (isLoading) {
@@ -548,13 +633,33 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full gap-2" variant="default">
+                  <Button
+                    className="w-full gap-2"
+                    variant="default"
+                    onClick={() => setCloseDialogOpen(true)}
+                  >
                     <Lock className="w-4 h-4" />
                     Cerrar orden
                   </Button>
                 </CardContent>
               </Card>
             )}
+
+            {/* Eliminar orden */}
+            {order.status === 'draft' || order.status === 'pending' ? (
+              <Card className="border-red-200 dark:border-red-800">
+                <CardContent className="pt-6">
+                  <Button
+                    className="w-full gap-2"
+                    variant="destructive"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar orden
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : null}
 
             {/* Notas */}
             {order.notes && (
@@ -581,6 +686,63 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
         milestone={selectedMilestone}
         onSave={handleSaveManualEntry}
       />
+
+      {/* Dialog de cierre de orden */}
+      <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Lock className="w-5 h-5" />
+              {t('orders.closeOrder')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('orders.closeOrderDesc')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="closeObservations">{t('orders.closeObservations')}</Label>
+              <Textarea
+                id="closeObservations"
+                placeholder={t('orders.closeObservationsPlaceholder')}
+                value={closeObservations}
+                onChange={(e) => setCloseObservations(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCloseDialogOpen(false)} disabled={isClosing}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleCloseOrder} disabled={isClosing}>
+              {isClosing ? t('orders.closing') : t('common.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de eliminación */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('orders.deleteOrderConfirm')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('orders.deleteOrderDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteOrder}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? `${t('common.loading')}` : t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageWrapper>
   );
 }

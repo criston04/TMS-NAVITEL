@@ -71,11 +71,9 @@ function StopItem({
 
   // Check if time window conflict
   const hasTimeConflict = stop.timeWindow && stop.estimatedArrival && (() => {
-    const eta = new Date(stop.estimatedArrival);
-    const [endHour, endMin] = stop.timeWindow.end.split(":").map(Number);
-    const endTime = new Date(eta);
-    endTime.setHours(endHour, endMin, 0);
-    return eta > endTime;
+    const [arrH, arrM] = stop.estimatedArrival!.split(":").map(Number);
+    const [endH, endM] = stop.timeWindow!.end.split(":").map(Number);
+    return arrH * 60 + arrM > endH * 60 + endM;
   })();
 
   return (
@@ -170,6 +168,15 @@ function StopItem({
 
               {/* Compact Info */}
               <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                {stop.estimatedArrival && (
+                  <div className={cn(
+                    "flex items-center gap-1 font-medium",
+                    hasTimeConflict ? "text-yellow-500" : "text-foreground"
+                  )}>
+                    <Clock className="h-3 w-3" />
+                    <span>ETA {stop.estimatedArrival}</span>
+                  </div>
+                )}
                 {stop.timeWindow && (
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
@@ -234,10 +241,7 @@ function StopItem({
                     <div>
                       <div className="text-muted-foreground mb-1">ETA</div>
                       <div className="font-medium">
-                        {new Date(stop.estimatedArrival).toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {stop.estimatedArrival}
                       </div>
                     </div>
                   )}
@@ -329,7 +333,7 @@ export function StopSequenceEnhanced({
       </motion.div>
 
       {/* Reorderable List */}
-      <ScrollArea className={cn("pr-0.5 max-h-[120px]")}> 
+      <ScrollArea className={cn("pr-0.5", compact ? "max-h-[300px]" : "max-h-[calc(100vh-400px)]")}> 
         <Reorder.Group
           axis="y"
           values={items}

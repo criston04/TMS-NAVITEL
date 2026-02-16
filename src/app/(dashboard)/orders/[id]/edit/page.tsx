@@ -188,7 +188,8 @@ export default function OrderEditPage({ params }: OrderEditPageProps) {
             scheduledEndDate: order.scheduledEndDate,
             externalReference: order.externalReference,
             notes: order.notes,
-            tags: [],
+            tags: order.tags || [],
+            serviceType: order.serviceType,
           }}
           onSubmit={handleSubmit}
           onCancel={handleBack}

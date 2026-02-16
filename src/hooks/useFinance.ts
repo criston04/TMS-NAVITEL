@@ -300,13 +300,15 @@ export function useFinance(options: UseFinanceOptions = {}): UseFinanceReturn {
   }, []);
 
   const refresh = useCallback(async () => {
-    await Promise.all([fetchInvoices(), fetchStats(), fetchAging()]);
-  }, [fetchInvoices, fetchStats, fetchAging]);
+    await Promise.all([fetchInvoices(), fetchPayments(), fetchCosts(), fetchStats(), fetchAging(), fetchRates({ isActive: true })]);
+  }, [fetchInvoices, fetchPayments, fetchCosts, fetchStats, fetchAging, fetchRates]);
 
   // Auto-fetch
   useEffect(() => {
     if (autoFetch) {
       fetchInvoices();
+      fetchPayments();
+      fetchCosts();
       fetchStats();
       fetchAging();
       fetchRates({ isActive: true });

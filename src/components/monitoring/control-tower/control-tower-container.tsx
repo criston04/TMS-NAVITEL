@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { 
@@ -28,6 +28,7 @@ import { AlertPanel } from "./alert-panel";
 import { AlertRulesConfig } from "./alert-rules-config";
 import { MonitoringDashboard } from "./monitoring-dashboard";
 import { MapSkeleton } from "../common/skeletons/map-skeleton";
+import { getAllActiveRoutes } from "@/mocks/monitoring/vehicle-positions.mock";
 import type { TrackedVehicle } from "@/types/monitoring";
 
 // Dynamic import del mapa para evitar SSR
@@ -97,6 +98,12 @@ export function ControlTowerContainer({
     toggleRule,
     deleteRule,
   } = useMonitoringAlerts({ vehicles: vehiclesList });
+
+  // Obtener rutas de todos los vehículos con órdenes activas
+  const allVehicleRoutes = useMemo(() => {
+    if (vehiclesList.length === 0) return undefined;
+    return getAllActiveRoutes();
+  }, [vehiclesList]);
 
   // Cargar lista de transportistas
   useEffect(() => {
@@ -321,6 +328,7 @@ export function ControlTowerContainer({
           vehicles={vehiclesList}
           selectedVehicleId={selectedVehicle?.id}
           onVehicleSelect={handleVehicleSelect}
+          allVehicleRoutes={allVehicleRoutes}
         />
 
         {/* Panel de información del vehículo seleccionado */}

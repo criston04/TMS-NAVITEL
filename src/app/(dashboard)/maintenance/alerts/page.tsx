@@ -36,18 +36,18 @@ const severityConfig = {
     color: 'bg-red-100 text-red-700 border-red-200',
     icon: AlertTriangle,
   },
-  high: {
-    label: 'Alta',
+  error: {
+    label: 'Error',
     color: 'bg-orange-100 text-orange-700 border-orange-200',
     icon: AlertTriangle,
   },
-  medium: {
-    label: 'Media',
+  warning: {
+    label: 'Advertencia',
     color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
     icon: Bell,
   },
-  low: {
-    label: 'Baja',
+  info: {
+    label: 'Información',
     color: 'bg-blue-100 text-blue-700 border-blue-200',
     icon: Bell,
   },
@@ -276,7 +276,7 @@ export default function AlertsPage() {
               {filteredAlerts
                 .sort((a, b) => {
                   // Ordenar por severidad y fecha
-                  const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+                  const severityOrder = { critical: 0, error: 1, warning: 2, info: 3 };
                   const severityDiff =
                     severityOrder[a.severity as keyof typeof severityOrder] -
                     severityOrder[b.severity as keyof typeof severityOrder];
@@ -287,7 +287,7 @@ export default function AlertsPage() {
                   const vehicle = getVehicle(alert.vehicleId);
                   const severityInfo =
                     severityConfig[alert.severity as keyof typeof severityConfig] ||
-                    severityConfig.low;
+                    severityConfig.info;
                   const SeverityIcon = severityInfo.icon;
                   
                   // Determine status based on isRead and isDismissed

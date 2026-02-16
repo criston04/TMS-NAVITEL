@@ -351,6 +351,12 @@ export interface Order {
   actualEndDate?: string;
   /** Datos del cierre (solo si está cerrada) */
   closureData?: OrderClosureData;
+  /** Motivo de cancelación (solo si está cancelada) */
+  cancellationReason?: string;
+  /** Fecha de cancelación */
+  cancelledAt?: string;
+  /** Usuario que canceló la orden */
+  cancelledBy?: string;
   /** Historial de estados */
   statusHistory: OrderStatusHistory[];
   /** Tipo de servicio de la orden */

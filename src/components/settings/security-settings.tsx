@@ -89,13 +89,13 @@ export function SecuritySettings({
   onUpdate,
 }: SecuritySettingsProps) {
   const [formData, setFormData] = useState({
-    twoFactorEnabled: false,
-    sessionTimeout: 30,
-    passwordExpiryDays: 90,
+    enableTwoFactor: false,
+    sessionTimeoutMinutes: 30,
+    passwordExpirationDays: 90,
     requireStrongPassword: true,
     loginNotifications: true,
     allowMultipleSessions: true,
-    ipWhitelistEnabled: false,
+    enableIpWhitelist: false,
     ipWhitelist: [] as string[],
   });
 
@@ -305,14 +305,14 @@ export function SecuritySettings({
               </p>
             </div>
             <Switch
-              checked={formData.twoFactorEnabled}
+              checked={formData.enableTwoFactor}
               onCheckedChange={(checked) =>
-                handleChange("twoFactorEnabled", checked)
+                handleChange("enableTwoFactor", checked)
               }
             />
           </div>
 
-          {formData.twoFactorEnabled && (
+          {formData.enableTwoFactor && (
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertTitle>2FA Activado</AlertTitle>
@@ -343,9 +343,9 @@ export function SecuritySettings({
             <div className="space-y-2">
               <Label>Tiempo de Sesión (minutos)</Label>
               <Select
-                value={formData.sessionTimeout.toString()}
+                value={formData.sessionTimeoutMinutes.toString()}
                 onValueChange={(value) =>
-                  handleChange("sessionTimeout", parseInt(value))
+                  handleChange("sessionTimeoutMinutes", parseInt(value))
                 }
               >
                 <SelectTrigger>
@@ -364,9 +364,9 @@ export function SecuritySettings({
             <div className="space-y-2">
               <Label>Expiración de Contraseña</Label>
               <Select
-                value={formData.passwordExpiryDays.toString()}
+                value={formData.passwordExpirationDays.toString()}
                 onValueChange={(value) =>
-                  handleChange("passwordExpiryDays", parseInt(value))
+                  handleChange("passwordExpirationDays", parseInt(value))
                 }
               >
                 <SelectTrigger>

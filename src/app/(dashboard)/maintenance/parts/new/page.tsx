@@ -126,16 +126,17 @@ export default function NewPartPage() {
                       <SelectValue placeholder="Seleccionar categoría" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Filtros">Filtros</SelectItem>
-                      <SelectItem value="Frenos">Frenos</SelectItem>
-                      <SelectItem value="Suspensión">Suspensión</SelectItem>
-                      <SelectItem value="Motor">Motor</SelectItem>
-                      <SelectItem value="Transmisión">Transmisión</SelectItem>
-                      <SelectItem value="Eléctrico">Eléctrico</SelectItem>
-                      <SelectItem value="Neumáticos">Neumáticos</SelectItem>
-                      <SelectItem value="Lubricantes">Lubricantes</SelectItem>
-                      <SelectItem value="Carrocería">Carrocería</SelectItem>
-                      <SelectItem value="Otros">Otros</SelectItem>
+                      <SelectItem value="engine">Motor</SelectItem>
+                      <SelectItem value="transmission">Transmisión</SelectItem>
+                      <SelectItem value="brakes">Frenos</SelectItem>
+                      <SelectItem value="suspension">Suspensión</SelectItem>
+                      <SelectItem value="electrical">Eléctrico</SelectItem>
+                      <SelectItem value="filters">Filtros</SelectItem>
+                      <SelectItem value="fluids">Fluidos/Lubricantes</SelectItem>
+                      <SelectItem value="tires">Neumáticos</SelectItem>
+                      <SelectItem value="body">Carrocería</SelectItem>
+                      <SelectItem value="accessories">Accesorios</SelectItem>
+                      <SelectItem value="other">Otros</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

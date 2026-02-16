@@ -6,12 +6,26 @@ import "leaflet/dist/leaflet.css";
 import "@/styles/leaflet-custom.css";
 import type { TrackedVehicle } from "@/types/monitoring";
 
+/** Colores para las rutas de diferentes vehículos */
+const ROUTE_COLORS = [
+  "#3b82f6", // blue
+  "#10b981", // emerald
+  "#f59e0b", // amber
+  "#8b5cf6", // violet
+  "#ef4444", // red
+  "#06b6d4", // cyan
+  "#ec4899", // pink
+  "#84cc16", // lime
+];
+
 interface ControlTowerMapProps {
   vehicles: TrackedVehicle[];
   selectedVehicleId?: string | null;
   onVehicleSelect?: (vehicle: TrackedVehicle) => void;
   initialCenter?: [number, number];
   initialZoom?: number;
+  /** Rutas de todos los vehículos activos (Map<vehicleId, coordinates>) */
+  allVehicleRoutes?: Map<string, [number, number][]>;
   className?: string;
 }
 
@@ -73,6 +87,7 @@ export function ControlTowerMap({
   onVehicleSelect,
   initialCenter = [-12.0464, -77.0428], // Lima, Peru
   initialZoom = 12,
+  allVehicleRoutes,
   className,
 }: ControlTowerMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -82,6 +97,8 @@ export function ControlTowerMap({
   const markersRef = useRef<Map<string, any>>(new Map());
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leafletRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allRoutesLayerRef = useRef<Map<string, any>>(new Map());
   const [isMapReady, setIsMapReady] = useState(false);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
 
@@ -277,6 +294,46 @@ export function ControlTowerMap({
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
     }
   }, [vehicles.length, selectedVehicleId, isMapInitialized]);
+
+  // Dibujar rutas de todos los vehículos activos
+  useEffect(() => {
+    const map = mapRef.current;
+    const L = leafletRef.current;
+    if (!map || !L || !isMapInitialized) return;
+
+    // Limpiar rutas anteriores
+    allRoutesLayerRef.current.forEach((layer) => layer.remove());
+    allRoutesLayerRef.current.clear();
+
+    // Si no hay rutas, salir
+    if (!allVehicleRoutes || allVehicleRoutes.size === 0) return;
+
+    // Dibujar cada ruta con un color diferente
+    let colorIndex = 0;
+    allVehicleRoutes.forEach((coordinates, vehicleId) => {
+      if (coordinates.length < 2) return;
+
+      const isSelected = vehicleId === selectedVehicleId;
+      const color = isSelected ? "#06b6d4" : ROUTE_COLORS[colorIndex % ROUTE_COLORS.length];
+      if (!isSelected) colorIndex++;
+
+      const polyline = L.polyline(coordinates, {
+        color,
+        weight: isSelected ? 5 : 3,
+        opacity: isSelected ? 0.9 : 0.4,
+        dashArray: isSelected ? "12, 6" : "5, 8",
+        lineCap: "round",
+        lineJoin: "round",
+      }).addTo(map);
+
+      // La ruta seleccionada va al frente
+      if (isSelected) {
+        polyline.bringToFront();
+      }
+
+      allRoutesLayerRef.current.set(vehicleId, polyline);
+    });
+  }, [allVehicleRoutes, selectedVehicleId, isMapInitialized]);
 
   return (
     <div className={cn("h-full w-full relative overflow-hidden", className)}>

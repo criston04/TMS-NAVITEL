@@ -130,9 +130,7 @@ export function EmailSettings({ settings, loading, onUpdate }: EmailSettingsProp
               <SelectContent>
                 <SelectItem value="smtp">SMTP Personalizado</SelectItem>
                 <SelectItem value="sendgrid">SendGrid</SelectItem>
-                <SelectItem value="mailgun">Mailgun</SelectItem>
                 <SelectItem value="ses">Amazon SES</SelectItem>
-                <SelectItem value="gmail">Gmail</SelectItem>
               </SelectContent>
             </Select>
           </div>

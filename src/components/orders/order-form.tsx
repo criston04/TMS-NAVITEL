@@ -20,6 +20,7 @@ import type {
   CreateOrderDTO, 
   OrderPriority, 
   CargoType,
+  ServiceType,
 } from '@/types/order';
 
 // UI Components
@@ -99,6 +100,18 @@ const CARGO_TYPES: { value: CargoType; label: string }[] = [
   { value: 'bulk', label: 'Granel' },
 ];
 
+const SERVICE_TYPES: { value: ServiceType; label: string }[] = [
+  { value: 'distribucion', label: 'Distribución' },
+  { value: 'importacion', label: 'Importación' },
+  { value: 'exportacion', label: 'Exportación' },
+  { value: 'transporte_minero', label: 'Transporte Minero' },
+  { value: 'transporte_residuos', label: 'Transporte de Residuos' },
+  { value: 'interprovincial', label: 'Interprovincial' },
+  { value: 'mudanza', label: 'Mudanza' },
+  { value: 'courier', label: 'Courier / Paquetería' },
+  { value: 'otro', label: 'Otro' },
+];
+
 // COMPONENTE PRINCIPAL
 
 export function OrderForm({
@@ -112,6 +125,7 @@ export function OrderForm({
   const [vehicleId, setVehicleId] = useState(initialData?.vehicleId || '');
   const [driverId, setDriverId] = useState(initialData?.driverId || '');
   const [priority, setPriority] = useState<OrderPriority>(initialData?.priority || 'normal');
+  const [serviceType, setServiceType] = useState<ServiceType>(initialData?.serviceType || 'distribucion');
   
   const [cargoDescription, setCargoDescription] = useState(initialData?.cargo?.description || '');
   const [cargoType, setCargoType] = useState<CargoType>(initialData?.cargo?.type || 'general');
@@ -316,7 +330,7 @@ export function OrderForm({
       driverId: driverId || undefined,
       workflowId: workflowInfo?.workflowId || undefined,
       priority,
-      serviceType: 'distribucion',
+      serviceType,
       cargo: {
         description: cargoDescription,
         type: cargoType,
@@ -435,6 +449,22 @@ export function OrderForm({
               value={externalReference}
               onChange={(e) => setExternalReference(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="serviceType">Tipo de Servicio</Label>
+            <Select value={serviceType} onValueChange={(v) => setServiceType(v as ServiceType)}>
+              <SelectTrigger id="serviceType">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SERVICE_TYPES.map(st => (
+                  <SelectItem key={st.value} value={st.value}>
+                    {st.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

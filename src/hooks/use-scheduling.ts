@@ -28,6 +28,7 @@ import {
   generateMockTimelines,
   type MockVehicle,
   type MockDriver,
+  type AutoScheduleResult,
 } from '@/mocks/scheduling';
 
 /** Filtro de estado para vista de lista */
@@ -60,6 +61,8 @@ interface UseSchedulingReturn {
   isLoading: boolean;
   isScheduling: boolean;
   isLoadingSuggestions: boolean;
+  assignmentError: string | null;
+  clearAssignmentError: () => void;
   
   // Modal
   assignmentModal: AssignmentModalState;
@@ -127,7 +130,7 @@ interface UseSchedulingReturn {
   openAutoSchedule: () => void;
   closeAutoSchedule: () => void;
   isAutoScheduling: boolean;
-  autoScheduleResult: { assigned: number; failed: number; errors: string[] } | null;
+  autoScheduleResult: AutoScheduleResult | null;
   confirmAutoSchedule: () => void;
 
   // ═══════ Feature 8: Gantt ═══════
@@ -160,6 +163,7 @@ export function useScheduling(): UseSchedulingReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [isScheduling, setIsScheduling] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [assignmentError, setAssignmentError] = useState<string | null>(null);
   
   // ----------------------------------------
   // ----------------------------------------
@@ -171,7 +175,23 @@ export function useScheduling(): UseSchedulingReturn {
   // ----------------------------------------
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [scheduledOrders, setScheduledOrders] = useState<ScheduledOrder[]>([]);
+  const [scheduledOrders, setScheduledOrders] = useState<ScheduledOrder[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('tms-scheduled-orders');
+      if (stored) {
+        const parsed = JSON.parse(stored) as ScheduledOrder[];
+        // Restaurar Date objects que se serializaron como strings
+        return parsed.map(o => ({
+          ...o,
+          scheduledDate: new Date(o.scheduledDate),
+        }));
+      }
+    } catch (e) {
+      console.warn('[useScheduling] Error cargando scheduled orders de localStorage:', e);
+    }
+    return [];
+  });
   const [timelines, setTimelines] = useState<ResourceTimeline[]>([]);
   const [kpis, setSchedulingKpis] = useState<SchedulingKPIs>({
     pendingOrders: 0,
@@ -243,11 +263,7 @@ export function useScheduling(): UseSchedulingReturn {
   // ═══════════════════════════════════
   const [isAutoScheduleOpen, setIsAutoScheduleOpen] = useState(false);
   const [isAutoScheduling, setIsAutoScheduling] = useState(false);
-  const [autoScheduleResult, setAutoScheduleResult] = useState<{
-    assigned: number;
-    failed: number;
-    errors: string[];
-  } | null>(null);
+  const [autoScheduleResult, setAutoScheduleResult] = useState<AutoScheduleResult | null>(null);
 
   // ═══════════════════════════════════
   // FEATURE 8: GANTT
@@ -288,7 +304,7 @@ export function useScheduling(): UseSchedulingReturn {
   // CALENDAR DATA (with filter support)
   // ----------------------------------------
   const calendarData = useMemo(() => {
-    const base = schedulingService.generateCalendarDays(currentMonth, scheduledOrders);
+    const base = schedulingService.generateCalendarDays(currentMonth, scheduledOrders, blockedDays);
     // Apply calendar filters
     if (!calendarFilters.vehicleId && !calendarFilters.driverId && !calendarFilters.statuses?.length && !calendarFilters.onlyWithConflicts) {
       return base;
@@ -303,7 +319,7 @@ export function useScheduling(): UseSchedulingReturn {
         return true;
       }),
     }));
-  }, [currentMonth, scheduledOrders, calendarFilters]);
+  }, [currentMonth, scheduledOrders, calendarFilters, blockedDays]);
 
   // ----------------------------------------
   // EXPORT ORDERS (all for export component)
@@ -348,6 +364,25 @@ export function useScheduling(): UseSchedulingReturn {
   }, [allOrders, stateFilter, listSearch]);
 
   // ----------------------------------------
+  // PERSISTIR scheduledOrders en localStorage al cambiar
+  // ----------------------------------------
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('tms-scheduled-orders', JSON.stringify(scheduledOrders));
+    } catch (e) {
+      console.warn('[useScheduling] Error guardando scheduled orders:', e);
+    }
+  }, [scheduledOrders]);
+
+  // ----------------------------------------
+  // ACTUALIZAR timelines cuando cambian scheduledOrders
+  // ----------------------------------------
+  useEffect(() => {
+    setTimelines(generateMockTimelines(scheduledOrders));
+  }, [scheduledOrders]);
+
+  // ----------------------------------------
   // CARGA INICIAL DE DATOS
   // ----------------------------------------
   useEffect(() => {
@@ -367,7 +402,23 @@ export function useScheduling(): UseSchedulingReturn {
           setPendingOrders(ordersData);
           setAllOrders(allOrdersData);
           setSchedulingKpis(kpisData);
-          setTimelines(generateMockTimelines());
+
+          // Transform assigned orders into ScheduledOrders and merge with existing
+          // (from localStorage). This populates the calendar on first load.
+          setScheduledOrders(prev => {
+            const existingIds = new Set(prev.map(o => o.id));
+            const fromOrders: ScheduledOrder[] = allOrdersData
+              .filter(o => (o.vehicleId || o.driverId) && !existingIds.has(o.id))
+              .map(o => ({
+                ...o,
+                scheduledDate: o.scheduledStartDate ? new Date(o.scheduledStartDate) : new Date(),
+                scheduledStartTime: '08:00',
+                estimatedEndTime: '12:00',
+                estimatedDuration: 4,
+                scheduleStatus: (o.status === 'in_transit' ? 'in_progress' : 'scheduled') as import('@/types/scheduling').ScheduleStatus,
+              }));
+            return fromOrders.length > 0 ? [...prev, ...fromOrders] : prev;
+          });
         }
       } catch (error) {
         console.error('Error cargando datos de programación:', error);
@@ -412,18 +463,18 @@ export function useScheduling(): UseSchedulingReturn {
     return () => { isMounted = false; };
   }, []);
 
-  // Gantt data — reloads when startDate changes
+  // Gantt data — reloads when startDate or scheduledOrders change
   useEffect(() => {
     let isMounted = true;
     setIsLoadingGantt(true);
 
-    schedulingService.getGanttData(ganttStartDate, 7)
+    schedulingService.getGanttData(ganttStartDate, 7, scheduledOrders, blockedDays)
       .then(data => { if (isMounted) setGanttData(data); })
       .catch(console.error)
       .finally(() => { if (isMounted) setIsLoadingGantt(false); });
 
     return () => { isMounted = false; };
-  }, [ganttStartDate]);
+  }, [ganttStartDate, scheduledOrders, blockedDays]);
 
   // ----------------------------------------
   // HANDLERS DE DRAG & DROP
@@ -480,6 +531,7 @@ export function useScheduling(): UseSchedulingReturn {
     if (!order) return;
     
     setIsScheduling(true);
+    setAssignmentError(null);
     
     try {
       // Detectar conflictos si está habilitado
@@ -501,7 +553,9 @@ export function useScheduling(): UseSchedulingReturn {
       const result = await schedulingService.assignOrder(payload);
       
       if (!result.success) {
-        console.error('Error en asignación:', result.error);
+        const errMsg = result.error || 'Error desconocido al asignar la orden';
+        setAssignmentError(errMsg);
+        console.error('Error en asignación:', errMsg);
         return;
       }
       
@@ -531,6 +585,8 @@ export function useScheduling(): UseSchedulingReturn {
       closeAssignmentModal();
       
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : 'Error al confirmar asignación';
+      setAssignmentError(errMsg);
       console.error('Error al confirmar asignación:', error);
     } finally {
       setIsScheduling(false);
@@ -548,14 +604,14 @@ export function useScheduling(): UseSchedulingReturn {
     setIsLoadingSuggestions(true);
     
     try {
-      const newSuggestions = await schedulingService.getSuggestions(orderId, date);
+      const newSuggestions = await schedulingService.getSuggestions(orderId, date, scheduledOrders);
       setSuggestions(newSuggestions);
     } catch (error) {
       console.error('[useScheduling] Error obteniendo sugerencias:', error);
     } finally {
       setIsLoadingSuggestions(false);
     }
-  }, [config.enableAutoSuggestion]);
+  }, [config.enableAutoSuggestion, scheduledOrders]);
 
   // ----------------------------------------
   // VALIDAR HOS
@@ -564,12 +620,12 @@ export function useScheduling(): UseSchedulingReturn {
     if (!config.enableHOSValidation) return;
     
     try {
-      const validation = await schedulingService.validateHOS(driverId, date, duration);
+      const validation = await schedulingService.validateHOS(driverId, date, duration, scheduledOrders);
       setHOSValidation(validation);
     } catch (error) {
       console.error('Error validando HOS:', error);
     }
-  }, [config.enableHOSValidation]);
+  }, [config.enableHOSValidation, scheduledOrders]);
 
   // ----------------------------------------
   // WRAPPERS CON MANEJO DE ERRORES (estables)
@@ -709,23 +765,51 @@ export function useScheduling(): UseSchedulingReturn {
   const confirmAutoSchedule = useCallback(async () => {
     setIsAutoScheduling(true);
     try {
-      const result = await schedulingService.autoSchedule(pendingOrders, vehicles, drivers);
+      const result = await schedulingService.autoSchedule(
+        pendingOrders, vehicles, drivers, scheduledOrders
+      );
       setAutoScheduleResult(result);
 
-      if (result.assigned > 0) {
-        // Reload orders
-        const [newPending, newKpis] = await Promise.all([
-          schedulingService.getPendingOrders(),
-          schedulingService.getKPIs(),
-        ]);
-        setPendingOrders(newPending);
-        setSchedulingKpis(newKpis);
+      if (result.assigned > 0 && result.assignments?.length > 0) {
+        // Crear ScheduledOrders reales a partir de las asignaciones
+        const newScheduled: ScheduledOrder[] = [];
+        const assignedOrderIds = new Set<string>();
+
+        for (const assignment of result.assignments) {
+          const order = pendingOrders.find(o => o.id === assignment.orderId);
+          if (!order) continue;
+
+          const scheduledDate = new Date(assignment.scheduledDate);
+          const scheduledOrder = schedulingService.createScheduledOrder(order, {
+            orderId: assignment.orderId,
+            vehicleId: assignment.vehicleId,
+            driverId: assignment.driverId,
+            scheduledDate,
+            notes: `Auto-asignado (score: ${assignment.score})`,
+          });
+
+          newScheduled.push(scheduledOrder);
+          assignedOrderIds.add(assignment.orderId);
+        }
+
+        // Agregar a scheduledOrders y remover de pendingOrders
+        setScheduledOrders(prev => [...prev, ...newScheduled]);
+        setPendingOrders(prev => prev.filter(o => !assignedOrderIds.has(o.id)));
+
+        // Actualizar KPIs
+        setSchedulingKpis(prev => ({
+          ...prev,
+          pendingOrders: prev.pendingOrders - result.assigned,
+          scheduledToday: prev.scheduledToday + result.assigned,
+          fleetUtilization: Math.min(100, prev.fleetUtilization + result.assigned * 5),
+          driverUtilization: Math.min(100, prev.driverUtilization + result.assigned * 5),
+        }));
 
         addNotificationInternal({
           type: 'auto_schedule',
           severity: 'success',
           title: 'Auto-programación completada',
-          message: `${result.assigned} órdenes asignadas automáticamente`,
+          message: `${result.assigned} órdenes asignadas automáticamente, ${result.failed} sin asignar`,
         });
       }
     } catch (error) {
@@ -733,7 +817,7 @@ export function useScheduling(): UseSchedulingReturn {
     } finally {
       setIsAutoScheduling(false);
     }
-  }, [pendingOrders, vehicles, drivers, addNotificationInternal]);
+  }, [pendingOrders, vehicles, drivers, scheduledOrders, addNotificationInternal]);
 
   // ═══════════════════════════════════════
   // FEATURE 9: AUDIT LOG HANDLERS
@@ -821,6 +905,8 @@ export function useScheduling(): UseSchedulingReturn {
     isLoading,
     isScheduling,
     isLoadingSuggestions,
+    assignmentError,
+    clearAssignmentError: useCallback(() => setAssignmentError(null), []),
     
     // Modal
     assignmentModal,

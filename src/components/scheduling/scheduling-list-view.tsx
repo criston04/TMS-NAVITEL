@@ -226,7 +226,7 @@ export const SchedulingListView = memo(function SchedulingListView({
   }), [allOrders]);
 
   return (
-    <div className={cn('flex flex-col h-full bg-card rounded-lg border', className)}>
+    <div className={cn('flex flex-col bg-card rounded-lg border', className)}>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-b">
         {/* Filtros por estado */}
@@ -276,7 +276,7 @@ export const SchedulingListView = memo(function SchedulingListView({
       </div>
 
       {/* Lista */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         {isLoading ? (
           <div className="p-4 space-y-2">
             {Array.from({ length: 6 }).map((_, i) => (

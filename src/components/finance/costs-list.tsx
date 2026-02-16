@@ -47,6 +47,8 @@ interface CostsListProps {
   costs: TransportCost[];
   loading: boolean;
   onRecordCost?: () => void;
+  onApproveCost?: (id: string) => void;
+  onViewCost?: (cost: TransportCost) => void;
 }
 
 const costTypeConfig: Record<CostType, { label: string; icon: typeof Fuel; color: string }> = {
@@ -62,7 +64,7 @@ const costTypeConfig: Record<CostType, { label: string; icon: typeof Fuel; color
   other: { label: "Otro", icon: TrendingDown, color: "text-gray-500" },
 };
 
-export function CostsList({ costs, loading, onRecordCost }: CostsListProps) {
+export function CostsList({ costs, loading, onRecordCost, onApproveCost, onViewCost }: CostsListProps) {
   const [search, setSearch] = useState("");
 
   const filteredCosts = costs.filter(
@@ -216,13 +218,13 @@ export function CostsList({ costs, loading, onRecordCost }: CostsListProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onViewCost?.(cost)}>
                               <Eye className="h-4 w-4 mr-2" />
                               Ver detalle
                             </DropdownMenuItem>
                             {!cost.isApproved && (
                               <>
-                                <DropdownMenuItem className="text-green-600">
+                                <DropdownMenuItem className="text-green-600" onClick={() => onApproveCost?.(cost.id)}>
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                   Aprobar
                                 </DropdownMenuItem>

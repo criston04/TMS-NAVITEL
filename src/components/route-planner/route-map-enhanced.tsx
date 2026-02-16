@@ -45,6 +45,8 @@ const Popup = dynamic(
 
 interface RouteMapProps {
   route: Route | null;
+  allRoutes?: Route[];
+  selectedRouteId?: string | null;
   selectedOrders?: TransportOrder[];
   onStopReorder?: (stops: RouteStop[]) => void;
   showOrderMarkers?: boolean;
@@ -257,7 +259,7 @@ function EmptyMapState() {
 /* ============================================
    ROUTE MAP COMPONENT
    ============================================ */
-export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false }: RouteMapProps) {
+export function RouteMap({ route, allRoutes = [], selectedRouteId, selectedOrders = [], showOrderMarkers = false }: RouteMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapStyle, setMapStyle] = useState<"street" | "satellite">("street");
   const mapRef = useRef<HTMLDivElement>(null);
@@ -275,21 +277,27 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
     }
   }, []);
 
-  // Calculate map center
+  // Calculate map center - consider all routes for multi-route view
   const center: [number, number] = useMemo(() => {
     if (route?.stops.length) {
       return route.stops[0].coordinates;
     }
+    if (allRoutes.length > 0) {
+      return allRoutes[0].stops[0]?.coordinates || [-12.0464, -77.0428];
+    }
     if (selectedOrders.length) {
       return selectedOrders[0].pickup.coordinates;
     }
-    return [-12.0464, -77.0428]; // Lima default
-  }, [route, selectedOrders]);
+    return [-12.0464, -77.0428];
+  }, [route, allRoutes, selectedOrders]);
 
-  // Calculate bounds for all visible points
+  // Calculate bounds for all visible points (includes all routes)
   const bounds: [number, number][] = useMemo(() => {
     const points: [number, number][] = [];
-    if (route?.stops.length) {
+    // Include all routes' stops for bounds
+    if (allRoutes.length > 0) {
+      allRoutes.forEach((r) => r.stops.forEach((s) => points.push(s.coordinates)));
+    } else if (route?.stops.length) {
       route.stops.forEach((s) => points.push(s.coordinates));
     } else if (selectedOrders.length) {
       selectedOrders.forEach((o) => {
@@ -298,7 +306,7 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
       });
     }
     return points;
-  }, [route, selectedOrders]);
+  }, [route, allRoutes, selectedOrders]);
 
   // Toggle fullscreen
   const toggleFullscreen = () => {
@@ -349,8 +357,43 @@ export function RouteMap({ route, selectedOrders = [], showOrderMarkers = false 
             <MapBoundsController bounds={bounds} />
           )}
 
-          {/* Route Polyline */}
-          {route?.polyline && <AnimatedPath positions={route.polyline} />}
+          {/* Multi-Route Polylines (all routes with their colors, non-selected dimmed) */}
+          {allRoutes.length > 0 && allRoutes.map((r) => {
+            if (!r.polyline) return null;
+            const isSelected = r.id === selectedRouteId;
+            const routeColor = r.color || "#3DBAFF";
+            return (
+              <Fragment key={`polyline-${r.id}`}>
+                {/* Shadow */}
+                {/* @ts-ignore */}
+                <Polyline
+                  positions={r.polyline}
+                  pathOptions={{
+                    //@ts-ignore
+                    color: "#000",
+                    weight: isSelected ? 8 : 5,
+                    opacity: isSelected ? 0.15 : 0.05,
+                  }}
+                />
+                {/* Main line */}
+                {/* @ts-ignore */}
+                <Polyline
+                  positions={r.polyline}
+                  pathOptions={{
+                    //@ts-ignore
+                    color: routeColor,
+                    weight: isSelected ? 5 : 3,
+                    opacity: isSelected ? 0.9 : 0.4,
+                    lineCap: "round",
+                    lineJoin: "round",
+                  }}
+                />
+              </Fragment>
+            );
+          })}
+
+          {/* Single Route Polyline (when not in multi-route mode) */}
+          {allRoutes.length === 0 && route?.polyline && <AnimatedPath positions={route.polyline} />}
 
           {/* Stop Markers */}
           {route?.stops.map((stop, index) => {

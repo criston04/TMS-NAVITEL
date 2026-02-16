@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useCallback, useRef } from 'react';
+import { memo, useState, useCallback, useRef, useMemo } from 'react';
 import {
   GitBranch,
   Edit2,
@@ -888,12 +888,21 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
 
             {/* KPIs de ejecución */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { label: 'Ejecuciones totales', value: workflow ? Math.floor(Math.random() * 80 + 20) : 0, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-                { label: 'Tasa de éxito', value: `${workflow ? Math.floor(Math.random() * 15 + 85) : 0}%`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-                { label: 'Tiempo prom.', value: workflow ? `${((workflow.steps.reduce((a, s) => a + (s.estimatedDurationMinutes || 0), 0)) * 0.9).toFixed(0)} min` : '—', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-                { label: 'Escalamientos', value: workflow ? Math.floor(Math.random() * 5) : 0, icon: ShieldAlert, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-              ].map((kpi) => {
+              {(() => {
+                // Stable KPI values derived from workflow data instead of Math.random()
+                const stepsCount = workflow?.steps?.length ?? 0;
+                const totalEstimated = workflow?.steps?.reduce((a, s) => a + (s.estimatedDurationMinutes || 0), 0) ?? 0;
+                const totalExecutions = workflow ? 20 + ((stepsCount * 7 + totalEstimated) % 80) : 0;
+                const successRate = workflow ? 85 + ((stepsCount * 3 + totalEstimated * 2) % 15) : 0;
+                const avgTime = workflow ? `${(totalEstimated * 0.9).toFixed(0)} min` : '—';
+                const escalations = workflow ? (stepsCount + totalEstimated) % 5 : 0;
+                return [
+                  { label: 'Ejecuciones totales', value: totalExecutions, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                  { label: 'Tasa de éxito', value: `${successRate}%`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                  { label: 'Tiempo prom.', value: avgTime, icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+                  { label: 'Escalamientos', value: escalations, icon: ShieldAlert, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+                ];
+              })().map((kpi) => {
                 const Icon = kpi.icon;
                 return (
                   <div key={kpi.label} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4">
@@ -921,7 +930,10 @@ export const WorkflowDetailPanel = memo(function WorkflowDetailPanel({
               <div className="p-4 space-y-3">
                 {(displayData.steps as WorkflowStep[])?.map((step, idx) => {
                   const estimated = step.estimatedDurationMinutes || 30;
-                  const actualAvg = Math.floor(estimated * (0.7 + Math.random() * 0.6));
+                  // Stable pseudo-random value derived from step index instead of Math.random()
+                  const seed = ((idx + 1) * 17 + estimated * 3) % 100;
+                  const factor = 0.7 + (seed / 100) * 0.6;
+                  const actualAvg = Math.floor(estimated * factor);
                   const percentage = Math.min(Math.round((actualAvg / estimated) * 100), 150);
                   const isOvertime = percentage > 100;
                   return (

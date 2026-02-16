@@ -273,68 +273,24 @@ export function useVehicleTracking(
     }
   }, [vehicleIds, isConnected, subscribeToVehicles]);
 
-  // SIMULACIÓN DE MOVIMIENTO EN TIEMPO REAL (para desarrollo)
+  // Auto-suscribir a todos los vehículos cargados cuando hay conexión
   useEffect(() => {
-    // Solo simular si tenemos vehículos cargados
-    if (vehicles.size === 0) return;
+    if (!isConnected || vehicles.size === 0) return;
+    
+    const allIds = Array.from(vehicles.keys());
+    const subscribedIds = new Set(monitoringWebSocketService.getSubscribedVehicleIds());
+    
+    // Solo suscribir los que no están suscritos
+    const newIds = allIds.filter(id => !subscribedIds.has(id));
+    if (newIds.length > 0) {
+      console.log("[Tracking] Auto-subscribing to", newIds.length, "vehicles");
+      monitoringWebSocketService.subscribeToVehicles(newIds);
+    }
+  }, [isConnected, vehicles]);
 
-    const simulationInterval = setInterval(() => {
-      setVehicles(prev => {
-        const newMap = new Map(prev);
-
-        newMap.forEach((vehicle, id) => {
-          // Solo mover vehículos que están "online" o en "temp_loss"
-          if (vehicle.connectionStatus === "disconnected") return;
-
-          // Determinar si el vehículo se mueve basado en su estado
-          const isMoving = vehicle.movementStatus === "moving";
-          
-          if (isMoving) {
-            // Simular movimiento aleatorio (pequeños incrementos)
-            const deltaLat = (Math.random() - 0.5) * 0.002; // ~100-200m
-            const deltaLng = (Math.random() - 0.5) * 0.002;
-            
-            // Variar velocidad ligeramente
-            const newSpeed = Math.max(20, Math.min(90, vehicle.position.speed + (Math.random() - 0.5) * 10));
-            
-            // Calcular nuevo heading basado en dirección
-            const newHeading = Math.round((vehicle.position.heading + (Math.random() - 0.5) * 30 + 360) % 360);
-            
-            const updatedVehicle: TrackedVehicle = {
-              ...vehicle,
-              position: {
-                ...vehicle.position,
-                lat: vehicle.position.lat + deltaLat,
-                lng: vehicle.position.lng + deltaLng,
-                speed: Math.round(newSpeed),
-                heading: newHeading,
-              },
-              speed: Math.round(newSpeed),
-              lastUpdate: new Date().toISOString(),
-            };
-            
-            newMap.set(id, updatedVehicle);
-          } else {
-            // Vehículo detenido - solo actualizar timestamp
-            const updatedVehicle: TrackedVehicle = {
-              ...vehicle,
-              position: {
-                ...vehicle.position,
-                speed: 0,
-              },
-              speed: 0,
-              lastUpdate: new Date().toISOString(),
-            };
-            newMap.set(id, updatedVehicle);
-          }
-        });
-        
-        return newMap;
-      });
-    }, 2000); // Actualizar cada 2 segundos
-
-    return () => clearInterval(simulationInterval);
-  }, [vehicles.size]);
+  // Nota: La simulación de movimiento se realiza exclusivamente en el WebSocket mock
+  // (monitoringWebSocketService) para evitar conflictos de actualización duplicada.
+  // Ver: services/monitoring/websocket.service.ts → startMockSimulation()
 
   // Derivar datos
   const vehiclesList = useMemo(() => Array.from(vehicles.values()), [vehicles]);

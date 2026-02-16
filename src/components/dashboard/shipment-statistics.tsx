@@ -13,28 +13,38 @@ import {
 } from "recharts";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { ShipmentDataPoint } from "@/mocks/dashboard.mock";
 
-const data = [
-  { name: "1 Ene", shipment: 38, delivery: 22 },
-  { name: "2 Ene", shipment: 44, delivery: 28 },
-  { name: "3 Ene", shipment: 32, delivery: 22 },
-  { name: "4 Ene", shipment: 36, delivery: 32 },
-  { name: "5 Ene", shipment: 30, delivery: 24 },
-  { name: "6 Ene", shipment: 48, delivery: 40 },
-  { name: "7 Ene", shipment: 44, delivery: 31 },
-  { name: "8 Ene", shipment: 40, delivery: 32 },
-  { name: "9 Ene", shipment: 42, delivery: 26 },
-  { name: "10 Ene", shipment: 36, delivery: 24 },
-];
+interface ShipmentStatisticsProps {
+  data?: ShipmentDataPoint[];
+  total?: number;
+}
 
-export function ShipmentStatistics() {
+export function ShipmentStatistics({ data, total }: ShipmentStatisticsProps) {
+  const chartData = data?.map(d => ({
+    name: d.month,
+    shipment: Math.round(d.entregadas / 60),
+    delivery: Math.round(d.enProceso / 15),
+  })) ?? [
+    { name: "1 Ene", shipment: 38, delivery: 22 },
+    { name: "2 Ene", shipment: 44, delivery: 28 },
+    { name: "3 Ene", shipment: 32, delivery: 22 },
+    { name: "4 Ene", shipment: 36, delivery: 32 },
+    { name: "5 Ene", shipment: 30, delivery: 24 },
+  ];
+
+  const totalStr = total
+    ? total >= 1000
+      ? `${(total / 1000).toFixed(1)}k`
+      : String(total)
+    : "23.8k";
   return (
     <Card className="h-full rounded-2xl border-none shadow-sm bg-white dark:bg-card/50">
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div>
           <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Estadísticas de Envíos</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            Total de entregas 23.8k
+            Total de entregas {totalStr}
           </p>
         </div>
         <Button variant="outline" size="sm" className="bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-slate-800 dark:text-indigo-400 dark:border-slate-700 h-8 gap-1">
@@ -45,7 +55,7 @@ export function ShipmentStatistics() {
         <div className="w-full mt-4" style={{ height: '280px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={data}
+              data={chartData}
               margin={{ top: 20, right: 0, bottom: 20, left: -20 }}
               barGap={8} // Space between bars if multiple
             >

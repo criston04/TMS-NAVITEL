@@ -306,7 +306,7 @@ export const SchedulingTimeline = memo(function SchedulingTimeline({
   // RENDER
   // ----------------------------------------
   return (
-    <div className={cn('flex flex-col h-full bg-card rounded-lg border', className)}>
+    <div className={cn('flex flex-col bg-card rounded-lg border', className)}>
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 border-b shrink-0"
@@ -363,7 +363,7 @@ export const SchedulingTimeline = memo(function SchedulingTimeline({
       </div>
 
       {/* Timeline content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Header de horas */}
         <div className="flex border-b sticky top-0 bg-card z-20">
           <div
@@ -391,7 +391,7 @@ export const SchedulingTimeline = memo(function SchedulingTimeline({
         </div>
 
         {/* Filas de recursos */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="flex flex-col">
             {isLoading ? (
               // Skeletons

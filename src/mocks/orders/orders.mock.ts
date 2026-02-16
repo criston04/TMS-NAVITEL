@@ -198,6 +198,35 @@ const generateMilestones = (
  */
 const generateStatusHistory = (status: OrderStatus): OrderStatusHistory[] => {
   const history: OrderStatusHistory[] = [];
+  
+  // Para draft, no hay historial de transiciones aún
+  if (status === 'draft') {
+    return [];
+  }
+  
+  // Para cancelled, puede venir desde draft o pending
+  if (status === 'cancelled') {
+    const cancelledFrom = Math.random() > 0.5 ? ['draft', 'pending'] : ['draft', 'pending', 'assigned'];
+    const statuses: OrderStatus[] = [...cancelledFrom, 'cancelled'] as OrderStatus[];
+    const users = ['admin@navitel.com', 'operador@navitel.com', 'supervisor@navitel.com'];
+    const userNames = ['Administrador Sistema', 'Juan Operador', 'María Supervisora'];
+    const baseDate = new Date();
+    
+    for (let i = 1; i < statuses.length; i++) {
+      const userIndex = Math.floor(Math.random() * users.length);
+      history.push({
+        id: generateId('hist'),
+        fromStatus: statuses[i - 1],
+        toStatus: statuses[i],
+        changedAt: new Date(baseDate.getTime() - (statuses.length - i) * 3600000).toISOString(),
+        changedBy: users[userIndex],
+        changedByName: userNames[userIndex],
+        reason: statuses[i] === 'cancelled' ? 'Orden cancelada por solicitud' : undefined,
+      });
+    }
+    return history;
+  }
+  
   const statuses: OrderStatus[] = ['draft', 'pending', 'assigned'];
   
   if (['in_transit', 'at_milestone', 'delayed', 'completed', 'closed'].includes(status)) {
@@ -258,8 +287,10 @@ const priorities: OrderPriority[] = ['low', 'normal', 'high', 'urgent'];
 
 /**
  * Estados para distribución realista
+ * Incluye draft y cancelled para cobertura completa
  */
 const orderStatuses: OrderStatus[] = [
+  'draft', 'draft',
   'pending', 'pending',
   'assigned', 'assigned',
   'in_transit', 'in_transit', 'in_transit',
@@ -267,6 +298,7 @@ const orderStatuses: OrderStatus[] = [
   'delayed',
   'completed', 'completed',
   'closed',
+  'cancelled', 'cancelled',
 ];
 
 /**
@@ -347,10 +379,10 @@ const generateOrder = (index: number): Order => {
     customer: customer,
     carrierId: carrier.id,
     carrierName: carrier.name,
-    vehicleId: status !== 'pending' ? vehicle.id : undefined,
-    vehicle: status !== 'pending' ? vehicle : undefined,
-    driverId: status !== 'pending' ? driver.id : undefined,
-    driver: status !== 'pending' ? driver : undefined,
+    vehicleId: !['draft', 'pending', 'cancelled'].includes(status) ? vehicle.id : undefined,
+    vehicle: !['draft', 'pending', 'cancelled'].includes(status) ? vehicle : undefined,
+    driverId: !['draft', 'pending', 'cancelled'].includes(status) ? driver.id : undefined,
+    driver: !['draft', 'pending', 'cancelled'].includes(status) ? driver : undefined,
     gpsOperatorId: gpsOperator.id,
     gpsOperatorName: gpsOperator.name,
     workflowId: `wf-00${Math.floor(Math.random() * 3) + 1}`,
@@ -386,6 +418,15 @@ const generateOrder = (index: number): Order => {
     actualEndDate: ['completed', 'closed'].includes(status)
       ? new Date(scheduledEnd.getTime() + (Math.random() - 0.5) * 2 * 3600000).toISOString()
       : undefined,
+    cancellationReason: status === 'cancelled' ? randomItem([
+      'Solicitud del cliente',
+      'Error en datos de la orden',
+      'Vehículo no disponible',
+      'Cambio de programación',
+      'Carga no preparada a tiempo',
+    ]) : undefined,
+    cancelledAt: status === 'cancelled' ? new Date().toISOString() : undefined,
+    cancelledBy: status === 'cancelled' ? 'admin@navitel.com' : undefined,
     closureData: status === 'closed' ? {
       observations: 'Viaje completado sin novedades mayores. Entrega realizada según lo programado.',
       incidents: [],

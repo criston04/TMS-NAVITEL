@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useFinance } from "@/hooks/useFinance";
+import { customersMock } from "@/mocks/master/customers.mock";
 
 interface CreateInvoiceDialogProps {
   open: boolean;
@@ -49,12 +50,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
     { id: "1", description: "", quantity: 1, unitPrice: 0, total: 0 },
   ]);
 
-  const customers = [
-    { id: "cust-001", name: "Corporación ABC S.A.C." },
-    { id: "cust-002", name: "Transportes del Sur" },
-    { id: "cust-003", name: "Logística Integral Perú" },
-    { id: "cust-004", name: "Minera Andina S.A." },
-  ];
+  const customers = customersMock.map(c => ({ id: c.id, name: c.tradeName || c.name }));
 
   const addLineItem = () => {
     setLineItems([
@@ -99,7 +95,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           unit: "unidad",
-          taxRate: 0.18,
+          taxRate: 18,
           discount: 0,
           discountType: "fixed" as const,
         })),

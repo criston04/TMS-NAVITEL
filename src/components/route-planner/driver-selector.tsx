@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 interface DriverSelectorProps {
   drivers: Driver[];
   compact?: boolean;
-  onSelect?: (driver: Driver) => void;
+  onSelect?: (driver: Driver | null) => void;
   selectedDriverId?: string;
 }
 
@@ -226,9 +226,7 @@ export function DriverSelector({ drivers, compact = false, onSelect, selectedDri
   const selectedDriver = selectedDriverId
     ? drivers.find((d) => d.id === selectedDriverId) || ctxDriver
     : ctxDriver;
-  const selectDriver = onSelect
-    ? (d: Driver | null) => { if (d) onSelect(d); }
-    : ctxSelectDriver;
+  const selectDriver = onSelect || ctxSelectDriver;
 
   const availableDrivers = drivers.filter((d) => d.status === "available");
   const unavailableDrivers = drivers.filter((d) => d.status !== "available");

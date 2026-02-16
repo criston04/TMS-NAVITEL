@@ -33,9 +33,9 @@ export function RouteActionsEnhanced() {
     generateRoute,
     confirmRoute,
     resetRoute,
+    isGenerating: contextIsGenerating,
   } = useRoutePlanner();
 
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -50,20 +50,14 @@ export function RouteActionsEnhanced() {
     (a) => a.code === "CAPACITY_EXCEEDED" && a.type === "error"
   );
 
-  // Handle generate with loading state
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    // Simulate async operation
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Handle generate — no artificial delay; context tracks isGenerating
+  const handleGenerate = () => {
     generateRoute();
-    setIsGenerating(false);
   };
 
-  // Handle confirm
-  const handleConfirm = async () => {
+  // Handle confirm — no artificial delay
+  const handleConfirm = () => {
     setIsConfirming(true);
-    // Simulate async operation
-    await new Promise((resolve) => setTimeout(resolve, 1500));
     confirmRoute();
     setIsConfirming(false);
     setShowConfirmModal(false);
@@ -121,16 +115,6 @@ export function RouteActionsEnhanced() {
 
   const status = getStatusMessage();
 
-  // Debug logging
-  if (typeof window !== 'undefined') {
-    (window as any).__ROUTE_PLANNER_DEBUG = {
-      selectedOrders,
-      currentRoute,
-      isConfirmed,
-      canGenerate,
-    };
-  }
-
   return (
     <>
       <motion.div
@@ -160,7 +144,7 @@ export function RouteActionsEnhanced() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={handleGenerate}
-                disabled={!canGenerate || isGenerating}
+                disabled={!canGenerate || contextIsGenerating}
                 size="lg"
                 className={cn(
                   "gap-2 relative overflow-hidden min-w-[160px]",
@@ -169,7 +153,7 @@ export function RouteActionsEnhanced() {
                     : "bg-gradient-to-r from-[#3DBAFF] to-blue-600 hover:from-[#3DBAFF]/90 hover:to-blue-600/90"
                 )}
               >
-                {isGenerating ? (
+                {contextIsGenerating ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Generando...</span>
@@ -187,7 +171,7 @@ export function RouteActionsEnhanced() {
                 )}
 
                 {/* Shimmer Effect */}
-                {!isGenerating && (
+                {!contextIsGenerating && (
                   <motion.div
                     className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent"
                     animate={{ translateX: ["100%", "-100%"] }}

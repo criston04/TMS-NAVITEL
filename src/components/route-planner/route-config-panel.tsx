@@ -306,9 +306,10 @@ export function RouteConfigPanel({ vehicles, drivers }: RouteConfigPanelProps) {
                   min="0"
                   max="60"
                   value={configuration.timeBuffer}
-                  onChange={(e) =>
-                    updateConfiguration({ timeBuffer: parseInt(e.target.value) || 0 })
-                  }
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    updateConfiguration({ timeBuffer: isNaN(val) ? 0 : Math.max(0, Math.min(60, val)) });
+                  }}
                   className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
                 />
               </div>

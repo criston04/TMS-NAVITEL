@@ -151,9 +151,11 @@ export function NotificationSettings({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdate?.({ 
-      // ...globalSettings, 
-      // categories 
+    onUpdate?.({
+      enableEmailNotifications: globalSettings.emailEnabled,
+      enableSmsNotifications: globalSettings.smsEnabled,
+      enablePushNotifications: globalSettings.pushEnabled,
+      enableInAppNotifications: globalSettings.inAppEnabled,
     } as Partial<NotificationSettingsType>);
   };
 

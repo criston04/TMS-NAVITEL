@@ -5,7 +5,7 @@
    Lista de paradas con drag & drop
    ============================================ */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, Reorder, AnimatePresence } from "framer-motion";
 import { GripVertical, MapPin, Clock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,11 @@ interface StopSequenceProps {
 
 export function StopSequence({ stops, onReorder, onRemove }: StopSequenceProps) {
   const [items, setItems] = useState(stops);
+
+  // Sync items when stops prop changes (e.g. after route regeneration)
+  useEffect(() => {
+    setItems(stops);
+  }, [stops]);
 
   const handleReorder = (newOrder: RouteStop[]) => {
     setItems(newOrder);
@@ -98,10 +103,15 @@ export function StopSequence({ stops, onReorder, onRemove }: StopSequenceProps) 
                     )}
                     {stop.estimatedArrival && (
                       <div>
-                        ETA: {new Date(stop.estimatedArrival).toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        ETA: {(() => {
+                          // Handle both ISO date strings and HH:MM time strings
+                          const raw = stop.estimatedArrival!;
+                          const d = raw.includes('T') ? new Date(raw) : new Date(`1970-01-01T${raw}:00`);
+                          return isNaN(d.getTime()) ? raw : d.toLocaleTimeString("es-ES", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          });
+                        })()}
                       </div>
                     )}
                     <div>{stop.duration} min</div>

@@ -398,8 +398,8 @@ export const SHARED_ORDERS: SharedOrder[] = [
     orderNumber: 'ORD-2026-00002',
     customerId: 'cust-002',
     customerName: 'Gloria S.A.',
-    vehicleId: 'veh-003',
-    vehiclePlate: 'DEF-456',
+    vehicleId: 'veh-001', // ← same vehicle as ord-00001 → pre-existing conflict
+    vehiclePlate: 'ABC-123',
     driverId: 'drv-003',
     driverName: 'Carlos Alberto Mendoza Ríos',
     status: 'pending',
@@ -411,7 +411,7 @@ export const SHARED_ORDERS: SharedOrder[] = [
     cargoDescription: 'Productos lácteos refrigerados',
     cargoType: 'refrigerated',
     weightKg: 12000,
-    scheduledStartDate: formatDate(addDays(today, 1)),
+    scheduledStartDate: formatDate(today), // ← same day as ord-00001 → overlap
     scheduledEndDate: formatDate(addDays(today, 2)),
     createdAt: formatDate(addDays(today, -1)),
     reference: 'GU-2026-1023',

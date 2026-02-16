@@ -79,7 +79,6 @@ const statusConfig = {
 const priorityConfig = {
   low: { label: 'Baja', color: 'bg-slate-100 text-slate-700' },
   normal: { label: 'Normal', color: 'bg-blue-100 text-blue-700' },
-  medium: { label: 'Media', color: 'bg-blue-100 text-blue-700' },
   high: { label: 'Alta', color: 'bg-orange-100 text-orange-700' },
   urgent: { label: 'Urgente', color: 'bg-red-100 text-red-700' },
 } as const;
@@ -340,7 +339,7 @@ export default function WorkOrdersPage() {
               {filteredOrders
                 .sort((a, b) => {
                   // Ordenar por prioridad y fecha
-                  const priorityOrder: Record<string, number> = { urgent: 0, high: 1, normal: 2, medium: 2, low: 3 };
+                  const priorityOrder: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
                   const priorityDiff = (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3);
                   if (priorityDiff !== 0) return priorityDiff;
                   return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import type { InvoiceStatus } from "@/types/finance";
+import type { InvoiceStatus, InvoiceFilters as IFilters } from "@/types/finance";
 
 const statusOptions: { value: InvoiceStatus; label: string }[] = [
   { value: "draft", label: "Borrador" },
@@ -32,16 +32,40 @@ const periodOptions = [
   { value: "custom", label: "Personalizado" },
 ];
 
-export function InvoiceFilters() {
+interface InvoiceFiltersProps {
+  onFiltersChange?: (filters: IFilters) => void;
+}
+
+export function InvoiceFilters({ onFiltersChange }: InvoiceFiltersProps) {
   const [status, setStatus] = useState<string>("");
   const [period, setPeriod] = useState<string>("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
+  const buildFilters = (statusVal: string, periodVal: string): IFilters => {
+    const filters: IFilters = {};
+    if (statusVal) filters.status = statusVal as InvoiceStatus;
+    if (periodVal) {
+      const now = new Date();
+      const start = new Date();
+      switch (periodVal) {
+        case "today": start.setHours(0, 0, 0, 0); break;
+        case "week": start.setDate(now.getDate() - 7); break;
+        case "month": start.setMonth(now.getMonth() - 1); break;
+        case "quarter": start.setMonth(now.getMonth() - 3); break;
+        case "year": start.setFullYear(now.getFullYear() - 1); break;
+      }
+      filters.startDate = start.toISOString().split("T")[0];
+      filters.endDate = now.toISOString().split("T")[0];
+    }
+    return filters;
+  };
 
   const handleStatusChange = (value: string) => {
     setStatus(value);
     if (value && !activeFilters.includes(`status:${value}`)) {
       setActiveFilters([...activeFilters.filter(f => !f.startsWith("status:")), `status:${value}`]);
     }
+    onFiltersChange?.(buildFilters(value, period));
   };
 
   const handlePeriodChange = (value: string) => {
@@ -49,18 +73,23 @@ export function InvoiceFilters() {
     if (value && !activeFilters.includes(`period:${value}`)) {
       setActiveFilters([...activeFilters.filter(f => !f.startsWith("period:")), `period:${value}`]);
     }
+    onFiltersChange?.(buildFilters(status, value));
   };
 
   const removeFilter = (filter: string) => {
     setActiveFilters(activeFilters.filter(f => f !== filter));
+    const newStatus = filter.startsWith("status:") ? "" : status;
+    const newPeriod = filter.startsWith("period:") ? "" : period;
     if (filter.startsWith("status:")) setStatus("");
     if (filter.startsWith("period:")) setPeriod("");
+    onFiltersChange?.(buildFilters(newStatus, newPeriod));
   };
 
   const clearAll = () => {
     setActiveFilters([]);
     setStatus("");
     setPeriod("");
+    onFiltersChange?.({});
   };
 
   return (
