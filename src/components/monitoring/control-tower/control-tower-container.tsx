@@ -113,8 +113,8 @@ export function ControlTowerContainer({
   /**
    * Maneja selección de vehículo en el mapa
    */
-  const handleVehicleSelect = useCallback((vehicle: TrackedVehicle) => {
-    selectVehicle(vehicle.id);
+  const handleVehicleSelect = useCallback((vehicle: TrackedVehicle | null) => {
+    selectVehicle(vehicle?.id ?? null);
   }, [selectVehicle]);
 
   /**

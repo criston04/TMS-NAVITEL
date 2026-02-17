@@ -58,6 +58,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import type {
   BitacoraEntry,
@@ -103,41 +111,6 @@ const SEVERITY_CONFIG: Record<BitacoraSeverity, { label: string; color: string; 
 // SUB-COMPONENTES
 // ============================================================
 
-/** KPI Cards para estadísticas generales */
-function BitacoraStatsCards({ stats }: { stats: BitacoraStats }) {
-  const cards = [
-    { label: 'Total registros',        value: stats.totalEntries,       icon: FileText,       color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    { label: 'Ingresos',               value: stats.totalEntries_entry, icon: LogIn,           color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-    { label: 'Salidas',                value: stats.totalEntries_exit,  icon: LogOut,          color: 'text-sky-600',     bg: 'bg-sky-50 dark:bg-sky-900/20' },
-    { label: 'Paradas no planificadas', value: stats.unplannedStops,    icon: MapPinOff,       color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
-    { label: 'Desviaciones',           value: stats.deviations,         icon: AlertTriangle,   color: 'text-red-600',     bg: 'bg-red-50 dark:bg-red-900/20' },
-    { label: 'Eventos activos',        value: stats.activeEvents,       icon: CircleDot,       color: 'text-green-600',   bg: 'bg-green-50 dark:bg-green-900/20' },
-    { label: 'Órdenes creadas',        value: stats.ordersCreated,      icon: Package,         color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/20' },
-    { label: 'Prom. permanencia',      value: `${stats.avgDwellMinutes.toFixed(0)} min`, icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-      {cards.map((card) => {
-        const Icon = card.icon;
-        return (
-          <div
-            key={card.label}
-            className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-3 flex flex-col gap-1 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide truncate">{card.label}</span>
-              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', card.bg)}>
-                <Icon className={cn('h-3.5 w-3.5', card.color)} />
-              </div>
-            </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">{card.value}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 /** Fila individual de bitácora */
 function BitacoraRow({
@@ -145,11 +118,13 @@ function BitacoraRow({
   expanded,
   onToggle,
   onCreateOrder,
+  onAssignToOrder,
 }: {
   entry: BitacoraEntry;
   expanded: boolean;
   onToggle: () => void;
   onCreateOrder: (id: string) => void;
+  onAssignToOrder: (id: string) => void;
 }) {
   const eventConfig = EVENT_TYPE_CONFIG[entry.eventType];
   const statusConfig = STATUS_CONFIG[entry.status];
@@ -351,23 +326,57 @@ function BitacoraRow({
 
           {/* Acciones */}
           <div className="flex items-center gap-2 pt-1">
-            {entry.status !== 'order_created' && entry.status !== 'dismissed' && (
-              <Button
-                size="sm"
-                onClick={(e) => { e.stopPropagation(); onCreateOrder(entry.id); }}
-                className="bg-primary hover:bg-primary/90 text-white"
-              >
-                <Package className="h-3.5 w-3.5 mr-1.5" />
-                Crear orden
-              </Button>
-            )}
+            <Button
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); onCreateOrder(entry.id); }}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              <Package className="h-3.5 w-3.5 mr-1.5" />
+              Crear orden
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => { e.stopPropagation(); onAssignToOrder(entry.id); }}
+            >
+              <FileUp className="h-3.5 w-3.5 mr-1.5" />
+              Asignar a orden
+            </Button>
             <Button size="sm" variant="outline">
               <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
               Ver en mapa
             </Button>
-            <Button size="sm" variant="ghost">
-              <MoreHorizontal className="h-3.5 w-3.5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="ghost">
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); alert('Marcar como revisado'); }}>
+                  <Eye className="h-3.5 w-3.5 mr-2" />
+                  Marcar como revisado
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); alert('Agregar notas'); }}>
+                  <FileText className="h-3.5 w-3.5 mr-2" />
+                  Agregar notas
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); alert('Ver detalles completos'); }}>
+                  <ExternalLink className="h-3.5 w-3.5 mr-2" />
+                  Ver detalles completos
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); alert('Descartar evento'); }}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <XCircle className="h-3.5 w-3.5 mr-2" />
+                  Descartar evento
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       )}
@@ -503,10 +512,17 @@ export function BitacoraView({
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [expectedFilter, setExpectedFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [plateFilter, setPlateFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'timeline' | 'vehicles' | 'geofences'>('timeline');
   const [showFilters, setShowFilters] = useState(false);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+
+  // Obtener lista de placas únicas
+  const uniquePlates = useMemo(() => {
+    const plates = new Set(entries.map(e => e.vehiclePlate));
+    return Array.from(plates).sort();
+  }, [entries]);
 
   // Filtrado
   const filteredEntries = useMemo(() => {
@@ -563,6 +579,11 @@ export function BitacoraView({
       );
     }
 
+    // Filtro por placa
+    if (plateFilter !== 'all') {
+      result = result.filter((e) => e.vehiclePlate === plateFilter);
+    }
+
     // Ordenamiento
     result.sort((a, b) => {
       const dateA = new Date(a.startTimestamp).getTime();
@@ -571,12 +592,19 @@ export function BitacoraView({
     });
 
     return result;
-  }, [entries, search, eventTypeFilter, statusFilter, severityFilter, expectedFilter, dateRange, sortOrder]);
+  }, [entries, search, eventTypeFilter, statusFilter, severityFilter, expectedFilter, dateRange, plateFilter, sortOrder]);
 
   const handleCreateOrder = useCallback((id: string) => {
     const entry = entries.find((e) => e.id === id);
     if (entry) {
       alert(`Se crearía una orden a partir del evento ${entry.id} (${EVENT_TYPE_CONFIG[entry.eventType].label}) del vehículo ${entry.vehiclePlate}`);
+    }
+  }, [entries]);
+
+  const handleAssignToOrder = useCallback((id: string) => {
+    const entry = entries.find((e) => e.id === id);
+    if (entry) {
+      alert(`Se asignaría el evento ${entry.id} (${EVENT_TYPE_CONFIG[entry.eventType].label}) del vehículo ${entry.vehiclePlate} a una orden existente`);
     }
   }, [entries]);
 
@@ -586,13 +614,11 @@ export function BitacoraView({
     severityFilter !== 'all' ? 'severity' : null,
     expectedFilter !== 'all' ? 'expected' : null,
     dateRange?.from || dateRange?.to ? 'dateRange' : null,
+    plateFilter !== 'all' ? 'plate' : null,
   ].filter(Boolean).length;
 
   return (
     <div className="space-y-4">
-      {/* KPIs */}
-      <BitacoraStatsCards stats={stats} />
-
       {/* Barra de acciones */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
         {/* Búsqueda */}
@@ -663,7 +689,7 @@ export function BitacoraView({
       {/* Panel de filtros expandible */}
       {showFilters && (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 animate-in slide-in-from-top-2 duration-200">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo de evento</label>
             <Popover>
@@ -811,6 +837,21 @@ export function BitacoraView({
               )}
             </div>
           </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Placa</label>
+            <Select value={plateFilter} onValueChange={setPlateFilter}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las placas</SelectItem>
+                {uniquePlates.map((plate) => (
+                  <SelectItem key={plate} value={plate}>{plate}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           </div>
         </div>
       )}
@@ -836,6 +877,7 @@ export function BitacoraView({
                   expanded={expandedId === entry.id}
                   onToggle={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
                   onCreateOrder={handleCreateOrder}
+                  onAssignToOrder={handleAssignToOrder}
                 />
               ))}
             </>

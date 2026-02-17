@@ -61,8 +61,8 @@ export const SchedulingAutoAssign = memo(function SchedulingAutoAssign({
             Auto-Programación Inteligente
           </DialogTitle>
           <DialogDescription>
-            El sistema asignará automáticamente vehículos y conductores basándose
-            en disponibilidad, capacidad, proximidad y HOS.
+            El sistema asignará automáticamente vehículos basándose
+            en disponibilidad, capacidad y proximidad geográfica.
           </DialogDescription>
         </DialogHeader>
 
@@ -75,9 +75,8 @@ export const SchedulingAutoAssign = memo(function SchedulingAutoAssign({
               <div className="text-xs space-y-1">
                 <p className="font-medium">El algoritmo considerará:</p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
-                  <li>Disponibilidad de vehículos y conductores</li>
+                  <li>Disponibilidad de vehículos</li>
                   <li>Capacidad de carga (peso/volumen)</li>
-                  <li>Horas de servicio disponibles (HOS)</li>
                   <li>Cercanía geográfica al punto de origen</li>
                   <li>Historial de conflictos previos</li>
                 </ul>

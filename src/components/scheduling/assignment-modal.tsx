@@ -43,20 +43,11 @@ interface SchedulingVehicle {
   capacityKg?: number;
 }
 
-interface SchedulingDriver {
-  id: string;
-  name: string;
-  fullName?: string;
-  status?: string;
-  phone?: string;
-}
-
 interface AssignmentModalProps {
   open: boolean;
   order: Order | ScheduledOrder | null;
   proposedDate?: Date | null;
   vehicles: SchedulingVehicle[];
-  drivers: SchedulingDriver[];
   suggestions?: ResourceSuggestion[];
   conflicts?: ScheduleConflict[];
   hosValidation?: HOSValidationResult | null;
@@ -224,7 +215,6 @@ function renderSuggestionsSection({
   showSuggestions,
   toggleSuggestions,
   selectedVehicleId,
-  selectedDriverId,
   handleApplySuggestion,
 }: {
   featureFlags?: SchedulingFeatureFlags;
@@ -233,7 +223,6 @@ function renderSuggestionsSection({
   showSuggestions: boolean;
   toggleSuggestions: () => void;
   selectedVehicleId: string;
-  selectedDriverId: string;
   handleApplySuggestion: (suggestion: ResourceSuggestion) => void;
 }): React.ReactNode {
   // Feature disabled
@@ -287,10 +276,7 @@ function renderSuggestionsSection({
               <SuggestionChip
                 key={suggestion.resourceId}
                 suggestion={suggestion}
-                isSelected={
-                  (suggestion.type === 'vehicle' && suggestion.resourceId === selectedVehicleId) ||
-                  (suggestion.type === 'driver' && suggestion.resourceId === selectedDriverId)
-                }
+                isSelected={suggestion.type === 'vehicle' && suggestion.resourceId === selectedVehicleId}
                 onClick={() => handleApplySuggestion(suggestion)}
               />
             ))
@@ -308,7 +294,6 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   order,
   proposedDate,
   vehicles,
-  drivers,
   suggestions = [],
   conflicts = [],
   hosValidation,
@@ -327,11 +312,6 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
     return 'vehicleId' in order && order.vehicleId ? order.vehicleId : '';
   };
   
-  const getInitialDriverId = () => {
-    if (!order) return '';
-    return 'driverId' in order && order.driverId ? order.driverId : '';
-  };
-  
   const getInitialDate = () => {
     if (!order) return '';
     const date = proposedDate || ('scheduledDate' in order ? new Date(order.scheduledDate) : new Date());
@@ -345,7 +325,6 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   };
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(getInitialVehicleId);
-  const [selectedDriverId, setSelectedDriverId] = useState<string>(getInitialDriverId);
   const [scheduledDate, setScheduledDate] = useState<string>(getInitialDate);
   const [scheduledTime, setScheduledTime] = useState<string>(getInitialTime);
   const [notes, setNotes] = useState<string>('');
@@ -358,7 +337,6 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   if (open && order && order.id !== trackedOrderId) {
     setTrackedOrderId(order.id);
     setSelectedVehicleId(getInitialVehicleId());
-    setSelectedDriverId(getInitialDriverId());
     setScheduledDate(getInitialDate());
     setScheduledTime(getInitialTime());
     setNotes('');
@@ -395,44 +373,27 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
     
   }, [open, order, featureFlags?.enableAutoSuggestion, onRequestSuggestions, proposedDate]);
 
-  // Validar HOS cuando cambia conductor o fecha
-  useEffect(() => {
-    if (
-      featureFlags?.enableHOSValidation && 
-      selectedDriverId && 
-      scheduledDate && 
-      onValidateHOS &&
-      order
-    ) {
-      const date = new Date(`${scheduledDate}T${scheduledTime || '08:00'}`);
-      const duration = 'estimatedDuration' in order ? order.estimatedDuration || 2 : 2;
-      onValidateHOS(selectedDriverId, date, duration);
-    }
-  }, [selectedDriverId, scheduledDate, scheduledTime, featureFlags?.enableHOSValidation, onValidateHOS, order]);
-
   // Aplicar sugerencia
   const handleApplySuggestion = (suggestion: ResourceSuggestion) => {
     if (suggestion.type === 'vehicle') {
       setSelectedVehicleId(suggestion.resourceId);
-    } else {
-      setSelectedDriverId(suggestion.resourceId);
     }
   };
 
   // Confirmar asignación
   const handleConfirm = useCallback(() => {
-    if (!order || !selectedVehicleId || !selectedDriverId || !scheduledDate) return;
+    if (!order || !selectedVehicleId || !scheduledDate) return;
 
     const dateTime = new Date(`${scheduledDate}T${scheduledTime || '08:00'}`);
     
     onConfirm({
       orderId: order.id,
       vehicleId: selectedVehicleId,
-      driverId: selectedDriverId,
+      driverId: '', // No driver assignment
       scheduledDate: dateTime,
       notes: notes || undefined,
     });
-  }, [order, selectedVehicleId, selectedDriverId, scheduledDate, scheduledTime, notes, onConfirm]);
+  }, [order, selectedVehicleId, scheduledDate, scheduledTime, notes, onConfirm]);
 
   // Toggle sugerencias
   const toggleSuggestions = useCallback(() => {
@@ -440,11 +401,10 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   }, []);
 
   const canSubmit = useMemo(() => {
-    if (!selectedVehicleId || !selectedDriverId || !scheduledDate) return false;
-    if (featureFlags?.enableHOSValidation && hosValidation && !hosValidation.isValid) return false;
+    if (!selectedVehicleId || !scheduledDate) return false;
     if (conflicts.some(c => c.severity === 'high')) return false;
     return true;
-  }, [selectedVehicleId, selectedDriverId, scheduledDate, featureFlags?.enableHOSValidation, hosValidation, conflicts]);
+  }, [selectedVehicleId, scheduledDate, conflicts]);
 
   // Early return si no está abierto
   if (!open || !order) return null;
@@ -534,72 +494,41 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
               showSuggestions,
               toggleSuggestions,
               selectedVehicleId,
-              selectedDriverId,
               handleApplySuggestion,
             })}
 
             {/* Formulario */}
             <div className="space-y-4">
-              {/* Vehículo y Operador */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="vehicle-select" className="text-xs font-medium text-muted-foreground">
-                    Vehículo
-                  </label>
-                  <Select
-                    value={selectedVehicleId}
-                    onValueChange={setSelectedVehicleId}
-                  >
-                    <SelectTrigger id="vehicle-select" className="h-9 bg-background focus:ring-1">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <Truck className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">
-                          {selectedVehicleId 
-                            ? vehicles.find(v => v.id === selectedVehicleId)?.plateNumber 
-                            : 'Seleccionar...'}
+              {/* Vehículo */}
+              <div className="space-y-1.5">
+                <label htmlFor="vehicle-select" className="text-xs font-medium text-muted-foreground">
+                  Camión
+                </label>
+                <Select
+                  value={selectedVehicleId}
+                  onValueChange={setSelectedVehicleId}
+                >
+                  <SelectTrigger id="vehicle-select" className="h-9 bg-background focus:ring-1">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <Truck className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="truncate">
+                        {selectedVehicleId 
+                          ? vehicles.find(v => v.id === selectedVehicleId)?.plateNumber 
+                          : 'Seleccionar...'}
+                      </span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        <span className="flex items-center gap-2">
+                          <span className="font-medium">{vehicle.plateNumber}</span>
+                          <span className="text-muted-foreground text-xs">{vehicle.model.split(' ')[0]}</span>
                         </span>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {vehicles.map((vehicle) => (
-                        <SelectItem key={vehicle.id} value={vehicle.id}>
-                          <span className="flex items-center gap-2">
-                            <span className="font-medium">{vehicle.plateNumber}</span>
-                            <span className="text-muted-foreground text-xs">{vehicle.model.split(' ')[0]}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="driver-select" className="text-xs font-medium text-muted-foreground">
-                    Operador
-                  </label>
-                  <Select
-                    value={selectedDriverId}
-                    onValueChange={setSelectedDriverId}
-                  >
-                    <SelectTrigger id="driver-select" className="h-9 bg-background focus:ring-1">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">
-                          {selectedDriverId 
-                            ? drivers.find(d => d.id === selectedDriverId)?.name 
-                            : 'Seleccionar...'}
-                        </span>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {drivers.map((driver) => (
-                        <SelectItem key={driver.id} value={driver.id}>
-                          {driver.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Fecha y Hora */}
@@ -636,11 +565,6 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
                   </div>
                 </div>
               </div>
-
-              {/* HOS Validation */}
-              {featureFlags?.enableHOSValidation && selectedDriverId && hosValidation && (
-                <HOSIndicator validation={hosValidation} />
-              )}
 
               {/* Conflicts */}
               {conflicts.length > 0 && (

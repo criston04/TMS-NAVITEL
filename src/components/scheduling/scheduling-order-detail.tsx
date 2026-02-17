@@ -270,19 +270,6 @@ export const SchedulingOrderDetail = memo(function SchedulingOrderDetail({
             ) : (
               <p className="text-xs text-muted-foreground italic">Sin vehículo asignado</p>
             )}
-            {order.driver ? (
-              <div className="flex items-center gap-2 p-2 rounded-md bg-primary/5">
-                <User className="h-4 w-4 text-primary shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs font-medium">{order.driver.fullName}</p>
-                  {order.driver.phone && (
-                    <p className="text-[10px] text-muted-foreground">{order.driver.phone}</p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">Sin conductor asignado</p>
-            )}
           </InfoSection>
 
           <Separator />

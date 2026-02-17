@@ -306,14 +306,13 @@ export function useScheduling(): UseSchedulingReturn {
   const calendarData = useMemo(() => {
     const base = schedulingService.generateCalendarDays(currentMonth, scheduledOrders, blockedDays);
     // Apply calendar filters
-    if (!calendarFilters.vehicleId && !calendarFilters.driverId && !calendarFilters.statuses?.length && !calendarFilters.onlyWithConflicts) {
+    if (!calendarFilters.vehicleId && !calendarFilters.statuses?.length && !calendarFilters.onlyWithConflicts) {
       return base;
     }
     return base.map(day => ({
       ...day,
       orders: day.orders.filter(o => {
         if (calendarFilters.vehicleId && o.vehicleId !== calendarFilters.vehicleId) return false;
-        if (calendarFilters.driverId && o.driverId !== calendarFilters.driverId) return false;
         if (calendarFilters.statuses?.length && !calendarFilters.statuses.includes(o.status as import('@/types/scheduling').ScheduleStatus)) return false;
         if (calendarFilters.onlyWithConflicts && (!o.conflicts || o.conflicts.length === 0)) return false;
         return true;
@@ -338,10 +337,10 @@ export function useScheduling(): UseSchedulingReturn {
         result = result.filter(o => o.status === 'in_transit');
         break;
       case 'assigned':
-        result = result.filter(o => o.vehicleId || o.driverId);
+        result = result.filter(o => o.vehicleId);
         break;
       case 'unassigned':
-        result = result.filter(o => !o.vehicleId && !o.driverId);
+        result = result.filter(o => !o.vehicleId);
         break;
       // 'all' no filtra
     }
@@ -408,7 +407,7 @@ export function useScheduling(): UseSchedulingReturn {
           setScheduledOrders(prev => {
             const existingIds = new Set(prev.map(o => o.id));
             const fromOrders: ScheduledOrder[] = allOrdersData
-              .filter(o => (o.vehicleId || o.driverId) && !existingIds.has(o.id))
+              .filter(o => o.vehicleId && !existingIds.has(o.id))
               .map(o => ({
                 ...o,
                 scheduledDate: o.scheduledStartDate ? new Date(o.scheduledStartDate) : new Date(),

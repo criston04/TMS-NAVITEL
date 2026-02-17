@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle2,
+  Printer,
 } from 'lucide-react';
 import type { Order } from '@/types/order';
 import {
@@ -27,6 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from './order-card';
+import { printOrderReport } from './order-print-report';
 
 // SERVICE TYPE LABELS
 
@@ -318,6 +320,10 @@ function OrderTableComponent({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onClick(order)}>Ver detalles</DropdownMenuItem>
                       <DropdownMenuItem>Editar orden</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => printOrderReport(order)}>
+                        <Printer className="h-4 w-4 mr-2" />
+                        Imprimir orden
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

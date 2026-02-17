@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import type { Order } from '@/types/order';
 import type { BulkAssignmentResult } from '@/types/scheduling';
-import type { MockVehicle, MockDriver } from '@/mocks/scheduling';
+import type { MockVehicle } from '@/mocks/scheduling';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -47,8 +47,6 @@ interface SchedulingBulkAssignmentProps {
   selectedOrderIds: string[];
   /** Vehículos disponibles */
   vehicles: MockVehicle[];
-  /** Conductores disponibles */
-  drivers: MockDriver[];
   /** Procesando */
   isLoading?: boolean;
   /** Resultado de última asignación masiva */
@@ -195,7 +193,6 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
   pendingOrders,
   selectedOrderIds,
   vehicles,
-  drivers,
   isLoading = false,
   lastResult,
   onClose,
@@ -203,7 +200,6 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
   onConfirm,
 }: Readonly<SchedulingBulkAssignmentProps>) {
   const [vehicleId, setVehicleId] = useState('');
-  const [driverId, setDriverId] = useState('');
   const [scheduledDate, setScheduledDate] = useState(
     new Date().toISOString().split('T')[0]
   );
@@ -213,7 +209,6 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
   useEffect(() => {
     if (open) {
       setVehicleId('');
-      setDriverId('');
       setScheduledDate(new Date().toISOString().split('T')[0]);
       setNotes('');
     }
@@ -222,11 +217,6 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
   const availableVehicles = useMemo(
     () => vehicles.filter(v => v.status === 'available'),
     [vehicles]
-  );
-
-  const availableDrivers = useMemo(
-    () => drivers.filter(d => d.status === 'available'),
-    [drivers]
   );
 
   const toggleSelection = (id: string) => {
@@ -248,14 +238,14 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
   };
 
   const isFormValid =
-    selectedOrderIds.length > 0 && vehicleId && driverId && scheduledDate;
+    selectedOrderIds.length > 0 && vehicleId && scheduledDate;
 
   const handleConfirm = () => {
     if (!isFormValid) return;
     onConfirm(
       selectedOrderIds,
       vehicleId,
-      driverId,
+      '', // No driver assignment
       new Date(scheduledDate + 'T08:00:00'),
       notes || undefined
     );
@@ -273,7 +263,7 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
             Asignación Masiva
           </DialogTitle>
           <DialogDescription>
-            Selecciona múltiples órdenes y asígnalas al mismo vehículo y conductor.
+            Selecciona múltiples órdenes y asígnalas al mismo camión.
           </DialogDescription>
         </DialogHeader>
 
@@ -325,36 +315,16 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
               <div className="space-y-1.5">
                 <label className="text-xs font-medium flex items-center gap-1">
                   <Truck className="h-3 w-3" />
-                  Vehículo
+                  Camión
                 </label>
                 <Select value={vehicleId} onValueChange={setVehicleId}>
                   <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Seleccionar vehículo..." />
+                    <SelectValue placeholder="Seleccionar camión..." />
                   </SelectTrigger>
                   <SelectContent>
                     {availableVehicles.map(v => (
                       <SelectItem key={v.id} value={v.id} className="text-xs">
                         {v.plateNumber} - {v.model}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Conductor */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  Conductor
-                </label>
-                <Select value={driverId} onValueChange={setDriverId}>
-                  <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Seleccionar conductor..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableDrivers.map(d => (
-                      <SelectItem key={d.id} value={d.id} className="text-xs">
-                        {d.fullName}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -376,7 +346,7 @@ export const SchedulingBulkAssignment = memo(function SchedulingBulkAssignment({
               </div>
 
               {/* Notas */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 col-span-2">
                 <label className="text-xs font-medium">Notas (opcional)</label>
                 <Input
                   placeholder="Notas de la asignación..."

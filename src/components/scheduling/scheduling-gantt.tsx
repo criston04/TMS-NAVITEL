@@ -216,9 +216,8 @@ export const SchedulingGantt = memo(function SchedulingGantt({
     return `${startStr} – ${endStr}`;
   }, [startDate, days]);
 
-  // Separar vehículos y conductores
+  // Separar vehículos
   const vehicleRows = useMemo(() => ganttData.filter(r => r.type === 'vehicle'), [ganttData]);
-  const driverRows = useMemo(() => ganttData.filter(r => r.type === 'driver'), [ganttData]);
 
   // Navegación
   const handlePrevWeek = () => {
@@ -260,11 +259,7 @@ export const SchedulingGantt = memo(function SchedulingGantt({
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="gap-1 text-xs">
             <Truck className="h-3 w-3" />
-            {vehicleRows.length} vehículos
-          </Badge>
-          <Badge variant="secondary" className="gap-1 text-xs">
-            <User className="h-3 w-3" />
-            {driverRows.length} conductores
+            {vehicleRows.length} camiones
           </Badge>
         </div>
       </div>
@@ -319,27 +314,9 @@ export const SchedulingGantt = memo(function SchedulingGantt({
                 <>
                   <div className="px-3 py-1.5 bg-muted/50 border-b text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                     <Truck className="h-3 w-3" />
-                    Vehículos
+                    Camiones
                   </div>
                   {vehicleRows.map(row => (
-                    <GanttResourceRowComponent
-                      key={row.resourceId}
-                      row={row}
-                      today={today}
-                      onCellClick={onCellClick}
-                    />
-                  ))}
-                </>
-              )}
-
-              {/* Conductores */}
-              {driverRows.length > 0 && (
-                <>
-                  <div className="px-3 py-1.5 bg-muted/50 border-b text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    Conductores
-                  </div>
-                  {driverRows.map(row => (
                     <GanttResourceRowComponent
                       key={row.resourceId}
                       row={row}

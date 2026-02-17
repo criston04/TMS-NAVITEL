@@ -4,12 +4,12 @@ import { memo } from 'react';
 import {
   Filter,
   Truck,
-  User,
+  Calendar as CalendarIcon,
   AlertTriangle,
   X,
 } from 'lucide-react';
 import type { CalendarFilters, ScheduleStatus } from '@/types/scheduling';
-import type { MockVehicle, MockDriver } from '@/mocks/scheduling';
+import type { MockVehicle } from '@/mocks/scheduling';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
@@ -27,8 +28,6 @@ interface SchedulingCalendarFiltersProps {
   filters: CalendarFilters;
   /** Vehículos disponibles */
   vehicles: MockVehicle[];
-  /** Conductores disponibles */
-  drivers: MockDriver[];
   /** Callback al cambiar filtros */
   onFiltersChange: (filters: CalendarFilters) => void;
   /** Clase adicional */
@@ -38,11 +37,6 @@ interface SchedulingCalendarFiltersProps {
 const STATUS_OPTIONS: { value: ScheduleStatus; label: string }[] = [
   { value: 'unscheduled', label: 'Sin programar' },
   { value: 'scheduled', label: 'Programada' },
-  { value: 'partial', label: 'Incompleta' },
-  { value: 'ready', label: 'Lista' },
-  { value: 'in_progress', label: 'En curso' },
-  { value: 'conflict', label: 'Conflicto' },
-  { value: 'completed', label: 'Completada' },
 ];
 
 // COMPONENTE PRINCIPAL
@@ -50,13 +44,13 @@ const STATUS_OPTIONS: { value: ScheduleStatus; label: string }[] = [
 export const SchedulingCalendarFilters = memo(function SchedulingCalendarFilters({
   filters,
   vehicles,
-  drivers,
   onFiltersChange,
   className,
 }: Readonly<SchedulingCalendarFiltersProps>) {
   const activeFilterCount = [
     filters.vehicleId,
-    filters.driverId,
+    filters.dateFrom,
+    filters.dateTo,
     filters.onlyWithConflicts,
     filters.statuses && filters.statuses.length > 0,
   ].filter(Boolean).length;
@@ -72,10 +66,17 @@ export const SchedulingCalendarFilters = memo(function SchedulingCalendarFilters
     });
   };
 
-  const handleDriverChange = (value: string) => {
+  const handleDateFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFiltersChange({
       ...filters,
-      driverId: value === '__all__' ? undefined : value,
+      dateFrom: e.target.value || undefined,
+    });
+  };
+
+  const handleDateToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onFiltersChange({
+      ...filters,
+      dateTo: e.target.value || undefined,
     });
   };
 
@@ -116,14 +117,14 @@ export const SchedulingCalendarFilters = memo(function SchedulingCalendarFilters
         )}
       </div>
 
-      {/* Vehículo */}
+      {/* Vehículo (Camión) */}
       <Select
         value={filters.vehicleId || '__all__'}
         onValueChange={handleVehicleChange}
       >
         <SelectTrigger className="h-7 w-[160px] text-xs shrink-0">
           <Truck className="h-3 w-3 mr-1 text-muted-foreground" />
-          <SelectValue placeholder="Vehículo" />
+          <SelectValue placeholder="Camión" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__all__" className="text-xs">Todos</SelectItem>
@@ -135,28 +136,58 @@ export const SchedulingCalendarFilters = memo(function SchedulingCalendarFilters
         </SelectContent>
       </Select>
 
-      {/* Conductor */}
-      <Select
-        value={filters.driverId || '__all__'}
-        onValueChange={handleDriverChange}
-      >
-        <SelectTrigger className="h-7 w-[160px] text-xs shrink-0">
-          <User className="h-3 w-3 mr-1 text-muted-foreground" />
-          <SelectValue placeholder="Conductor" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__all__" className="text-xs">Todos</SelectItem>
-          {drivers.map(d => (
-            <SelectItem key={d.id} value={d.id} className="text-xs">
-              {d.fullName}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* Fecha desde */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        <CalendarIcon className="h-3 w-3 text-muted-foreground" />
+        <Input
+          type="date"
+          value={filters.dateFrom || ''}
+          onChange={handleDateFromChange}
+          className="h-7 w-[140px] text-xs"
+          placeholder="Desde"
+        />
+      </div>
 
-      {/* Status chips */}
+      {/* Fecha hasta */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="text-xs text-muted-foreground">hasta</span>
+        <Input
+          type="date"
+          value={filters.dateTo || ''}
+          onChange={handleDateToChange}
+          className="h-7 w-[140px] text-xs"
+          placeholder="Hasta"
+        />
+      </div>
+
+      {/* Estado: Asignada/Sin asignar */}
       <div className="flex items-center gap-1 shrink-0">
-        {STATUS_OPTIONS.slice(0, 4).map(({ value, label }) => (
+        <Button
+          variant={filters.vehicleId && filters.vehicleId !== '__all__' ? 'default' : 'outline'}
+          size="sm"
+          className="h-6 px-2 text-[10px]"
+          onClick={() => {
+            // Toggle entre mostrar solo asignados o todos
+            if (filters.vehicleId && filters.vehicleId !== '__all__') {
+              handleVehicleChange('__all__');
+            }
+          }}
+        >
+          Asignada
+        </Button>
+        <Button
+          variant={!filters.vehicleId || filters.vehicleId === '__all__' ? 'outline' : 'default'}
+          size="sm"
+          className="h-6 px-2 text-[10px]"
+          onClick={() => handleVehicleChange('__all__')}
+        >
+          Sin asignar
+        </Button>
+      </div>
+
+      {/* Estado: Programada/Sin programar */}
+      <div className="flex items-center gap-1 shrink-0">
+        {STATUS_OPTIONS.map(({ value, label }) => (
           <Button
             key={value}
             variant={filters.statuses?.includes(value) ? 'default' : 'outline'}

@@ -21,7 +21,7 @@ const ROUTE_COLORS = [
 interface ControlTowerMapProps {
   vehicles: TrackedVehicle[];
   selectedVehicleId?: string | null;
-  onVehicleSelect?: (vehicle: TrackedVehicle) => void;
+  onVehicleSelect?: (vehicle: TrackedVehicle | null) => void;
   initialCenter?: [number, number];
   initialZoom?: number;
   /** Rutas de todos los vehículos activos (Map<vehicleId, coordinates>) */
@@ -183,6 +183,13 @@ export function ControlTowerMap({
           position: 'topright'
         }).addTo(map);
 
+        // Click en el mapa (fuera de marcadores) deselecciona el vehículo
+        map.on('click', () => {
+          if (onVehicleSelect) {
+            onVehicleSelect(null);
+          }
+        });
+
         mapRef.current = map;
         setIsMapInitialized(true);
       } catch (error) {
@@ -248,7 +255,10 @@ export function ControlTowerMap({
       } else {
         marker = L.marker(position, { icon })
           .addTo(map)
-          .on("click", () => handleMarkerClick(vehicle));
+          .on("click", (e: any) => {
+            L.DomEvent.stopPropagation(e);
+            handleMarkerClick(vehicle);
+          });
 
         markersRef.current.set(vehicle.id, marker);
       }
@@ -308,31 +318,23 @@ export function ControlTowerMap({
     // Si no hay rutas, salir
     if (!allVehicleRoutes || allVehicleRoutes.size === 0) return;
 
-    // Dibujar cada ruta con un color diferente
-    let colorIndex = 0;
-    allVehicleRoutes.forEach((coordinates, vehicleId) => {
-      if (coordinates.length < 2) return;
+    // Dibujar solo la ruta del vehículo seleccionado
+    if (selectedVehicleId) {
+      const coordinates = allVehicleRoutes.get(selectedVehicleId);
+      if (coordinates && coordinates.length >= 2) {
+        const polyline = L.polyline(coordinates, {
+          color: "#06b6d4",
+          weight: 5,
+          opacity: 0.9,
+          dashArray: "12, 6",
+          lineCap: "round",
+          lineJoin: "round",
+        }).addTo(map);
 
-      const isSelected = vehicleId === selectedVehicleId;
-      const color = isSelected ? "#06b6d4" : ROUTE_COLORS[colorIndex % ROUTE_COLORS.length];
-      if (!isSelected) colorIndex++;
-
-      const polyline = L.polyline(coordinates, {
-        color,
-        weight: isSelected ? 5 : 3,
-        opacity: isSelected ? 0.9 : 0.4,
-        dashArray: isSelected ? "12, 6" : "5, 8",
-        lineCap: "round",
-        lineJoin: "round",
-      }).addTo(map);
-
-      // La ruta seleccionada va al frente
-      if (isSelected) {
         polyline.bringToFront();
+        allRoutesLayerRef.current.set(selectedVehicleId, polyline);
       }
-
-      allRoutesLayerRef.current.set(vehicleId, polyline);
-    });
+    }
   }, [allVehicleRoutes, selectedVehicleId, isMapInitialized]);
 
   return (

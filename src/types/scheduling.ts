@@ -346,8 +346,10 @@ export interface PendingOrdersFilters {
 export interface CalendarFilters {
   /** ID del vehículo */
   vehicleId?: string;
-  
-  driverId?: string;
+  /** Fecha inicio */
+  dateFrom?: string;
+  /** Fecha fin */
+  dateTo?: string;
   /** ID de la empresa */
   companyId?: string;
   /** ID del operador logístico */

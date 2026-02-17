@@ -353,11 +353,7 @@ export const SchedulingTimeline = memo(function SchedulingTimeline({
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="gap-1">
             <Truck className="h-3 w-3" />
-            {timelines.filter(t => t.type === 'vehicle').length} vehículos
-          </Badge>
-          <Badge variant="secondary" className="gap-1">
-            <User className="h-3 w-3" />
-            {timelines.filter(t => t.type === 'driver').length} operadores
+            {timelines.filter(t => t.type === 'vehicle').length} camiones
           </Badge>
         </div>
       </div>
@@ -413,7 +409,9 @@ export const SchedulingTimeline = memo(function SchedulingTimeline({
                 <p>No hay recursos disponibles para mostrar</p>
               </div>
             ) : (
-              timelines.map(timeline => (
+              timelines
+                .filter(timeline => timeline.type === 'vehicle')
+                .map(timeline => (
                 <ResourceRow
                   key={timeline.resourceId}
                   timeline={timeline}

@@ -2,6 +2,7 @@
 export { OrderCard, STATUS_CONFIG, PRIORITY_CONFIG } from './order-card';
 export { OrderList } from './order-list';
 export { OrderTable } from './order-table';
+export { printOrderReport } from './order-print-report';
 export { OrderFilters } from './order-filters';
 export { OrderTimeline } from './order-timeline';
 export { MilestoneManualEntryModal } from './milestone-manual-entry-modal';

@@ -98,6 +98,26 @@ export function VehicleMiniMap({
     };
   }, []);
 
+  // Observar cambios de tamaño del contenedor
+  useEffect(() => {
+    if (!mapContainerRef.current || !mapRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapRef.current) {
+        // Pequeño delay para asegurar que el contenedor ya tiene el nuevo tamaño
+        setTimeout(() => {
+          mapRef.current.invalidateSize();
+        }, 50);
+      }
+    });
+
+    resizeObserver.observe(mapContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [isMapReady]);
+
   // Actualizar marcador y posición
   useEffect(() => {
     if (!mapRef.current || !isMapReady) return;

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
-import { History, PanelLeftClose, PanelLeft, Gauge, Mountain, Filter as FilterIcon, Download, MapPin } from "lucide-react";
+import { History, PanelLeftClose, PanelLeft, Gauge, Filter as FilterIcon, Download, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +15,6 @@ import { TripSegmentsPanel } from "./trip-segments-panel";
 import { PlaybackControls } from "./playback-controls";
 import { ExportButton } from "./export-button";
 import { SpeedChart } from "./speed-chart";
-import { AltitudeChart } from "./altitude-chart";
 import { EventFilterPanel } from "./event-filter-panel";
 import { StopsHeatMap } from "./stops-heat-map";
 import { RoutePdfReport } from "./route-pdf-report";
@@ -201,9 +200,6 @@ export function HistoricalContainer({
                   speedLimit={80}
                   currentIndex={playback.currentIndex}
                 />
-
-                {/* Gráfico de altitud */}
-                <AltitudeChart points={route.points} />
 
                 {/* Paradas detectadas */}
                 <StopsHeatMap points={route.points} />

@@ -360,7 +360,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
           <SchedulingCalendarFilters
             filters={calendarFilters}
             vehicles={vehicles}
-            drivers={drivers}
             onFiltersChange={setCalendarFilters}
           />
         )}
@@ -495,7 +494,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
           order={assignmentModal.order}
           proposedDate={assignmentModal.proposedDate}
           vehicles={vehicles}
-          drivers={drivers}
           suggestions={suggestions}
           conflicts={conflicts}
           hosValidation={hosValidation}
@@ -514,7 +512,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
           pendingOrders={pendingOrders}
           selectedOrderIds={selectedOrderIds}
           vehicles={vehicles}
-          drivers={drivers}
           isLoading={isBulkAssigning}
           lastResult={bulkAssignResult}
           onClose={closeBulkModal}

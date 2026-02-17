@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
-import { X, MapPin, Clock, Navigation, Maximize2, Minimize2 } from "lucide-react";
+import { X, MapPin, Clock, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConnectionStatusBadge } from "../common/connection-status-badge";
 import { MovementStatusBadge } from "../common/movement-status-badge";
 import { SpeedSparkline } from "./speed-sparkline";
-import { HeadingIndicator } from "./heading-indicator";
-import { EtaMiniDisplay } from "./eta-mini-display";
 import type { TrackedVehicle } from "@/types/monitoring";
 
 // Dynamic import del mini mapa
@@ -69,7 +67,7 @@ export function VehiclePanel({
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:shadow-md",
+        "flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:shadow-md min-h-[400px]",
         hasAlert && "border-red-500/50 ring-1 ring-red-500/20",
         isFullscreen && "fixed inset-4 z-[10001] shadow-2xl",
         className
@@ -118,6 +116,7 @@ export function VehiclePanel({
         position={vehicle.position}
         movementStatus={vehicle.movementStatus}
         connectionStatus={vehicle.connectionStatus}
+        className={isFullscreen ? "h-[400px]" : undefined}
       />
 
       {/* Info */}
@@ -133,23 +132,6 @@ export function VehiclePanel({
             <SpeedSparkline speeds={speedHistory} speedLimit={80} />
           )}
         </div>
-
-        {/* Heading indicator */}
-        <div className="flex items-center justify-between">
-          <HeadingIndicator heading={vehicle.position.heading} size={24} />
-          <span className="text-xs font-mono text-muted-foreground">
-            {vehicle.speed} km/h
-          </span>
-        </div>
-
-        {/* ETA mini display */}
-        {vehicle.activeOrderNumber && (
-          <EtaMiniDisplay
-            destinationName={vehicle.activeOrderNumber}
-            distanceKm={Math.round(Math.random() * 50 + 5)}
-            isDelayed={Math.random() > 0.7}
-          />
-        )}
 
         {/* Posición */}
         <div className="flex items-start gap-1.5 text-xs">
