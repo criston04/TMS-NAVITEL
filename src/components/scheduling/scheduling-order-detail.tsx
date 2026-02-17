@@ -137,8 +137,14 @@ export const SchedulingOrderDetail = memo(function SchedulingOrderDetail({
           <Package className="h-4 w-4 text-primary shrink-0" />
           <h3 className="font-semibold text-sm truncate">Detalle de Orden</h3>
         </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
-          <X className="h-4 w-4" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" 
+          onClick={onClose}
+          aria-label="Cerrar panel"
+        >
+          <X className="h-5 w-5" />
         </Button>
       </div>
 

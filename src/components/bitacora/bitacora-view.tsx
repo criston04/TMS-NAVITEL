@@ -36,7 +36,12 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   ExternalLink,
+  CalendarIcon,
 } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import type { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -497,6 +502,7 @@ export function BitacoraView({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [expectedFilter, setExpectedFilter] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'timeline' | 'vehicles' | 'geofences'>('timeline');
   const [showFilters, setShowFilters] = useState(false);
@@ -542,6 +548,21 @@ export function BitacoraView({
       );
     }
 
+    // Filtro por rango de fechas
+    if (dateRange?.from) {
+      const startTime = new Date(dateRange.from).setHours(0, 0, 0, 0);
+      result = result.filter((e) => 
+        new Date(e.startTimestamp).getTime() >= startTime
+      );
+    }
+
+    if (dateRange?.to) {
+      const endTime = new Date(dateRange.to).setHours(23, 59, 59, 999);
+      result = result.filter((e) => 
+        new Date(e.startTimestamp).getTime() <= endTime
+      );
+    }
+
     // Ordenamiento
     result.sort((a, b) => {
       const dateA = new Date(a.startTimestamp).getTime();
@@ -550,7 +571,7 @@ export function BitacoraView({
     });
 
     return result;
-  }, [entries, search, eventTypeFilter, statusFilter, severityFilter, expectedFilter, sortOrder]);
+  }, [entries, search, eventTypeFilter, statusFilter, severityFilter, expectedFilter, dateRange, sortOrder]);
 
   const handleCreateOrder = useCallback((id: string) => {
     const entry = entries.find((e) => e.id === id);
@@ -559,7 +580,13 @@ export function BitacoraView({
     }
   }, [entries]);
 
-  const activeFilterCount = [eventTypeFilter, statusFilter, severityFilter, expectedFilter].filter(f => f !== 'all').length;
+  const activeFilterCount = [
+    eventTypeFilter.length > 0 ? 'eventType' : null,
+    statusFilter !== 'all' ? 'status' : null,
+    severityFilter !== 'all' ? 'severity' : null,
+    expectedFilter !== 'all' ? 'expected' : null,
+    dateRange?.from || dateRange?.to ? 'dateRange' : null,
+  ].filter(Boolean).length;
 
   return (
     <div className="space-y-4">
@@ -635,7 +662,8 @@ export function BitacoraView({
 
       {/* Panel de filtros expandible */}
       {showFilters && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 animate-in slide-in-from-top-2 duration-200">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 animate-in slide-in-from-top-2 duration-200">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo de evento</label>
             <Popover>
@@ -731,6 +759,58 @@ export function BitacoraView({
                 <SelectItem value="unexpected">No planificados</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha</label>
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "h-9 text-sm w-full justify-start font-normal",
+                      !dateRange?.from && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "dd MMM", { locale: es })} - {format(dateRange.to, "dd MMM", { locale: es })}
+                        </>
+                      ) : (
+                        format(dateRange.from, "dd MMM yyyy", { locale: es })
+                      )
+                    ) : (
+                      "Todos"
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    initialFocus
+                    locale={es}
+                    numberOfMonths={1}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              {dateRange && (dateRange.from || dateRange.to) && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => setDateRange(undefined)}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
           </div>
         </div>
       )}

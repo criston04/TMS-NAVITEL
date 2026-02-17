@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import {
   History,
   Plus,
@@ -12,12 +12,19 @@ import {
   User,
   Clock,
   X,
+  Calendar,
+  Filter,
+  FilterX,
 } from 'lucide-react';
 import type { ScheduleAuditLog } from '@/types/scheduling';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface SchedulingAuditLogProps {
@@ -182,12 +189,39 @@ export const SchedulingAuditLog = memo(function SchedulingAuditLog({
   onClose,
   className,
 }: Readonly<SchedulingAuditLogProps>) {
-  const sortedLogs = useMemo(
-    () => [...logs].sort((a, b) =>
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  
+  const filteredAndSortedLogs = useMemo(() => {
+    let filtered = [...logs];
+    
+    // Filtrar por rango de fechas
+    if (startDate) {
+      const startTime = new Date(startDate).setHours(0, 0, 0, 0);
+      filtered = filtered.filter(log => 
+        new Date(log.performedAt).getTime() >= startTime
+      );
+    }
+    
+    if (endDate) {
+      const endTime = new Date(endDate).setHours(23, 59, 59, 999);
+      filtered = filtered.filter(log => 
+        new Date(log.performedAt).getTime() <= endTime
+      );
+    }
+    
+    // Ordenar por fecha descendente
+    return filtered.sort((a, b) =>
       new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()
-    ),
-    [logs]
-  );
+    );
+  }, [logs, startDate, endDate]);
+  
+  const hasActiveFilters = startDate || endDate;
+  
+  const clearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
 
   if (!isOpen) return null;
 
@@ -207,7 +241,10 @@ export const SchedulingAuditLog = memo(function SchedulingAuditLog({
           <History className="h-4 w-4 text-primary" />
           <h3 className="font-semibold text-sm">Historial de Cambios</h3>
           <Badge variant="secondary" className="h-5 text-[10px]">
-            {logs.length}
+            {filteredAndSortedLogs.length}
+            {hasActiveFilters && logs.length !== filteredAndSortedLogs.length && (
+              <span className="text-muted-foreground ml-0.5">/{logs.length}</span>
+            )}
           </Badge>
         </div>
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
@@ -215,8 +252,84 @@ export const SchedulingAuditLog = memo(function SchedulingAuditLog({
         </Button>
       </div>
 
+      {/* Filtros de Fecha */}
+      <div className="px-4 py-3 border-b bg-background space-y-2">
+        <div className="flex items-center gap-2">
+          <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground">Filtrar por fecha</span>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-2 ml-auto text-[10px]"
+              onClick={clearFilters}
+            >
+              <FilterX className="h-3 w-3 mr-1" />
+              Limpiar
+            </Button>
+          )}
+        </div>
+        
+        <div className="flex gap-2">
+          {/* Fecha Inicio */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "flex-1 justify-start text-left font-normal h-8 text-xs",
+                  !startDate && "text-muted-foreground"
+                )}
+              >
+                <Calendar className="mr-1.5 h-3 w-3" />
+                {startDate ? format(startDate, "dd MMM yyyy", { locale: es }) : "Desde"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={startDate}
+                onSelect={setStartDate}
+                initialFocus
+                locale={es}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Fecha Fin */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "flex-1 justify-start text-left font-normal h-8 text-xs",
+                  !endDate && "text-muted-foreground"
+                )}
+              >
+                <Calendar className="mr-1.5 h-3 w-3" />
+                {endDate ? format(endDate, "dd MMM yyyy", { locale: es }) : "Hasta"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={endDate}
+                onSelect={setEndDate}
+                initialFocus
+                locale={es}
+                disabled={(date) => 
+                  startDate ? date < startDate : false
+                }
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
       {/* Contenido */}
-      <ScrollArea className="h-[calc(100vh-56px)]">
+      <ScrollArea className="h-[calc(100vh-156px)]">
         <div className="p-4">
           {isLoading ? (
             <div className="space-y-4">
@@ -231,20 +344,25 @@ export const SchedulingAuditLog = memo(function SchedulingAuditLog({
                 </div>
               ))}
             </div>
-          ) : sortedLogs.length === 0 ? (
+          ) : filteredAndSortedLogs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <History className="h-10 w-10 mb-3 text-muted-foreground/30" />
-              <p className="text-sm text-muted-foreground">Sin registros</p>
+              <p className="text-sm text-muted-foreground">
+                {hasActiveFilters ? 'Sin resultados' : 'Sin registros'}
+              </p>
               <p className="text-xs text-muted-foreground/70 mt-1">
-                Los cambios en la programación aparecerán aquí
+                {hasActiveFilters 
+                  ? 'No hay registros en el rango de fechas seleccionado'
+                  : 'Los cambios en la programación aparecerán aquí'
+                }
               </p>
             </div>
           ) : (
-            sortedLogs.map((log, index) => (
+            filteredAndSortedLogs.map((log, index) => (
               <AuditLogEntry
                 key={log.id}
                 log={log}
-                isLast={index === sortedLogs.length - 1}
+                isLast={index === filteredAndSortedLogs.length - 1}
               />
             ))
           )}

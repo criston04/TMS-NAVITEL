@@ -6,8 +6,9 @@
    Flow: select → configure → results → assign
    ============================================ */
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { TransportOrder, RouteStop } from "@/types/route-planner";
 import {
   ChevronLeft,
   ChevronRight,
@@ -39,7 +40,7 @@ import { VehicleSelector } from "@/components/route-planner/vehicle-selector";
 import { DriverSelector } from "@/components/route-planner/driver-selector";
 import { RouteActionsEnhanced } from "@/components/route-planner/route-actions-enhanced";
 import { StopSequenceEnhanced } from "@/components/route-planner/stop-sequence-enhanced";
-import { RouteAlerts } from "@/components/route-planner/route-alerts";
+import { RouteAlerts, ManualRouteCreator } from "@/components/route-planner";
 import { mockVehicles, mockDrivers, ROUTE_COLORS } from "@/lib/mock-data/route-planner";
 import { useRoutePlannerOrders } from "@/hooks/useRoutePlannerOrders";
 import { cn } from "@/lib/utils";
@@ -694,10 +695,74 @@ function RoutePlannerContent() {
     selectedRouteId,
     setSelectedRouteId,
     resetAll,
+    addOrder,
   } = useRoutePlanner();
 
   // Órdenes reales del módulo Orders (con fallback a mock data)
   const { orders: plannerOrders, isLoading: ordersLoading, usingFallback } = useRoutePlannerOrders();
+  
+  // Órdenes importadas desde archivo Excel
+  const [importedOrders, setImportedOrders] = useState<TransportOrder[]>([]);
+
+  // Estado para el modal de creación manual
+  const [showManualCreator, setShowManualCreator] = useState(false);
+
+  // Combinar órdenes del sistema con las importadas
+  const allOrders = useMemo(() => {
+    return [...plannerOrders, ...importedOrders];
+  }, [plannerOrders, importedOrders]);
+
+  // Handler para importar órdenes desde archivo
+  const handleImportOrders = useCallback((orders: TransportOrder[]) => {
+    setImportedOrders((prev) => [...prev, ...orders]);
+  }, []);
+
+  // Handler para limpiar órdenes importadas
+  const handleClearImportedOrders = useCallback(() => {
+    setImportedOrders([]);
+  }, []);
+
+  // Handler para crear ruta manual
+  const handleSaveManualRoute = useCallback((stops: RouteStop[]) => {
+    if (stops.length === 0) return;
+
+    // Convertir las paradas en una orden temporal
+    const manualOrder: TransportOrder = {
+      id: `manual-route-${Date.now()}`,
+      orderNumber: `MAN-${Date.now().toString().slice(-6)}`,
+      client: {
+        name: "Ruta Manual",
+        phone: "-",
+      },
+      pickup: {
+        address: stops[0].address,
+        city: stops[0].city,
+        coordinates: stops[0].coordinates,
+      },
+      delivery: {
+        address: stops[stops.length - 1].address,
+        city: stops[stops.length - 1].city,
+        coordinates: stops[stops.length - 1].coordinates,
+      },
+      cargo: {
+        weight: 0,
+        volume: 0,
+        description: "Ruta creada manualmente",
+      },
+      status: "pending",
+      priority: "medium",
+      requestedDate: new Date().toISOString(),
+      zone: "Manual",
+    };
+
+    // Agregar la orden a las importadas
+    setImportedOrders((prev) => [...prev, manualOrder]);
+    
+    // Agregar automáticamente al planner
+    addOrder(manualOrder);
+    
+    setShowManualCreator(false);
+  }, [addOrder]);
 
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
@@ -741,7 +806,13 @@ function RoutePlannerContent() {
                 Usando datos de ejemplo — crea órdenes en el módulo Órdenes
               </div>
             )}
-            <OrderList orders={plannerOrders} />
+            <OrderList 
+              orders={allOrders} 
+              onImportOrders={handleImportOrders}
+              onClearImported={handleClearImportedOrders}
+              importedCount={importedOrders.length}
+              onCreateManual={() => setShowManualCreator(true)}
+            />
           </div>
         </motion.div>
 
@@ -962,6 +1033,13 @@ function RoutePlannerContent() {
           </motion.div>
         )}
       </div>
+
+      {/* Manual Route Creator Modal */}
+      <ManualRouteCreator
+        open={showManualCreator}
+        onOpenChange={setShowManualCreator}
+        onSave={handleSaveManualRoute}
+      />
     </div>
   );
 }

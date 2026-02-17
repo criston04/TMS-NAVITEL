@@ -17,3 +17,4 @@ export { KpiCards } from "./kpi-cards";
 export { VehicleSelector } from "./vehicle-selector";
 export { DriverSelector } from "./driver-selector";
 export { RouteAlerts, AlertBanner } from "./route-alerts";
+export { ManualRouteCreator } from "./manual-route-creator";

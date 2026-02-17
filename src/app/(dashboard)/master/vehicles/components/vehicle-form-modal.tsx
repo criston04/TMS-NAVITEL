@@ -45,12 +45,15 @@ import {
   CheckCircle,
   Loader2,
   Gauge,
-  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { 
   Vehicle, 
 } from "@/types/models/vehicle";
+import { Operator } from "@/types/models/operator";
+import { operatorsService } from "@/services/master";
+import { useService } from "@/hooks/use-service";
 import { 
   VEHICLE_TYPE_LABELS,
   BODY_TYPE_LABELS,
@@ -68,6 +71,7 @@ const vehicleFormSchema = z.object({
     .min(6, "Placa inválida")
     .max(7, "Placa inválida")
     .refine(val => isValidPeruvianPlate(val), "Formato de placa inválido"),
+  operatorId: z.string().min(1, "Debe seleccionar una empresa de transporte"),
   type: z.enum(["camion", "tractocamion", "remolque", "semiremolque", "furgoneta", "pickup", "minivan", "cisterna", "volquete"]),
   bodyType: z.enum(["furgon", "furgon_frigorifico", "plataforma", "cisterna", "tolva", "volquete", "portacontenedor", "cama_baja", "jaula", "baranda", "otros"]),
   brand: z.string().min(2, "Marca requerida"),
@@ -98,7 +102,7 @@ const vehicleFormSchema = z.object({
     cargoHeight: z.number().min(0).optional(),
   }),
   capacity: z.object({
-    maxWeight: z.number().min(0),
+    maxWeight: z.number().min(0).optional(),
     maxVolume: z.number().min(0).optional(),
     palletCapacity: z.number().min(0).optional(),
     tare: z.number().min(0).optional(),
@@ -107,7 +111,7 @@ const vehicleFormSchema = z.object({
 
   // Documentación
   registration: z.object({
-    number: z.string().min(5, "Número de tarjeta requerido"),
+    number: z.string().optional(),
     issueDate: z.string().optional(),
     issuingEntity: z.string().default("SUNARP"),
     fileUrl: z.string().optional(),
@@ -116,40 +120,6 @@ const vehicleFormSchema = z.object({
   status: z.enum(["active", "inactive", "pending", "blocked", "suspended", "on_leave", "terminated"]).default("active"),
   currentMileage: z.number().min(0).default(0),
   currentDriverId: z.string().optional(),
-  operatorId: z.string().optional(),
-  operatorName: z.string().optional(),
-
-  // Documentación adicional
-  soat: z.object({
-    policyNumber: z.string().optional(),
-    insurer: z.string().optional(),
-    startDate: z.string().optional(),
-    expirationDate: z.string().optional(),
-  }).optional(),
-  technicalReview: z.object({
-    inspectionCenter: z.string().optional(),
-    inspectionDate: z.string().optional(),
-    expirationDate: z.string().optional(),
-    result: z.enum(["approved", "rejected", "pending"]).optional(),
-  }).optional(),
-  mtcCertificate: z.object({
-    certificateNumber: z.string().optional(),
-    issueDate: z.string().optional(),
-    expirationDate: z.string().optional(),
-  }).optional(),
-  insurancePolicy: z.object({
-    insurer: z.string().optional(),
-    policyNumber: z.string().optional(),
-    coverage: z.string().optional(),
-    startDate: z.string().optional(),
-    expirationDate: z.string().optional(),
-  }).optional(),
-  gpsCertification: z.object({
-    provider: z.string().optional(),
-    homologationNumber: z.string().optional(),
-    expirationDate: z.string().optional(),
-  }).optional(),
-
   notes: z.string().optional(),
 });
 
@@ -212,10 +182,20 @@ export function VehicleFormModal({
 }: VehicleFormModalProps) {
   const [activeTab, setActiveTab] = React.useState("general");
 
+  // Cargar lista de operadores
+  const { 
+    data: operators, 
+    loading: operatorsLoading 
+  } = useService<Operator[]>(
+    () => operatorsService.getAll({ status: "active" }),
+    { immediate: true }
+  );
+
   const form = useForm<VehicleFormData>({
     resolver: zodResolver(vehicleFormSchema) as Resolver<VehicleFormData>,
     defaultValues: {
       plate: "",
+      operatorId: "",
       type: "camion",
       bodyType: "furgon",
       brand: "",
@@ -257,13 +237,6 @@ export function VehicleFormModal({
       status: "active",
       currentMileage: 0,
       currentDriverId: "",
-      operatorId: "",
-      operatorName: "",
-      soat: { policyNumber: "", insurer: "", startDate: "", expirationDate: "" },
-      technicalReview: { inspectionCenter: "", inspectionDate: "", expirationDate: "", result: undefined },
-      mtcCertificate: { certificateNumber: "", issueDate: "", expirationDate: "" },
-      insurancePolicy: { insurer: "", policyNumber: "", coverage: "", startDate: "", expirationDate: "" },
-      gpsCertification: { provider: "", homologationNumber: "", expirationDate: "" },
       notes: "",
     },
   });
@@ -273,6 +246,7 @@ export function VehicleFormModal({
     if (vehicle && open) {
       form.reset({
         plate: vehicle.plate,
+        operatorId: vehicle.operatorId || "",
         type: vehicle.type,
         bodyType: vehicle.bodyType || "furgon",
         brand: vehicle.specs?.brand || "",
@@ -319,43 +293,6 @@ export function VehicleFormModal({
         status: vehicle.status,
         currentMileage: vehicle.currentMileage || 0,
         currentDriverId: vehicle.currentDriverId || "",
-        operatorId: vehicle.operatorId || "",
-        operatorName: vehicle.operatorName || "",
-        soat: (() => {
-          const soatPolicy = vehicle.insurancePolicies?.find(p => p.type === "soat");
-          return {
-            policyNumber: soatPolicy?.policyNumber || "",
-            insurer: soatPolicy?.insurerName || "",
-            startDate: soatPolicy?.startDate || "",
-            expirationDate: soatPolicy?.endDate || "",
-          };
-        })(),
-        technicalReview: {
-          inspectionCenter: vehicle.currentInspection?.inspectionCenter || "",
-          inspectionDate: vehicle.currentInspection?.inspectionDate || "",
-          expirationDate: vehicle.currentInspection?.expiryDate || "",
-          result: (vehicle.currentInspection?.result as "approved" | "rejected" | "pending") || undefined,
-        },
-        mtcCertificate: {
-          certificateNumber: vehicle.operatingCertificate?.certificateNumber || "",
-          issueDate: vehicle.operatingCertificate?.issueDate || "",
-          expirationDate: vehicle.operatingCertificate?.expiryDate || "",
-        },
-        insurancePolicy: (() => {
-          const fullPolicy = vehicle.insurancePolicies?.find(p => p.type === "full_coverage" || p.type === "rc_complementario");
-          return {
-            insurer: fullPolicy?.insurerName || "",
-            policyNumber: fullPolicy?.policyNumber || "",
-            coverage: fullPolicy?.coverages?.join(", ") || "",
-            startDate: fullPolicy?.startDate || "",
-            expirationDate: fullPolicy?.endDate || "",
-          };
-        })(),
-        gpsCertification: {
-          provider: vehicle.gpsDevice?.provider || "",
-          homologationNumber: vehicle.gpsDevice?.homologationNumber || "",
-          expirationDate: vehicle.gpsDevice?.certificationExpiry || "",
-        },
         notes: vehicle.notes || "",
       });
     }
@@ -371,12 +308,28 @@ export function VehicleFormModal({
 
   const handleSubmit = async (data: VehicleFormData) => {
     try {
+      console.log("📝 Datos del formulario:", data);
       // Formatear placa antes de enviar
       data.plate = formatPlate(data.plate);
       await onSubmit(data);
       onOpenChange(false);
     } catch (error) {
       console.error("Error al guardar vehículo:", error);
+      toast.error("Error al guardar", {
+        description: error instanceof Error ? error.message : "Ocurrió un error al guardar el vehículo",
+      });
+    }
+  };
+
+  // Manejar errores de validación
+  const handleInvalidSubmit = (errors: typeof form.formState.errors) => {
+    const errorFields = Object.keys(errors);
+    if (errorFields.length > 0) {
+      const firstError = errorFields[0];
+      const errorMessage = errors[firstError as keyof typeof errors]?.message;
+      toast.error("Formulario incompleto", {
+        description: errorMessage || "Por favor complete todos los campos obligatorios",
+      });
     }
   };
 
@@ -400,7 +353,7 @@ export function VehicleFormModal({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <form onSubmit={form.handleSubmit(handleSubmit, handleInvalidSubmit)}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="px-6">
                 <TabsList className="grid w-full grid-cols-5 h-auto">
@@ -435,7 +388,7 @@ export function VehicleFormModal({
                       <CardTitle className="text-base">Identificación del Vehículo</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
                           name="plate"
@@ -459,6 +412,41 @@ export function VehicleFormModal({
                         />
                         <FormField
                           control={form.control}
+                          name="operatorId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Empresa de Transporte *</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                value={field.value} 
+                                defaultValue={field.value}
+                                disabled={operatorsLoading}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={operatorsLoading ? "Cargando..." : "Seleccione una empresa"} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent position="popper" sideOffset={5}>
+                                  {operators?.map((operator) => (
+                                    <SelectItem key={operator.id} value={operator.id}>
+                                      {operator.tradeName || operator.businessName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Empresa propietaria del vehículo
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
                           name="type"
                           render={({ field }) => (
                             <FormItem>
@@ -469,7 +457,7 @@ export function VehicleFormModal({
                                     <SelectValue placeholder="Seleccione" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent position="popper" sideOffset={5}>
                                   {Object.entries(VEHICLE_TYPE_LABELS).map(([value, label]) => (
                                     <SelectItem key={value} value={value}>
                                       {label}
@@ -493,7 +481,7 @@ export function VehicleFormModal({
                                     <SelectValue placeholder="Seleccione" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent position="popper" sideOffset={5}>
                                   {Object.entries(BODY_TYPE_LABELS).map(([value, label]) => (
                                     <SelectItem key={value} value={value}>
                                       {label}
@@ -501,6 +489,28 @@ export function VehicleFormModal({
                                   ))}
                                 </SelectContent>
                               </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="vin"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Número de Chasis (VIN) *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="1HGBH41JXMN109186" 
+                                  maxLength={17}
+                                  {...field}
+                                  onChange={e => field.onChange(e.target.value.toUpperCase())}
+                                  className="uppercase font-mono"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                17 caracteres alfanuméricos
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -520,7 +530,7 @@ export function VehicleFormModal({
                                     <SelectValue placeholder="Seleccione" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent position="popper" sideOffset={5}>
                                   {COMMON_BRANDS.map(brand => (
                                     <SelectItem key={brand} value={brand}>
                                       {brand}
@@ -567,7 +577,7 @@ export function VehicleFormModal({
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4">
                         <FormField
                           control={form.control}
                           name="color"
@@ -580,7 +590,7 @@ export function VehicleFormModal({
                                     <SelectValue placeholder="Seleccione" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent position="popper" sideOffset={5}>
                                   {COMMON_COLORS.map(color => (
                                     <SelectItem key={color} value={color}>
                                       {color}
@@ -588,74 +598,6 @@ export function VehicleFormModal({
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="vin"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número de Chasis (VIN) *</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="1HGBH41JXMN109186" 
-                                  maxLength={17}
-                                  {...field}
-                                  onChange={e => field.onChange(e.target.value.toUpperCase())}
-                                  className="uppercase font-mono"
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                17 caracteres alfanuméricos
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Empresa Transportista */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Building2 className="h-4 w-4" />
-                        Empresa Transportista
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="operatorId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Código / RUC de Empresa</FormLabel>
-                              <FormControl>
-                                <Input placeholder="20123456789" {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                RUC o código interno del operador logístico
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="operatorName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nombre de la Empresa</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Transportes XYZ S.A.C." {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                Razón social de la empresa transportista
-                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -732,7 +674,7 @@ export function VehicleFormModal({
                                     <SelectValue placeholder="Seleccione" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent position="popper" sideOffset={5}>
                                   {FUEL_TYPES.map(fuel => (
                                     <SelectItem key={fuel.value} value={fuel.value}>
                                       {fuel.label}
@@ -777,7 +719,7 @@ export function VehicleFormModal({
                                     <SelectValue placeholder="Seleccione" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent position="popper" sideOffset={5}>
                                   {TRANSMISSION_TYPES.map(trans => (
                                     <SelectItem key={trans.value} value={trans.value}>
                                       {trans.label}
@@ -1134,16 +1076,16 @@ export function VehicleFormModal({
                         />
                       </div>
 
-                      <div className="p-4 border border-dashed rounded-lg">
+                      <div className="p-4 border border-dashed rounded-lg hover:border-primary/50 transition-colors">
                         <div className="flex items-center gap-4">
                           <Upload className="h-8 w-8 text-muted-foreground" />
-                          <div>
+                          <div className="flex-1">
                             <p className="font-medium">Adjuntar tarjeta de propiedad</p>
                             <p className="text-sm text-muted-foreground">
                               PDF o imagen (máx. 5MB)
                             </p>
                           </div>
-                          <Button type="button" variant="outline" className="ml-auto">
+                          <Button type="button" variant="outline" size="sm">
                             Subir archivo
                           </Button>
                         </div>
@@ -1154,375 +1096,118 @@ export function VehicleFormModal({
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-blue-500" />
-                        SOAT - Seguro Obligatorio
+                        <Shield className="h-5 w-5 text-primary" />
+                        Documentos Adicionales
                       </CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Puedes subir todos los documentos ahora o agregarlos después
+                      </p>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="soat.policyNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número de Póliza</FormLabel>
-                              <FormControl>
-                                <Input placeholder="SOA-2024-001234" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="soat.insurer"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Aseguradora</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Rímac, Pacífico, La Positiva..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="soat.startDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fecha de Inicio</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="soat.expirationDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fecha de Vencimiento</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="p-3 border border-dashed rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-6 w-6 text-muted-foreground" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">Adjuntar SOAT</p>
-                            <p className="text-xs text-muted-foreground">PDF o imagen (máx. 5MB)</p>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {/* SOAT */}
+                        <div className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">SOAT</p>
+                              <p className="text-sm text-muted-foreground">Seguro Obligatorio de Accidentes de Tránsito</p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm">
+                              <Upload className="h-4 w-4 mr-2" />
+                              Subir
+                            </Button>
                           </div>
-                          <Button type="button" variant="outline" size="sm">Subir archivo</Button>
+                          <div className="grid grid-cols-3 gap-3">
+                            <Input placeholder="N° de póliza" className="text-sm" />
+                            <Input type="date" placeholder="Emisión" className="text-sm" />
+                            <Input type="date" placeholder="Vencimiento" className="text-sm" />
+                          </div>
+                        </div>
+
+                        {/* Revisión Técnica */}
+                        <div className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Revisión Técnica</p>
+                              <p className="text-sm text-muted-foreground">Certificado de Inspección Técnica</p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm">
+                              <Upload className="h-4 w-4 mr-2" />
+                              Subir
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <Input placeholder="N° de certificado" className="text-sm" />
+                            <Input type="date" placeholder="Emisión" className="text-sm" />
+                            <Input type="date" placeholder="Vencimiento" className="text-sm" />
+                          </div>
+                        </div>
+
+                        {/* Certificado de Operación */}
+                        <div className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Certificado de Operación MTC</p>
+                              <p className="text-sm text-muted-foreground">Permiso de operación vehicular</p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm">
+                              <Upload className="h-4 w-4 mr-2" />
+                              Subir
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <Input placeholder="N° de certificado" className="text-sm" />
+                            <Input type="date" placeholder="Emisión" className="text-sm" />
+                            <Input type="date" placeholder="Vencimiento" className="text-sm" />
+                          </div>
+                        </div>
+
+                        {/* Póliza de Seguro */}
+                        <div className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Póliza de Seguro</p>
+                              <p className="text-sm text-muted-foreground">Seguro contra todo riesgo</p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm">
+                              <Upload className="h-4 w-4 mr-2" />
+                              Subir
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <Input placeholder="N° de póliza" className="text-sm" />
+                            <Input type="date" placeholder="Inicio" className="text-sm" />
+                            <Input type="date" placeholder="Vencimiento" className="text-sm" />
+                          </div>
+                        </div>
+
+                        {/* Certificación GPS */}
+                        <div className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Certificación GPS</p>
+                              <p className="text-sm text-muted-foreground">Homologación MTC del sistema de rastreo</p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm">
+                              <Upload className="h-4 w-4 mr-2" />
+                              Subir
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <Input placeholder="N° de certificado" className="text-sm" />
+                            <Input type="date" placeholder="Emisión" className="text-sm" />
+                            <Input type="date" placeholder="Vencimiento" className="text-sm" />
+                          </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Revisión Técnica
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="technicalReview.inspectionCenter"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Centro de Inspección</FormLabel>
-                              <FormControl>
-                                <Input placeholder="CITV LIDERCON S.A.C." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="technicalReview.result"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Resultado</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || ""}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Seleccione" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="approved">Aprobado</SelectItem>
-                                  <SelectItem value="rejected">Rechazado</SelectItem>
-                                  <SelectItem value="pending">Pendiente</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="technicalReview.inspectionDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fecha de Inspección</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="technicalReview.expirationDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fecha de Vencimiento</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="p-3 border border-dashed rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-6 w-6 text-muted-foreground" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">Adjuntar Certificado de Revisión Técnica</p>
-                            <p className="text-xs text-muted-foreground">PDF o imagen (máx. 5MB)</p>
-                          </div>
-                          <Button type="button" variant="outline" size="sm">Subir archivo</Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-purple-500" />
-                        Certificado de Operación (MTC)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="mtcCertificate.certificateNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número de Certificado</FormLabel>
-                              <FormControl>
-                                <Input placeholder="MTC-2024-001234" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="mtcCertificate.issueDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fecha de Emisión</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="mtcCertificate.expirationDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fecha de Vencimiento</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="p-3 border border-dashed rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-6 w-6 text-muted-foreground" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">Adjuntar Certificado MTC</p>
-                            <p className="text-xs text-muted-foreground">PDF o imagen (máx. 5MB)</p>
-                          </div>
-                          <Button type="button" variant="outline" size="sm">Subir archivo</Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-amber-500" />
-                        Póliza de Seguro (Todo Riesgo)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="insurancePolicy.insurer"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Aseguradora</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Rímac Seguros" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="insurancePolicy.policyNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número de Póliza</FormLabel>
-                              <FormControl>
-                                <Input placeholder="POL-2024-567890" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="insurancePolicy.coverage"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tipo de Cobertura</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Todo riesgo, responsabilidad civil..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="insurancePolicy.startDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Vigencia Desde</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="insurancePolicy.expirationDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Vigencia Hasta</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="p-3 border border-dashed rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-6 w-6 text-muted-foreground" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">Adjuntar Póliza de Seguro</p>
-                            <p className="text-xs text-muted-foreground">PDF o imagen (máx. 5MB)</p>
-                          </div>
-                          <Button type="button" variant="outline" size="sm">Subir archivo</Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Gauge className="h-4 w-4 text-cyan-500" />
-                        Certificación GPS
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="gpsCertification.provider"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Proveedor GPS</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Securitrac, Hunter, etc." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="gpsCertification.homologationNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nro. Homologación</FormLabel>
-                              <FormControl>
-                                <Input placeholder="HOM-MTC-2024-001" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="gpsCertification.expirationDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Vigencia</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="p-3 border border-dashed rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-6 w-6 text-muted-foreground" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">Adjuntar Certificación GPS</p>
-                            <p className="text-xs text-muted-foreground">PDF o imagen (máx. 5MB)</p>
-                          </div>
-                          <Button type="button" variant="outline" size="sm">Subir archivo</Button>
+                      {/* Nota informativa */}
+                      <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex gap-2 text-sm">
+                          <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-blue-700 dark:text-blue-300">
+                            Los documentos con fechas de vencimiento te notificarán automáticamente cuando estén por expirar.
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -1548,7 +1233,7 @@ export function VehicleFormModal({
                                   <SelectValue placeholder="Seleccione" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent position="popper" sideOffset={5}>
                                 {STATUS_OPTIONS.map(status => (
                                   <SelectItem key={status.value} value={status.value}>
                                     <div className="flex items-center gap-2">
