@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { AlertModal } from '@/components/ui/alert-modal';
 import {
   Select,
   SelectContent,
@@ -83,6 +84,7 @@ export default function VehiclesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [importAlert, setImportAlert] = useState<{ open: boolean; count: number }>({ open: false, count: 0 });
 
   useEffect(() => {
     loadVehicles();
@@ -198,7 +200,7 @@ export default function VehiclesPage() {
           }
         }
         
-        alert(`Se importaron ${successCount} vehículos exitosamente`);
+        setImportAlert({ open: true, count: successCount });
         loadVehicles();
       };
       reader.readAsText(file);
@@ -453,6 +455,13 @@ export default function VehiclesPage() {
           </div>
         )}
       </Card>
+      <AlertModal
+        open={importAlert.open}
+        onOpenChange={(open) => setImportAlert({ open, count: 0 })}
+        title="Importación exitosa"
+        description={`Se importaron ${importAlert.count} vehículos exitosamente.`}
+        variant="success"
+      />
     </div>
   );
 }

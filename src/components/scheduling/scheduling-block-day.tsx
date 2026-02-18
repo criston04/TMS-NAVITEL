@@ -15,7 +15,6 @@ import type { MockVehicle } from '@/mocks/scheduling';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
@@ -188,7 +187,7 @@ export const SchedulingBlockDay = memo(function SchedulingBlockDay({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-hidden py-2">
+        <div className="flex flex-col gap-4 flex-1 min-h-0 py-2">
           {/* Formulario de nuevo bloqueo */}
           <div className="space-y-3 p-3 rounded-lg border bg-muted/20">
             <h4 className="text-xs font-semibold flex items-center gap-1.5">
@@ -292,20 +291,20 @@ export const SchedulingBlockDay = memo(function SchedulingBlockDay({
           <Separator />
 
           {/* Lista de días bloqueados */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold flex items-center gap-1.5">
+          <div className="flex flex-col flex-1 min-h-0 space-y-2">
+            <h4 className="text-xs font-semibold flex items-center gap-1.5 shrink-0">
               <CalendarIcon className="h-3 w-3" />
               Días bloqueados activos ({blockedDays.length})
             </h4>
 
-            <ScrollArea className="max-h-[180px]">
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
               {blockedDays.length === 0 ? (
                 <div className="flex flex-col items-center py-6 text-center">
                   <Unlock className="h-8 w-8 mb-2 text-muted-foreground/30" />
                   <p className="text-xs text-muted-foreground">Sin días bloqueados</p>
                 </div>
               ) : (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 pb-1">
                   {blockedDays.map(block => (
                     <BlockedDayItem
                       key={block.id}
@@ -315,7 +314,7 @@ export const SchedulingBlockDay = memo(function SchedulingBlockDay({
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
         </div>
 

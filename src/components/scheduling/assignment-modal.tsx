@@ -43,11 +43,20 @@ interface SchedulingVehicle {
   capacityKg?: number;
 }
 
+interface SchedulingDriver {
+  id: string;
+  fullName: string;
+  name: string;
+  status: string;
+  phone: string;
+}
+
 interface AssignmentModalProps {
   open: boolean;
   order: Order | ScheduledOrder | null;
   proposedDate?: Date | null;
   vehicles: SchedulingVehicle[];
+  drivers?: SchedulingDriver[];
   suggestions?: ResourceSuggestion[];
   conflicts?: ScheduleConflict[];
   hosValidation?: HOSValidationResult | null;
@@ -116,7 +125,7 @@ const SuggestionChip: FC<Readonly<SuggestionChipProps>> = memo(function Suggesti
       type="button"
       onClick={onClick}
       className={cn(
-        'flex items-center gap-3 p-2.5 rounded-lg border text-left w-full h-full',
+        'flex items-center gap-2.5 p-2 rounded-lg border text-left w-full',
         'transition-all duration-150',
         'hover:border-primary/60 hover:bg-primary/5',
         isSelected 
@@ -215,6 +224,7 @@ function renderSuggestionsSection({
   showSuggestions,
   toggleSuggestions,
   selectedVehicleId,
+  selectedDriverId,
   handleApplySuggestion,
 }: {
   featureFlags?: SchedulingFeatureFlags;
@@ -223,6 +233,7 @@ function renderSuggestionsSection({
   showSuggestions: boolean;
   toggleSuggestions: () => void;
   selectedVehicleId: string;
+  selectedDriverId: string;
   handleApplySuggestion: (suggestion: ResourceSuggestion) => void;
 }): React.ReactNode {
   // Feature disabled
@@ -245,6 +256,9 @@ function renderSuggestionsSection({
     return null;
   }
 
+  const vehicleSuggestions = suggestions.filter(s => s.type === 'vehicle').slice(0, 3);
+  const driverSuggestions = suggestions.filter(s => s.type === 'driver').slice(0, 3);
+
   // Suggestions available
   return (
     <div className="space-y-2.5">
@@ -266,20 +280,48 @@ function renderSuggestionsSection({
       </button>
       
       {showSuggestions && (
-        <div className="grid grid-cols-2 gap-2.5 bg-muted/20 p-2.5 rounded-lg border border-border/30">
+        <div className="bg-muted/20 p-2.5 rounded-lg border border-border/30 max-h-[200px] overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
           {isLoadingSuggestions ? (
-            <div className="col-span-2 flex justify-center py-4">
+            <div className="flex justify-center py-4">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            suggestions.slice(0, 4).map((suggestion) => (
-              <SuggestionChip
-                key={suggestion.resourceId}
-                suggestion={suggestion}
-                isSelected={suggestion.type === 'vehicle' && suggestion.resourceId === selectedVehicleId}
-                onClick={() => handleApplySuggestion(suggestion)}
-              />
-            ))
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Columna: Camiones */}
+              {vehicleSuggestions.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Truck className="h-3 w-3 text-[#34b7ff]" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Camiones</span>
+                  </div>
+                  {vehicleSuggestions.map((suggestion) => (
+                    <SuggestionChip
+                      key={suggestion.resourceId}
+                      suggestion={suggestion}
+                      isSelected={suggestion.resourceId === selectedVehicleId}
+                      onClick={() => handleApplySuggestion(suggestion)}
+                    />
+                  ))}
+                </div>
+              )}
+              {/* Columna: Conductores */}
+              {driverSuggestions.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1 mb-1">
+                    <User className="h-3 w-3 text-emerald-500" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Conductores</span>
+                  </div>
+                  {driverSuggestions.map((suggestion) => (
+                    <SuggestionChip
+                      key={suggestion.resourceId}
+                      suggestion={suggestion}
+                      isSelected={suggestion.resourceId === selectedDriverId}
+                      onClick={() => handleApplySuggestion(suggestion)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -294,6 +336,7 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   order,
   proposedDate,
   vehicles,
+  drivers = [],
   suggestions = [],
   conflicts = [],
   hosValidation,
@@ -311,6 +354,11 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
     if (!order) return '';
     return 'vehicleId' in order && order.vehicleId ? order.vehicleId : '';
   };
+
+  const getInitialDriverId = () => {
+    if (!order) return '';
+    return 'driverId' in order && order.driverId ? order.driverId : '';
+  };
   
   const getInitialDate = () => {
     if (!order) return '';
@@ -325,6 +373,7 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   };
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(getInitialVehicleId);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>(getInitialDriverId);
   const [scheduledDate, setScheduledDate] = useState<string>(getInitialDate);
   const [scheduledTime, setScheduledTime] = useState<string>(getInitialTime);
   const [notes, setNotes] = useState<string>('');
@@ -337,6 +386,7 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   if (open && order && order.id !== trackedOrderId) {
     setTrackedOrderId(order.id);
     setSelectedVehicleId(getInitialVehicleId());
+    setSelectedDriverId(getInitialDriverId());
     setScheduledDate(getInitialDate());
     setScheduledTime(getInitialTime());
     setNotes('');
@@ -377,23 +427,25 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   const handleApplySuggestion = (suggestion: ResourceSuggestion) => {
     if (suggestion.type === 'vehicle') {
       setSelectedVehicleId(suggestion.resourceId);
+    } else if (suggestion.type === 'driver') {
+      setSelectedDriverId(suggestion.resourceId);
     }
   };
 
   // Confirmar asignación
   const handleConfirm = useCallback(() => {
-    if (!order || !selectedVehicleId || !scheduledDate) return;
+    if (!order || !selectedVehicleId || !selectedDriverId || !scheduledDate) return;
 
     const dateTime = new Date(`${scheduledDate}T${scheduledTime || '08:00'}`);
     
     onConfirm({
       orderId: order.id,
       vehicleId: selectedVehicleId,
-      driverId: '', // No driver assignment
+      driverId: selectedDriverId,
       scheduledDate: dateTime,
       notes: notes || undefined,
     });
-  }, [order, selectedVehicleId, scheduledDate, scheduledTime, notes, onConfirm]);
+  }, [order, selectedVehicleId, selectedDriverId, scheduledDate, scheduledTime, notes, onConfirm]);
 
   // Toggle sugerencias
   const toggleSuggestions = useCallback(() => {
@@ -401,10 +453,10 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
   }, []);
 
   const canSubmit = useMemo(() => {
-    if (!selectedVehicleId || !scheduledDate) return false;
+    if (!selectedVehicleId || !selectedDriverId || !scheduledDate) return false;
     if (conflicts.some(c => c.severity === 'high')) return false;
     return true;
-  }, [selectedVehicleId, scheduledDate, conflicts]);
+  }, [selectedVehicleId, selectedDriverId, scheduledDate, conflicts]);
 
   // Early return si no está abierto
   if (!open || !order) return null;
@@ -494,6 +546,7 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
               showSuggestions,
               toggleSuggestions,
               selectedVehicleId,
+              selectedDriverId,
               handleApplySuggestion,
             })}
 
@@ -527,6 +580,51 @@ export const AssignmentModal: FC<Readonly<AssignmentModalProps>> = memo(function
                         </span>
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Conductor */}
+              <div className="space-y-1.5">
+                <label htmlFor="driver-select" className="text-xs font-medium text-muted-foreground">
+                  Conductor
+                </label>
+                <Select
+                  value={selectedDriverId}
+                  onValueChange={setSelectedDriverId}
+                >
+                  <SelectTrigger id="driver-select" className="h-9 bg-background focus:ring-1">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="truncate">
+                        {selectedDriverId 
+                          ? drivers.find(d => d.id === selectedDriverId)?.fullName 
+                          : 'Seleccionar...'}
+                      </span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {drivers.filter(d => d.status === 'available').map((driver) => (
+                      <SelectItem key={driver.id} value={driver.id}>
+                        <span className="flex items-center gap-2">
+                          <span className="font-medium">{driver.fullName}</span>
+                          <span className="text-muted-foreground text-xs">{driver.phone}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                    {drivers.filter(d => d.status !== 'available').length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">No disponibles</div>
+                        {drivers.filter(d => d.status !== 'available').map((driver) => (
+                          <SelectItem key={driver.id} value={driver.id} disabled>
+                            <span className="flex items-center gap-2 opacity-50">
+                              <span className="font-medium">{driver.fullName}</span>
+                              <span className="text-muted-foreground text-xs">{driver.status === 'on_duty' ? 'En servicio' : 'Fuera de servicio'}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

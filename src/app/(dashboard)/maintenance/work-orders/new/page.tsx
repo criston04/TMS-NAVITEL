@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ClipboardList, ArrowLeft, Save, Truck } from 'lucide-react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { useMaintenance } from '@/hooks/useMaintenance';
 import type { WorkOrder, Vehicle, Workshop } from '@/types/maintenance';
 import Link from 'next/link';
@@ -33,6 +34,8 @@ export default function NewWorkOrderPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
+  const [vehicleAlert, setVehicleAlert] = useState(false);
+  const [errorAlert, setErrorAlert] = useState(false);
 
   const [formData, setFormData] = useState({
     vehicleId: '',
@@ -87,7 +90,7 @@ export default function NewWorkOrderPage() {
     e.preventDefault();
 
     if (!formData.vehicleId) {
-      alert('Debe seleccionar un vehículo');
+      setVehicleAlert(true);
       return;
     }
 
@@ -118,7 +121,7 @@ export default function NewWorkOrderPage() {
       router.push('/maintenance/work-orders');
     } catch (error) {
       console.error('Error creating work order:', error);
-      alert('Error al crear la orden de trabajo');
+      setErrorAlert(true);
     } finally {
       setLoading(false);
     }
@@ -364,6 +367,20 @@ export default function NewWorkOrderPage() {
           </div>
         </Card>
       </form>
+      <AlertModal
+        open={vehicleAlert}
+        onOpenChange={setVehicleAlert}
+        title="Campo requerido"
+        description="Debe seleccionar un vehículo para crear la orden de trabajo."
+        variant="warning"
+      />
+      <AlertModal
+        open={errorAlert}
+        onOpenChange={setErrorAlert}
+        title="Error"
+        description="Error al crear la orden de trabajo. Intente nuevamente."
+        variant="error"
+      />
     </div>
   );
 }

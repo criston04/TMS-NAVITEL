@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Package, ArrowLeft, Save } from 'lucide-react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { useMaintenance } from '@/hooks/useMaintenance';
 import type { PartCategory } from '@/types/maintenance';
 import Link from 'next/link';
@@ -27,6 +28,7 @@ export default function NewPartPage() {
   const router = useRouter();
   const maintenance = useMaintenance();
   const [loading, setLoading] = useState(false);
+  const [errorAlert, setErrorAlert] = useState(false);
   const [formData, setFormData] = useState({
     partNumber: '',
     name: '',
@@ -54,7 +56,7 @@ export default function NewPartPage() {
       router.push('/maintenance/parts');
     } catch (error) {
       console.error('Error creating part:', error);
-      alert('Error al crear el repuesto');
+      setErrorAlert(true);
     } finally {
       setLoading(false);
     }
@@ -242,6 +244,13 @@ export default function NewPartPage() {
           </div>
         </Card>
       </form>
+      <AlertModal
+        open={errorAlert}
+        onOpenChange={setErrorAlert}
+        title="Error"
+        description="Error al crear el repuesto. Intente nuevamente."
+        variant="error"
+      />
     </div>
   );
 }

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Calendar as CalendarIcon, ArrowLeft, Save } from 'lucide-react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle, MaintenanceType } from '@/types/maintenance';
 import Link from 'next/link';
@@ -43,6 +44,7 @@ export default function NewPreventiveMaintenancePage() {
   const maintenance = useMaintenance();
   const [loading, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [errorAlert, setErrorAlert] = useState(false);
   const [formData, setFormData] = useState({
     vehicleId: '',
     maintenanceType: '',
@@ -89,7 +91,7 @@ export default function NewPreventiveMaintenancePage() {
       router.push('/maintenance/preventive');
     } catch (error) {
       console.error('Error creating schedule:', error);
-      alert('Error al crear la programación');
+      setErrorAlert(true);
     } finally {
       setLoading(false);
     }
@@ -288,6 +290,13 @@ export default function NewPreventiveMaintenancePage() {
           </div>
         </Card>
       </form>
+      <AlertModal
+        open={errorAlert}
+        onOpenChange={setErrorAlert}
+        title="Error"
+        description="Error al crear la programación. Intente nuevamente."
+        variant="error"
+      />
     </div>
   );
 }

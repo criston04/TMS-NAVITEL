@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   Select,
   SelectContent,
@@ -137,6 +138,8 @@ function GeofencesPageContent() {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [isMounted, setIsMounted] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; geofenceId: string; geofenceName: string }>({ open: false, geofenceId: '', geofenceName: '' });
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   
   // Form data
   const [formData, setFormData] = useState<GeofenceFormData>({
@@ -314,16 +317,20 @@ function GeofencesPageContent() {
     const geofence = geofences.find((g) => g.id === geofenceId);
     if (!geofence) return;
     
-    if (confirm(`¿Eliminar "${geofence.name}"?`)) {
-      try {
-        await deleteGeofence(geofenceId);
-        mapRef.current?.deleteGeofenceLayer(geofenceId);
-        success("Geocerca eliminada", `"${geofence.name}" se ha eliminado`);
-      } catch {
-        showError("Error", "No se pudo eliminar la geocerca");
-      }
+    setDeleteConfirm({ open: true, geofenceId, geofenceName: geofence.name });
+  }, [geofences]);
+
+  const confirmDeleteGeofence = useCallback(async () => {
+    const { geofenceId, geofenceName } = deleteConfirm;
+    try {
+      await deleteGeofence(geofenceId);
+      mapRef.current?.deleteGeofenceLayer(geofenceId);
+      success("Geocerca eliminada", `"${geofenceName}" se ha eliminado`);
+    } catch {
+      showError("Error", "No se pudo eliminar la geocerca");
     }
-  }, [geofences, deleteGeofence, success, showError]);
+    setDeleteConfirm({ open: false, geofenceId: '', geofenceName: '' });
+  }, [deleteConfirm, deleteGeofence, success, showError]);
   
   const handleDuplicateGeofence = useCallback(async (geofenceId: string) => {
     try {
@@ -383,15 +390,18 @@ function GeofencesPageContent() {
   const handleDeleteSelected = useCallback(async () => {
     if (selectedIds.size === 0) return;
     
-    if (confirm(`¿Eliminar ${selectedIds.size} geocerca(s) seleccionada(s)?`)) {
-      try {
-        await deleteMany([...selectedIds]);
-        [...selectedIds].forEach((id) => mapRef.current?.deleteGeofenceLayer(id));
-        success("Geocercas eliminadas", `${selectedIds.size} geocerca(s) eliminada(s)`);
-      } catch {
-        showError("Error", "No se pudieron eliminar las geocercas");
-      }
+    setBulkDeleteConfirm(true);
+  }, [selectedIds]);
+
+  const confirmDeleteSelected = useCallback(async () => {
+    try {
+      await deleteMany([...selectedIds]);
+      [...selectedIds].forEach((id) => mapRef.current?.deleteGeofenceLayer(id));
+      success("Geocercas eliminadas", `${selectedIds.size} geocerca(s) eliminada(s)`);
+    } catch {
+      showError("Error", "No se pudieron eliminar las geocercas");
     }
+    setBulkDeleteConfirm(false);
   }, [selectedIds, deleteMany, success, showError]);
   
   const handleChangeColorBatch = useCallback(async (color: string) => {
@@ -866,6 +876,25 @@ function GeofencesPageContent() {
           />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => { if (!open) setDeleteConfirm({ open: false, geofenceId: '', geofenceName: '' }); }}
+        title="Eliminar geocerca"
+        description={`¿Eliminar "${deleteConfirm.geofenceName}"? Esta acción no se puede deshacer.`}
+        onConfirm={confirmDeleteGeofence}
+        confirmText="Eliminar"
+        variant="destructive"
+      />
+      <ConfirmDialog
+        open={bulkDeleteConfirm}
+        onOpenChange={setBulkDeleteConfirm}
+        title="Eliminar geocercas"
+        description={`¿Eliminar ${selectedIds.size} geocerca(s) seleccionada(s)? Esta acción no se puede deshacer.`}
+        onConfirm={confirmDeleteSelected}
+        confirmText="Eliminar todas"
+        variant="destructive"
+      />
     </>
   );
 }

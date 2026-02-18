@@ -47,14 +47,18 @@ function formatHour(hour: number): string {
   return `${hour.toString().padStart(2, '0')}:00`;
 }
 
-function getOrderPosition(order: ScheduledOrder): { left: number; width: number } {
+const MAX_BAR_HOURS = 3; // Cap visual para barras largas
+
+function getOrderPosition(order: ScheduledOrder): { left: number; width: number; isCapped: boolean } {
   const startDate = new Date(order.scheduledDate);
   const startHour = startDate.getHours() + startDate.getMinutes() / 60;
   const duration = order.estimatedDuration || 2; // horas por defecto
+  const cappedDuration = Math.min(duration, MAX_BAR_HOURS);
   
   return {
     left: startHour * HOUR_WIDTH,
-    width: duration * HOUR_WIDTH,
+    width: cappedDuration * HOUR_WIDTH,
+    isCapped: duration > MAX_BAR_HOURS,
   };
 }
 
@@ -76,7 +80,7 @@ const TimelineOrderBar = memo(function TimelineOrderBar({
   order: ScheduledOrder;
   onClick?: () => void;
 }>) {
-  const { left, width } = getOrderPosition(order);
+  const { left, width, isCapped } = getOrderPosition(order);
 
   const priorityColors = {
     urgent: 'bg-red-500 border-red-600',
@@ -84,6 +88,8 @@ const TimelineOrderBar = memo(function TimelineOrderBar({
     normal: 'bg-[#34b7ff] border-[#34b7ff]',
     low: 'bg-gray-400 border-gray-500',
   };
+
+  const duration = order.estimatedDuration || 2;
 
   return (
     <Tooltip>
@@ -106,6 +112,9 @@ const TimelineOrderBar = memo(function TimelineOrderBar({
           onClick={onClick}
         >
           <span className="truncate">{order.orderNumber}</span>
+          {isCapped && (
+            <span className="ml-0.5 opacity-70">({duration}h)</span>
+          )}
         </button>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs">
@@ -119,9 +128,12 @@ const TimelineOrderBar = memo(function TimelineOrderBar({
               hour: '2-digit',
               minute: '2-digit',
             })}
-            {' - '}
-            {order.estimatedDuration}h duración
+            {' — '}
+            {duration}h duración
           </p>
+          {isCapped && (
+            <p className="text-xs text-muted-foreground italic">Vista compactada (tramo largo)</p>
+          )}
           {order.hasConflict && (
             <p className="text-xs text-amber-500 flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />

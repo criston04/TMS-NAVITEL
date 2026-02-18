@@ -8,6 +8,14 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
+import { AlertModal } from '@/components/ui/alert-modal';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { CreateOrderModal } from '@/components/bitacora/create-order-modal';
+import { AssignToOrderModal } from '@/components/bitacora/assign-to-order-modal';
+import { AddNotesModal } from '@/components/bitacora/add-notes-modal';
+import { ViewOnMapModal } from '@/components/bitacora/view-on-map-modal';
+import { EntryDetailModal } from '@/components/bitacora/entry-detail-modal';
+import { mockOrders } from '@/mocks/orders/orders.mock';
 import {
   LogIn,
   LogOut,
@@ -119,12 +127,22 @@ function BitacoraRow({
   onToggle,
   onCreateOrder,
   onAssignToOrder,
+  onViewOnMap,
+  onMarkReviewed,
+  onAddNotes,
+  onViewDetails,
+  onDiscard,
 }: {
   entry: BitacoraEntry;
   expanded: boolean;
   onToggle: () => void;
   onCreateOrder: (id: string) => void;
   onAssignToOrder: (id: string) => void;
+  onViewOnMap: (id: string) => void;
+  onMarkReviewed: (id: string) => void;
+  onAddNotes: (id: string) => void;
+  onViewDetails: (id: string) => void;
+  onDiscard: (id: string) => void;
 }) {
   const eventConfig = EVENT_TYPE_CONFIG[entry.eventType];
   const statusConfig = STATUS_CONFIG[entry.status];
@@ -342,7 +360,7 @@ function BitacoraRow({
               <FileUp className="h-3.5 w-3.5 mr-1.5" />
               Asignar a orden
             </Button>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onViewOnMap(entry.id); }}>
               <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
               Ver en mapa
             </Button>
@@ -355,21 +373,21 @@ function BitacoraRow({
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); alert('Marcar como revisado'); }}>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onMarkReviewed(entry.id); }}>
                   <Eye className="h-3.5 w-3.5 mr-2" />
                   Marcar como revisado
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); alert('Agregar notas'); }}>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAddNotes(entry.id); }}>
                   <FileText className="h-3.5 w-3.5 mr-2" />
                   Agregar notas
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); alert('Ver detalles completos'); }}>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewDetails(entry.id); }}>
                   <ExternalLink className="h-3.5 w-3.5 mr-2" />
                   Ver detalles completos
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  onClick={(e) => { e.stopPropagation(); alert('Descartar evento'); }}
+                  onClick={(e) => { e.stopPropagation(); onDiscard(entry.id); }}
                   className="text-red-600 focus:text-red-600"
                 >
                   <XCircle className="h-3.5 w-3.5 mr-2" />
@@ -517,16 +535,31 @@ export function BitacoraView({
   const [activeTab, setActiveTab] = useState<'timeline' | 'vehicles' | 'geofences'>('timeline');
   const [showFilters, setShowFilters] = useState(false);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [alertModal, setAlertModal] = useState<{ open: boolean; title: string; description: string; variant: 'info' | 'success' | 'warning' | 'error' }>({
+    open: false, title: '', description: '', variant: 'info',
+  });
+
+  // Estado de modales de bitácora
+  const [createOrderModal, setCreateOrderModal] = useState<{ open: boolean; entryId: string | null }>({ open: false, entryId: null });
+  const [assignOrderModal, setAssignOrderModal] = useState<{ open: boolean; entryId: string | null }>({ open: false, entryId: null });
+  const [addNotesModal, setAddNotesModal] = useState<{ open: boolean; entryId: string | null }>({ open: false, entryId: null });
+  const [viewMapModal, setViewMapModal] = useState<{ open: boolean; entryId: string | null }>({ open: false, entryId: null });
+  const [detailModal, setDetailModal] = useState<{ open: boolean; entryId: string | null }>({ open: false, entryId: null });
+  const [discardConfirm, setDiscardConfirm] = useState<{ open: boolean; entryId: string | null }>({ open: false, entryId: null });
+  const [reviewConfirm, setReviewConfirm] = useState<{ open: boolean; entryId: string | null }>({ open: false, entryId: null });
+
+  // Entries mutables para actualizaciones locales (simula actualizaciones de API)
+  const [localEntries, setLocalEntries] = useState<BitacoraEntry[]>(entries);
 
   // Obtener lista de placas únicas
   const uniquePlates = useMemo(() => {
-    const plates = new Set(entries.map(e => e.vehiclePlate));
+    const plates = new Set(localEntries.map(e => e.vehiclePlate));
     return Array.from(plates).sort();
-  }, [entries]);
+  }, [localEntries]);
 
   // Filtrado
   const filteredEntries = useMemo(() => {
-    let result = [...entries];
+    let result = [...localEntries];
 
     // Búsqueda
     if (search) {
@@ -592,21 +625,96 @@ export function BitacoraView({
     });
 
     return result;
-  }, [entries, search, eventTypeFilter, statusFilter, severityFilter, expectedFilter, dateRange, plateFilter, sortOrder]);
+  }, [localEntries, search, eventTypeFilter, statusFilter, severityFilter, expectedFilter, dateRange, plateFilter, sortOrder]);
+
+  const showAlert = useCallback((title: string, description: string, variant: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    setAlertModal({ open: true, title, description, variant });
+  }, []);
+
+  // Helper para encontrar entrada por ID
+  const findEntry = useCallback((id: string) => localEntries.find((e) => e.id === id) || null, [localEntries]);
+
+  // Helper para actualizar una entrada localmente
+  const updateEntry = useCallback((id: string, updates: Partial<BitacoraEntry>) => {
+    setLocalEntries(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+  }, []);
 
   const handleCreateOrder = useCallback((id: string) => {
-    const entry = entries.find((e) => e.id === id);
-    if (entry) {
-      alert(`Se crearía una orden a partir del evento ${entry.id} (${EVENT_TYPE_CONFIG[entry.eventType].label}) del vehículo ${entry.vehiclePlate}`);
-    }
-  }, [entries]);
+    setCreateOrderModal({ open: true, entryId: id });
+  }, []);
+
+  const handleCreateOrderConfirm = useCallback((data: {
+    entryId: string; priority: string; serviceType: string; notes: string; reference: string;
+  }) => {
+    const orderNumber = `ORD-BIT-${Date.now().toString(36).toUpperCase()}`;
+    updateEntry(data.entryId, {
+      status: 'order_created' as const,
+      createdOrderId: `order-${Date.now()}`,
+      createdOrderNumber: orderNumber,
+      operatorNotes: data.notes || undefined,
+    });
+    setCreateOrderModal({ open: false, entryId: null });
+    showAlert('Orden creada exitosamente', `Se generó la orden ${orderNumber} a partir del evento de bitácora.`, 'success');
+  }, [updateEntry, showAlert]);
 
   const handleAssignToOrder = useCallback((id: string) => {
-    const entry = entries.find((e) => e.id === id);
-    if (entry) {
-      alert(`Se asignaría el evento ${entry.id} (${EVENT_TYPE_CONFIG[entry.eventType].label}) del vehículo ${entry.vehiclePlate} a una orden existente`);
+    setAssignOrderModal({ open: true, entryId: id });
+  }, []);
+
+  const handleAssignToOrderConfirm = useCallback((entryId: string, orderId: string, orderNumber: string) => {
+    updateEntry(entryId, {
+      relatedOrderId: orderId,
+      relatedOrderNumber: orderNumber,
+    });
+    setAssignOrderModal({ open: false, entryId: null });
+    showAlert('Evento asignado', `El evento ha sido vinculado a la orden ${orderNumber}.`, 'success');
+  }, [updateEntry, showAlert]);
+
+  const handleViewOnMap = useCallback((id: string) => {
+    setViewMapModal({ open: true, entryId: id });
+  }, []);
+
+  const handleMarkReviewed = useCallback((id: string) => {
+    setReviewConfirm({ open: true, entryId: id });
+  }, []);
+
+  const handleMarkReviewedConfirm = useCallback(() => {
+    if (reviewConfirm.entryId) {
+      updateEntry(reviewConfirm.entryId, {
+        status: 'reviewed' as const,
+        reviewedBy: 'Operador TMS',
+        reviewedAt: new Date().toISOString(),
+      });
+      showAlert('Estado actualizado', 'El evento ha sido marcado como revisado.', 'success');
     }
-  }, [entries]);
+    setReviewConfirm({ open: false, entryId: null });
+  }, [reviewConfirm.entryId, updateEntry, showAlert]);
+
+  const handleAddNotes = useCallback((id: string) => {
+    setAddNotesModal({ open: true, entryId: id });
+  }, []);
+
+  const handleAddNotesConfirm = useCallback((entryId: string, notes: string) => {
+    updateEntry(entryId, { operatorNotes: notes });
+    setAddNotesModal({ open: false, entryId: null });
+    showAlert('Notas guardadas', 'Las notas del operador se han actualizado correctamente.', 'success');
+  }, [updateEntry, showAlert]);
+
+  const handleViewDetails = useCallback((id: string) => {
+    setDetailModal({ open: true, entryId: id });
+  }, []);
+
+  const handleDiscard = useCallback((id: string) => {
+    setDiscardConfirm({ open: true, entryId: id });
+  }, []);
+
+  const handleDiscardConfirm = useCallback(() => {
+    if (discardConfirm.entryId) {
+      updateEntry(discardConfirm.entryId, { status: 'dismissed' as const });
+      showAlert('Evento descartado', 'El evento ha sido descartado correctamente.', 'warning');
+    }
+    setDiscardConfirm({ open: false, entryId: null });
+  }, [discardConfirm.entryId, updateEntry, showAlert]);
 
   const activeFilterCount = [
     eventTypeFilter.length > 0 ? 'eventType' : null,
@@ -878,6 +986,11 @@ export function BitacoraView({
                   onToggle={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
                   onCreateOrder={handleCreateOrder}
                   onAssignToOrder={handleAssignToOrder}
+                  onViewOnMap={handleViewOnMap}
+                  onMarkReviewed={handleMarkReviewed}
+                  onAddNotes={handleAddNotes}
+                  onViewDetails={handleViewDetails}
+                  onDiscard={handleDiscard}
                 />
               ))}
             </>
@@ -892,6 +1005,89 @@ export function BitacoraView({
       {activeTab === 'geofences' && (
         <GeofenceSummaryTable summaries={geofenceSummaries} />
       )}
+
+      {/* Modal de alerta */}
+      <AlertModal
+        open={alertModal.open}
+        onOpenChange={(open) => setAlertModal((prev) => ({ ...prev, open }))}
+        title={alertModal.title}
+        description={alertModal.description}
+        variant={alertModal.variant}
+      />
+
+      {/* Modal: Crear orden desde bitácora */}
+      <CreateOrderModal
+        open={createOrderModal.open}
+        onOpenChange={(open) => {
+          if (!open) setCreateOrderModal({ open: false, entryId: null });
+        }}
+        entry={createOrderModal.entryId ? findEntry(createOrderModal.entryId) : null}
+        onConfirm={handleCreateOrderConfirm}
+      />
+
+      {/* Modal: Asignar a orden existente */}
+      <AssignToOrderModal
+        open={assignOrderModal.open}
+        onOpenChange={(open) => {
+          if (!open) setAssignOrderModal({ open: false, entryId: null });
+        }}
+        entry={assignOrderModal.entryId ? findEntry(assignOrderModal.entryId) : null}
+        orders={mockOrders}
+        onConfirm={handleAssignToOrderConfirm}
+      />
+
+      {/* Modal: Agregar notas */}
+      <AddNotesModal
+        open={addNotesModal.open}
+        onOpenChange={(open) => {
+          if (!open) setAddNotesModal({ open: false, entryId: null });
+        }}
+        entry={addNotesModal.entryId ? findEntry(addNotesModal.entryId) : null}
+        onConfirm={handleAddNotesConfirm}
+      />
+
+      {/* Modal: Ver en mapa */}
+      <ViewOnMapModal
+        open={viewMapModal.open}
+        onOpenChange={(open) => {
+          if (!open) setViewMapModal({ open: false, entryId: null });
+        }}
+        entry={viewMapModal.entryId ? findEntry(viewMapModal.entryId) : null}
+      />
+
+      {/* Modal: Detalles completos */}
+      <EntryDetailModal
+        open={detailModal.open}
+        onOpenChange={(open) => {
+          if (!open) setDetailModal({ open: false, entryId: null });
+        }}
+        entry={detailModal.entryId ? findEntry(detailModal.entryId) : null}
+      />
+
+      {/* Confirmar: Marcar como revisado */}
+      <ConfirmDialog
+        open={reviewConfirm.open}
+        onOpenChange={(open) => {
+          if (!open) setReviewConfirm({ open: false, entryId: null });
+        }}
+        title="Marcar como revisado"
+        description="¿Está seguro de marcar este evento como revisado? Se registrará su usuario y la fecha de revisión."
+        confirmText="Marcar revisado"
+        onConfirm={handleMarkReviewedConfirm}
+      />
+
+      {/* Confirmar: Descartar evento */}
+      <ConfirmDialog
+        open={discardConfirm.open}
+        onOpenChange={(open) => {
+          if (!open) setDiscardConfirm({ open: false, entryId: null });
+        }}
+        title="Descartar evento"
+        description="¿Está seguro de descartar este evento? El evento se marcará como descartado y no aparecerá en las vistas principales."
+        confirmText="Descartar"
+        variant="destructive"
+        onConfirm={handleDiscardConfirm}
+      />
     </div>
   );
 }

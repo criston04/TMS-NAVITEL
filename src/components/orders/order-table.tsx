@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import {
   MoreHorizontal,
   AlertTriangle,
@@ -29,6 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from './order-card';
 import { printOrderReport } from './order-print-report';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 // SERVICE TYPE LABELS
 
@@ -120,6 +121,8 @@ function OrderTableComponent({
   onClick,
   className,
 }: Readonly<OrderTableProps>) {
+  const [printBlockedAlert, setPrintBlockedAlert] = useState(false);
+
   return (
     <div className={cn('rounded-md border bg-card overflow-x-auto', className)}>
       <Table className="min-w-[800px] lg:min-w-0">
@@ -320,7 +323,11 @@ function OrderTableComponent({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onClick(order)}>Ver detalles</DropdownMenuItem>
                       <DropdownMenuItem>Editar orden</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => printOrderReport(order)}>
+                      <DropdownMenuItem onClick={() => {
+                        if (!printOrderReport(order)) {
+                          setPrintBlockedAlert(true);
+                        }
+                      }}>
                         <Printer className="h-4 w-4 mr-2" />
                         Imprimir orden
                       </DropdownMenuItem>
@@ -332,6 +339,14 @@ function OrderTableComponent({
           })}
         </TableBody>
       </Table>
+
+      <AlertModal
+        open={printBlockedAlert}
+        onOpenChange={setPrintBlockedAlert}
+        title="Ventana bloqueada"
+        description="No se pudo abrir la ventana de impresión. Verifica que tu navegador no esté bloqueando los pop-ups."
+        variant="error"
+      />
     </div>
   );
 }

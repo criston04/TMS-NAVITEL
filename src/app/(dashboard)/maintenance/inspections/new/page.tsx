@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ClipboardCheck, ArrowLeft, Save } from 'lucide-react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle, InspectionType } from '@/types/maintenance';
 import Link from 'next/link';
@@ -62,6 +63,7 @@ export default function NewInspectionPage() {
   const [loading, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [errorAlert, setErrorAlert] = useState(false);
   const [formData, setFormData] = useState({
     vehicleId: '',
     inspectionType: '',
@@ -128,7 +130,7 @@ export default function NewInspectionPage() {
       router.push('/maintenance/inspections');
     } catch (error) {
       console.error('Error creating inspection:', error);
-      alert('Error al crear la inspección');
+      setErrorAlert(true);
     } finally {
       setLoading(false);
     }
@@ -329,6 +331,13 @@ export default function NewInspectionPage() {
           </Card>
         </div>
       </form>
+      <AlertModal
+        open={errorAlert}
+        onOpenChange={setErrorAlert}
+        title="Error"
+        description="Error al crear la inspección. Intente nuevamente."
+        variant="error"
+      />
     </div>
   );
 }

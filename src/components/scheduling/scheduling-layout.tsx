@@ -9,8 +9,6 @@ import {
   Maximize2,
   Minimize2,
   BarChart3,
-  Layers,
-  Wand2,
   History,
   Lock,
 } from 'lucide-react';
@@ -30,12 +28,11 @@ import { SchedulingTimeline } from './scheduling-timeline';
 import { SchedulingListView } from './scheduling-list-view';
 import { SchedulingKPICompact } from './scheduling-kpi-bar';
 import { AssignmentModal } from './assignment-modal';
-import { SchedulingBulkAssignment } from './scheduling-bulk-assignment';
 import { SchedulingOrderDetail } from './scheduling-order-detail';
 import { SchedulingCalendarFilters } from './scheduling-calendar-filters';
 import { SchedulingExport } from './scheduling-export';
 import { SchedulingNotifications } from './scheduling-notifications';
-import { SchedulingAutoAssign } from './scheduling-auto-assign';
+
 import { SchedulingGantt } from './scheduling-gantt';
 import { SchedulingAuditLog } from './scheduling-audit-log';
 import { SchedulingBlockDay } from './scheduling-block-day';
@@ -105,15 +102,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
     confirmAssignment,
     requestSuggestions,
     validateHOS,
-    // Feature 1: Bulk Assignment
-    selectedOrderIds,
-    setSelectedOrderIds,
-    isBulkModalOpen,
-    openBulkModal,
-    closeBulkModal,
-    bulkAssignResult,
-    isBulkAssigning,
-    confirmBulkAssignment,
     // Feature 2: Order Detail
     detailOrder,
     isDetailOpen,
@@ -129,13 +117,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
     markNotificationRead,
     dismissNotification,
     clearAllNotifications,
-    // Feature 7: Auto-Scheduling
-    isAutoScheduleOpen,
-    openAutoSchedule,
-    closeAutoSchedule,
-    isAutoScheduling,
-    autoScheduleResult,
-    confirmAutoSchedule,
     // Feature 8: Gantt
     ganttData,
     ganttStartDate,
@@ -178,8 +159,11 @@ export const SchedulingLayout = memo(function SchedulingLayout({
 
   const handleAddOrder = useCallback((date: Date) => {
     setSelectedDate(date);
-    // Podría abrir un selector de órdenes pendientes
-  }, [setSelectedDate]);
+    // Abrir modal con la primera orden pendiente para esa fecha
+    if (pendingOrders.length > 0) {
+      openAssignmentModal(pendingOrders[0], date);
+    }
+  }, [setSelectedDate, pendingOrders, openAssignmentModal]);
 
   const handleTimeSlotClick = useCallback((resourceId: string, hour: number) => {
     const date = new Date(currentMonth);
@@ -251,38 +235,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
                 onDismiss={dismissNotification}
                 onClearAll={clearAllNotifications}
               />
-
-              {/* Bulk Assignment */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={openBulkModal}
-                    disabled={pendingOrders.length === 0}
-                  >
-                    <Layers className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Asignación masiva</TooltipContent>
-              </Tooltip>
-
-              {/* Auto-Schedule */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={openAutoSchedule}
-                    disabled={pendingOrders.length === 0}
-                  >
-                    <Wand2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Auto-programación</TooltipContent>
-              </Tooltip>
 
               {/* Block Day */}
               <Tooltip>
@@ -406,7 +358,7 @@ export const SchedulingLayout = memo(function SchedulingLayout({
               className="absolute left-2 top-2 z-30 shadow-md md:hidden"
               onClick={() => setIsSidebarCollapsed(false)}
             >
-              <Layers className="h-4 w-4 mr-1" />
+              <List className="h-4 w-4 mr-1" />
               Pendientes
             </Button>
           )}
@@ -494,6 +446,7 @@ export const SchedulingLayout = memo(function SchedulingLayout({
           order={assignmentModal.order}
           proposedDate={assignmentModal.proposedDate}
           vehicles={vehicles}
+          drivers={drivers}
           suggestions={suggestions}
           conflicts={conflicts}
           hosValidation={hosValidation}
@@ -504,29 +457,6 @@ export const SchedulingLayout = memo(function SchedulingLayout({
           onConfirm={confirmAssignment}
           onRequestSuggestions={requestSuggestions}
           onValidateHOS={validateHOS}
-        />
-
-        {/* Feature 1: Bulk Assignment Dialog */}
-        <SchedulingBulkAssignment
-          open={isBulkModalOpen}
-          pendingOrders={pendingOrders}
-          selectedOrderIds={selectedOrderIds}
-          vehicles={vehicles}
-          isLoading={isBulkAssigning}
-          lastResult={bulkAssignResult}
-          onClose={closeBulkModal}
-          onSelectionChange={setSelectedOrderIds}
-          onConfirm={confirmBulkAssignment}
-        />
-
-        {/* Feature 7: Auto-Schedule Dialog */}
-        <SchedulingAutoAssign
-          open={isAutoScheduleOpen}
-          pendingCount={pendingOrders.length}
-          isLoading={isAutoScheduling}
-          result={autoScheduleResult}
-          onClose={closeAutoSchedule}
-          onConfirm={confirmAutoSchedule}
         />
 
         {/* Feature 10: Block Day Dialog */}

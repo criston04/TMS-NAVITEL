@@ -21,6 +21,7 @@ import {
   FileText,
   ClipboardEdit,
   Trash2,
+  Printer,
 } from 'lucide-react';
 // No se necesitan imports de tipo aquí, se infieren de los hooks
 
@@ -29,6 +30,7 @@ import { useWorkflowProgress } from '@/hooks/useWorkflows';
 import { useOrderIncidents } from '@/hooks/useIncidents';
 import { useOrderExport } from '@/hooks/useOrderImportExport';
 import { useToast } from '@/components/ui/toast';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { useTranslations } from '@/contexts/locale-context';
 
 // Componentes
@@ -39,7 +41,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { OrderTimeline, STATUS_CONFIG, PRIORITY_CONFIG, MilestoneManualEntryModal } from '@/components/orders';
+import { OrderTimeline, STATUS_CONFIG, PRIORITY_CONFIG, MilestoneManualEntryModal, printOrderReport } from '@/components/orders';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,6 +161,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const { exportOrders } = useOrderExport();
   const { success: toastSuccess, error: toastError } = useToast();
   const t = useTranslations();
+  const [printBlockedAlert, setPrintBlockedAlert] = useState(false);
 
   // Navegación
   const handleBack = useCallback(() => {
@@ -335,6 +338,9 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                 Enviar
               </Button>
             )}
+            <Button variant="outline" size="icon" onClick={() => { if (!printOrderReport(order)) setPrintBlockedAlert(true); }} title="Imprimir orden">
+              <Printer className="w-4 h-4" />
+            </Button>
             <Button variant="outline" size="icon" onClick={handleExport}>
               <Download className="w-4 h-4" />
             </Button>
@@ -743,6 +749,13 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AlertModal
+        open={printBlockedAlert}
+        onOpenChange={setPrintBlockedAlert}
+        title="Ventana bloqueada"
+        description="El navegador bloqueó la ventana de impresión. Por favor, permita las ventanas emergentes para este sitio e intente nuevamente."
+        variant="error"
+      />
     </PageWrapper>
   );
 }

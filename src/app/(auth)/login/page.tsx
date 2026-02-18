@@ -35,7 +35,10 @@ export default function LoginPage() {
           id: "1",
           name: "John Doe",
           email: formData.email,
-          role: "admin",
+          role: "owner",
+          tenantId: "tenant-1",
+          tenantName: "Demo Transport S.A.C.",
+          isActive: true,
         });
         router.push("/");
       } else {

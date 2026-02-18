@@ -149,8 +149,8 @@ export const SchedulingOrderDetail = memo(function SchedulingOrderDetail({
       </div>
 
       {/* Contenido */}
-      <ScrollArea className="h-[calc(100vh-120px)]">
-        <div className="p-4 space-y-4">
+      <ScrollArea className="h-[calc(100vh-56px-56px)]">
+        <div className="p-4 pb-16 space-y-4">
           {/* Orden Header */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">

@@ -40,6 +40,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import type { SecuritySettings as SecuritySettingsType } from "@/types/settings";
+import { AlertModal } from "@/components/ui/alert-modal";
 
 interface SecuritySettingsProps {
   settings?: SecuritySettingsType;
@@ -111,6 +112,7 @@ export function SecuritySettings({
   });
 
   const [sessions] = useState<LoginSession[]>(mockSessions);
+  const [passwordAlert, setPasswordAlert] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -133,7 +135,7 @@ export function SecuritySettings({
 
   const handleChangePassword = () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      setPasswordAlert(true);
       return;
     }
     // Aquí iría la lógica para cambiar la contraseña
@@ -502,6 +504,14 @@ export function SecuritySettings({
           Guardar Cambios
         </Button>
       </div>
+
+      <AlertModal
+        open={passwordAlert}
+        onOpenChange={setPasswordAlert}
+        title="Contraseñas no coinciden"
+        description="La nueva contraseña y su confirmación deben ser iguales. Por favor verifica e intenta nuevamente."
+        variant="warning"
+      />
     </div>
   );
 }

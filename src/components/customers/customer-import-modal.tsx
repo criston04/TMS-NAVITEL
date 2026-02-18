@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { AlertModal } from "@/components/ui/alert-modal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -117,6 +118,7 @@ export function CustomerImportModal({
   const [importProgress, setImportProgress] = useState(0);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [fileTypeAlert, setFileTypeAlert] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Resetear estado al cerrar
@@ -272,7 +274,7 @@ export function CustomerImportModal({
     ];
     
     if (!validTypes.includes(selectedFile.type) && !selectedFile.name.endsWith(".csv")) {
-      alert("Por favor seleccione un archivo CSV o Excel válido");
+      setFileTypeAlert(true);
       return;
     }
 
@@ -346,6 +348,7 @@ export function CustomerImportModal({
   const errorCount = parsedRows.filter(r => r.status === "error").length;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
@@ -619,5 +622,13 @@ export function CustomerImportModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AlertModal
+      open={fileTypeAlert}
+      onOpenChange={setFileTypeAlert}
+      title="Archivo inválido"
+      description="Por favor seleccione un archivo CSV o Excel válido."
+      variant="warning"
+    />
+    </>
   );
 }

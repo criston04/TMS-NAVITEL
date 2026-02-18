@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Truck, ArrowLeft, Save } from 'lucide-react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
@@ -27,6 +28,7 @@ export default function NewVehiclePage() {
   const router = useRouter();
   const maintenance = useMaintenance();
   const [loading, setLoading] = useState(false);
+  const [errorAlert, setErrorAlert] = useState(false);
   const [formData, setFormData] = useState({
     plate: '',
     type: 'truck' as Vehicle['type'],
@@ -68,7 +70,7 @@ export default function NewVehiclePage() {
       router.push('/maintenance/vehicles');
     } catch (error) {
       console.error('Error creating vehicle:', error);
-      alert('Error al crear el vehículo');
+      setErrorAlert(true);
     } finally {
       setLoading(false);
     }
@@ -304,6 +306,13 @@ export default function NewVehiclePage() {
           </div>
         </Card>
       </form>
+      <AlertModal
+        open={errorAlert}
+        onOpenChange={setErrorAlert}
+        title="Error"
+        description="Error al crear el vehículo. Intente nuevamente."
+        variant="error"
+      />
     </div>
   );
 }

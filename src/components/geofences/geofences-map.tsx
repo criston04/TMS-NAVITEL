@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { AlertModal } from "@/components/ui/alert-modal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { X, Save } from "lucide-react";
 import ColorPicker from "@/components/geofences/color-picker";
 import { 
@@ -51,6 +53,8 @@ export function GeofencesMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const [editingGeofence, setEditingGeofence] = useState<Geofence | null>(null);
   const [kmlImportProgress, setKmlImportProgress] = useState<{ current: number; total: number } | null>(null);
+  const [alertModal, setAlertModal] = useState<{ open: boolean; title: string; description: string; variant: 'info' | 'success' | 'warning' | 'error' }>({ open: false, title: '', description: '', variant: 'error' });
+  const [kmlConfirm, setKmlConfirm] = useState<{ open: boolean; message: string; resolve: ((value: boolean) => void) | null }>({ open: false, message: '', resolve: null });
   const eventsRegisteredRef = useRef(false);
   const initializingRef = useRef(false);
 
@@ -580,9 +584,13 @@ export function GeofencesMap({
           const allFeatures = geojson.features || [];
           
           if (allFeatures.length > MAX_FEATURES) {
-            const proceed = confirm(
-              `El archivo KML contiene ${allFeatures.length} elementos. Se importarán solo los primeros ${MAX_FEATURES}. ¿Desea continuar?`
-            );
+            const proceed = await new Promise<boolean>((resolve) => {
+              setKmlConfirm({
+                open: true,
+                message: `El archivo KML contiene ${allFeatures.length} elementos. Se importarán solo los primeros ${MAX_FEATURES}. ¿Desea continuar?`,
+                resolve,
+              });
+            });
             if (!proceed) return;
           }
 
@@ -659,7 +667,7 @@ export function GeofencesMap({
         } catch (error) {
           console.error("Error importing KML:", error);
           setKmlImportProgress(null);
-          alert("Error al importar el archivo KML");
+          setAlertModal({ open: true, title: 'Error de importación', description: 'Error al importar el archivo KML. Verifique que el archivo sea válido.', variant: 'error' });
         }
       };
 
@@ -939,7 +947,7 @@ export function GeofencesMap({
       if (!drawnLayer) {
         console.error('❌ No se pudo encontrar el layer con id:', idToSearch);
         console.error('❌ Layers disponibles:', allLayers.map(l => l.geofenceId));
-        alert('Error: No se pudo encontrar la geocerca en el mapa.');
+        setAlertModal({ open: true, title: 'Error', description: 'No se pudo encontrar la geocerca en el mapa.', variant: 'error' });
         return;
       }
     }
@@ -950,7 +958,7 @@ export function GeofencesMap({
       console.error('❌ editingGeofence:', editingGeofence);
       console.error('❌ editingGeofenceId:', editingGeofenceId);
       console.error('❌ idToSearch:', idToSearch);
-      alert('Error: No hay layer para guardar');
+      setAlertModal({ open: true, title: 'Error', description: 'No hay layer para guardar.', variant: 'error' });
       return;
     }
     
@@ -1172,6 +1180,30 @@ export function GeofencesMap({
         )}
       </div>
 
+      <AlertModal
+        open={alertModal.open}
+        onOpenChange={(open) => setAlertModal(prev => ({ ...prev, open }))}
+        title={alertModal.title}
+        description={alertModal.description}
+        variant={alertModal.variant}
+      />
+      <ConfirmDialog
+        open={kmlConfirm.open}
+        onOpenChange={(open) => {
+          if (!open && kmlConfirm.resolve) {
+            kmlConfirm.resolve(false);
+          }
+          setKmlConfirm({ open: false, message: '', resolve: null });
+        }}
+        title="Importar KML"
+        description={kmlConfirm.message}
+        onConfirm={() => {
+          if (kmlConfirm.resolve) kmlConfirm.resolve(true);
+          setKmlConfirm({ open: false, message: '', resolve: null });
+        }}
+        confirmText="Continuar"
+        cancelText="Cancelar"
+      />
     </>
   );
 }

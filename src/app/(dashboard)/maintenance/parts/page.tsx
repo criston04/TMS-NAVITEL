@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { AlertModal } from '@/components/ui/alert-modal';
 import {
   Table,
   TableBody,
@@ -60,6 +61,7 @@ export default function PartsInventoryPage() {
   const [parts, setParts] = useState<Part[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [importAlert, setImportAlert] = useState<{ open: boolean; count: number }>({ open: false, count: 0 });
 
   useEffect(() => {
     loadData();
@@ -158,7 +160,7 @@ export default function PartsInventoryPage() {
           }
         }
         
-        alert(`Se importaron ${successCount} repuestos exitosamente`);
+        setImportAlert({ open: true, count: successCount });
         loadData();
       };
       reader.readAsText(file);
@@ -456,6 +458,13 @@ export default function PartsInventoryPage() {
           </div>
         )}
       </Card>
+      <AlertModal
+        open={importAlert.open}
+        onOpenChange={(open) => setImportAlert({ open, count: 0 })}
+        title="Importación exitosa"
+        description={`Se importaron ${importAlert.count} repuestos exitosamente.`}
+        variant="success"
+      />
     </div>
   );
 }

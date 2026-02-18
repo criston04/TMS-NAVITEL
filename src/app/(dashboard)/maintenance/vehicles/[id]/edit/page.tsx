@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Truck, ArrowLeft, Save, AlertCircle } from 'lucide-react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { useMaintenance } from '@/hooks/useMaintenance';
 import type { Vehicle } from '@/types/maintenance';
 import Link from 'next/link';
@@ -31,6 +32,7 @@ export default function EditVehiclePage() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [updateErrorAlert, setUpdateErrorAlert] = useState(false);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [formData, setFormData] = useState({
     plate: '',
@@ -103,7 +105,7 @@ export default function EditVehiclePage() {
       router.push(`/maintenance/vehicles/${vehicleId}`);
     } catch (error) {
       console.error('Error updating vehicle:', error);
-      alert('Error al actualizar el vehículo');
+      setUpdateErrorAlert(true);
     } finally {
       setSaving(false);
     }
@@ -367,6 +369,13 @@ export default function EditVehiclePage() {
           </div>
         </Card>
       </form>
+      <AlertModal
+        open={updateErrorAlert}
+        onOpenChange={setUpdateErrorAlert}
+        title="Error"
+        description="Error al actualizar el vehículo. Intente nuevamente."
+        variant="error"
+      />
     </div>
   );
 }

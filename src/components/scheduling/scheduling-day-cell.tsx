@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useState, useCallback } from 'react';
-import { Plus, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plus, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import type { ScheduledOrder, CalendarDayData } from '@/types/scheduling';
 import type { Order } from '@/types/order';
 import { Button } from '@/components/ui/button';
@@ -104,18 +104,19 @@ export const SchedulingDayCell = memo(function SchedulingDayCell({
         'relative flex flex-col min-h-30 border-r border-b',
         'transition-all duration-200',
         isOutsideMonth && 'bg-muted/30',
-        !isOutsideMonth && 'bg-card',
+        !isOutsideMonth && !dayData.isBlocked && 'bg-card',
+        dayData.isBlocked && 'bg-red-50/60 dark:bg-red-950/20',
         isToday && 'ring-2 ring-primary ring-inset',
-        isSelected && 'bg-primary/5',
-        (isDragOver || isDraggingOver) && 'bg-primary/10 ring-2 ring-primary ring-dashed',
-        isHovered && !isDraggingOver && 'bg-muted/50',
+        isSelected && !dayData.isBlocked && 'bg-primary/5',
+        (isDragOver || isDraggingOver) && !dayData.isBlocked && 'bg-primary/10 ring-2 ring-primary ring-dashed',
+        isHovered && !isDraggingOver && !dayData.isBlocked && 'bg-muted/50',
         // Compacto
         compact && 'min-h-20',
         className
       )}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      onDragOver={dayData.isBlocked ? undefined : handleDragOver}
+      onDragLeave={dayData.isBlocked ? undefined : handleDragLeave}
+      onDrop={dayData.isBlocked ? undefined : handleDrop}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onClick?.(dayData.date)}
@@ -159,6 +160,17 @@ export const SchedulingDayCell = memo(function SchedulingDayCell({
               </TooltipContent>
             </Tooltip>
           )}
+
+          {dayData.isBlocked && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Lock className="h-3.5 w-3.5 text-red-500" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Día bloqueado</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         {/* Contador y botón agregar */}
@@ -172,7 +184,7 @@ export const SchedulingDayCell = memo(function SchedulingDayCell({
             </Badge>
           )}
           
-          {(isHovered || isDraggingOver) && onAddOrder && (
+          {(isHovered || isDraggingOver) && onAddOrder && !dayData.isBlocked && (
             <Button
               variant="ghost"
               size="icon"
@@ -190,6 +202,14 @@ export const SchedulingDayCell = memo(function SchedulingDayCell({
 
       {/* Contenido del día - Órdenes */}
       <div className="flex-1 p-1 space-y-1 overflow-hidden">
+        {dayData.isBlocked && dayData.orders.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-1 text-red-400 dark:text-red-500/70">
+              <Lock className="h-4 w-4" />
+              <span className="text-[10px] font-medium">Bloqueado</span>
+            </div>
+          </div>
+        )}
         {visibleOrders.map(order => (
           <SchedulingOrderCard
             key={order.id}
@@ -222,11 +242,12 @@ export const SchedulingDayCell = memo(function SchedulingDayCell({
         <div
           className={cn(
             'h-full transition-all duration-300',
-            dayData.utilization < 50 && 'bg-green-500/50',
-            dayData.utilization >= 50 && dayData.utilization < 80 && 'bg-amber-500/50',
-            dayData.utilization >= 80 && 'bg-red-500/50'
+            dayData.isBlocked && 'bg-red-500/70',
+            !dayData.isBlocked && dayData.utilization < 50 && 'bg-green-500/50',
+            !dayData.isBlocked && dayData.utilization >= 50 && dayData.utilization < 80 && 'bg-amber-500/50',
+            !dayData.isBlocked && dayData.utilization >= 80 && 'bg-red-500/50'
           )}
-          style={{ width: `${Math.min(dayData.utilization, 100)}%` }}
+          style={{ width: dayData.isBlocked ? '100%' : `${Math.min(dayData.utilization, 100)}%` }}
         />
       </div>
     </div>
