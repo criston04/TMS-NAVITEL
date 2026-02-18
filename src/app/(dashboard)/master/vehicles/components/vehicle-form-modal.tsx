@@ -187,7 +187,7 @@ export function VehicleFormModal({
     data: operators, 
     loading: operatorsLoading 
   } = useService<Operator[]>(
-    () => operatorsService.getAll({ status: "active" }),
+    () => operatorsService.getAll({ status: "enabled" }),
     { immediate: true }
   );
 
